@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* interui escanea los controles de Python y el runtime JS para generar clases. */
+@source "../../interui/**/*.py";
+@source "../../interui/static/*.js";
+@source "../../interui/static/*.html";
+@source "./index.html";
+
+/* ------------------------------------------------------------------
+   Safelist: clases que se construyen dinámicamente en Python
+   (rejilla, separaciones por parámetro, tamaños de icono…).
+   ------------------------------------------------------------------ */
+@source inline("grid-cols-{1..12} col-span-{1..12} col-start-{1..13} row-span-{1..6} order-{1..12}");
+@source inline("{sm,md,lg,xl,2xl}:grid-cols-{1..12}");
+@source inline("{sm,md,lg,xl,2xl}:col-span-{1..12}");
+@source inline("gap-{0..12} gap-x-{0..12} gap-y-{0..12}");
+@source inline("p-{0..12} px-{0..12} py-{0..12} pt-{0..12} pb-{0..12} pl-{0..12} pr-{0..12}");
+@source inline("m-{0..12} mx-{0..12} my-{0..12} mt-{0..12} mb-{0..12} ml-{0..12} mr-{0..12}");
+@source inline("space-x-{0..8} space-y-{0..8}");
+@source inline("h-{2..16} w-{2..16} size-{2..16}");
+@source inline("min-h-{8,12,16,20,24,32,40,48,56,64} min-w-{8,12,16,20,24,32,40}");
+@source inline("max-h-{8,12,16,24,32,40,48,56,64,72,80,96} max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,none,prose}");
+@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("font-{thin,extralight,light,normal,medium,semibold,bold,extrabold,black}");
+@source inline("leading-{none,tight,snug,normal,relaxed,loose}");
+@source inline("text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl}");
+@source inline("grid-cols-{1..6} sm:grid-cols-{1..6} md:grid-cols-{1..6} lg:grid-cols-{1..6}");
+
+/* El modo oscuro se activa con la clase .dark en <html>. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------
+   Tokens de marca. Cambia estos valores y vuelve a compilar para
+   reestilizar todo el framework. Las utilidades `indigo-*` y `slate-*`
+   son las que usan los controles.
+   ------------------------------------------------------------------ */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Ejemplo de redefinición de la paleta de acento:
+     --color-indigo-600: oklch(0.55 0.22 275);
+     --color-indigo-500: oklch(0.62 0.21 275);
+     --color-indigo-400: oklch(0.72 0.18 275);
+  */
+}
+
+/* ------------------------------------------------------------------
+   Detalles nativos que Tailwind no cubre con utilidades.
+   ------------------------------------------------------------------ */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-indigo-500) 25%, transparent);
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--color-slate-300);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--color-slate-700);
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    height: 1.15rem;
+    width: 1.15rem;
+    border-radius: 9999px;
+    background-color: var(--color-indigo-600);
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+    cursor: pointer;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    height: 1.15rem;
+    width: 1.15rem;
+    border-radius: 9999px;
+    background-color: var(--color-indigo-600);
+    border: 2px solid white;
+    cursor: pointer;
+  }
+
+  select.iui-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 1.1rem;
+    padding-right: 2.25rem;
+  }
+
+  .dark select.iui-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  select.iui-select[multiple] {
+    background-image: none;
+    padding-right: 0.5rem;
+  }
+
+  [contenteditable]:empty::before {
+    content: attr(data-placeholder);
+    color: var(--color-slate-400);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

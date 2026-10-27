@@ -1,0 +1,17 @@
+{
+  "name": "interui-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Compilación de Tailwind CSS para interui (Vite + Tailwind v4)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "watch": "vite build --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "vite": "^7.0.0"
+  }
+}

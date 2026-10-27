@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>interui · taller de estilos</title>
+    <link rel="stylesheet" href="/src/styles.css" />
+  </head>
+  <body class="min-h-screen bg-slate-50 p-8 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <main class="mx-auto flex max-w-3xl flex-col gap-6">
+      <header class="flex flex-col gap-2">
+        <h1 class="text-3xl font-bold tracking-tight">Taller de estilos de interui</h1>
+        <p class="text-slate-500 dark:text-slate-400">
+          Este playground existe solo para ajustar el tema. Edita
+          <code class="rounded bg-slate-200 px-1.5 py-0.5 font-mono text-sm dark:bg-slate-800">src/styles.css</code>
+          y Vite recargará los estilos al instante. Los cambios se aplican a la app de Python cuando
+          ejecutas <code class="rounded bg-slate-200 px-1.5 py-0.5 font-mono text-sm dark:bg-slate-800">npm run build</code>.
+        </p>
+      </header>
+
+      <section class="grid gap-4 sm:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Controles</p>
+          <p class="mt-1 text-2xl font-semibold">+120</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Dependencias</p>
+          <p class="mt-1 text-2xl font-semibold">0</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Rejilla</p>
+          <p class="mt-1 text-2xl font-semibold">12 col</p>
+        </div>
+      </section>
+
+      <section class="flex flex-wrap items-center gap-2">
+        <button type="button" class="inline-flex h-10 items-center gap-2 rounded-lg bg-indigo-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500">
+          Primario
+        </button>
+        <button type="button" class="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-800 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+          Contorno
+        </button>
+        <button type="button" class="inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800">
+          Fantasma
+        </button>
+        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300">
+          listo
+        </span>
+      </section>
+
+      <section class="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+        <input
+          type="range"
+          min="0"
+          max="100"
+          value="60"
+          class="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-indigo-600 dark:bg-slate-700"
+        />
+        <div class="mt-4 flex items-center gap-3">
+          <input
+            type="search"
+            placeholder="Buscar…"
+            class="h-10 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 focus:outline-none dark:border-slate-700 dark:bg-slate-900"
+          />
+          <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 font-semibold text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+            AR
+          </span>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

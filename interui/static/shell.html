@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es" class="%%THEME%%" data-theme="%%THEME%%">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>%%TITLE%%</title>
+    <link rel="stylesheet" href="/static/app.css?v=%%VERSION%%" />
+    <link rel="icon" href="/static/favicon.svg" />
+    <script>
+      window.__INTERUI__ = %%CONFIG%%;
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    %%CONTENT%%
+    <div
+      id="iui-toasts"
+      class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-2"
+    ></div>
+    <div
+      id="iui-status"
+      class="pointer-events-none fixed bottom-3 left-3 z-[100] hidden items-center gap-2 rounded-full bg-rose-600 px-3 py-1 text-xs font-medium text-white shadow-lg"
+    >
+      <span class="h-2 w-2 animate-pulse rounded-full bg-white"></span>
+      <span id="iui-status-text">Reconectando…</span>
+    </div>
+    <script type="module" src="/static/interui.js?v=%%VERSION%%"></script>
+  </body>
+</html>

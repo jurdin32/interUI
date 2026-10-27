@@ -1,0 +1,40 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "interui"
+version = "0.1.0"
+description = "Framework declarativo para construir interfaces gráficas de Python con HTML, CSS (Tailwind) y JavaScript."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "interui" }]
+keywords = ["gui", "html", "tailwindcss", "webview", "desktop", "ui"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Desktop Environment",
+  "Topic :: Software Development :: User Interfaces",
+]
+dependencies = []
+
+[project.optional-dependencies]
+desktop = ["pywebview>=4.4"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+interui = "interui.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["interui"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"interui/static" = "interui/static"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
