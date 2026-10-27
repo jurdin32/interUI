@@ -23,7 +23,16 @@ import interui as ui
 | `style` | `str` / `dict` | Estilos en línea. |
 | `data` | `dict` | Atributos `data-*` (comportamientos del cliente). |
 | `aria` | `dict` | Atributos `aria-*`. |
-| `on_*` | `callable` | Handler en Python (`on_click`, `on_change`, `on_input`, `on_submit`, `on_enter`, …). |
+| `on_*` | `callable` | Handler en Python. Puede ser una función sin argumentos, una función que recibe el evento o **una señal** (`on_input=nombre`). |
+
+Además:
+
+* **Todos los controles tienen alias en minúsculas**: `ui.button` es `ui.Button`,
+  `ui.data_table` es `ui.DataTable`… Se muestran bajo cada título.
+* **Los hijos pueden ser señales o funciones**: `text("Total: ", total)` y
+  `text(lambda: f"{total.get() * 2}")` se recalculan en cada render.
+* Para una ventana con texto y botón en pocas líneas: `ui.window(...)`, `ui.state(...)`,
+  `ui.row(...)` (ver [la guía](guia.md)).
 
 Los hijos se pasan como posicionales y se pueden añadir después con `(...)`:
 
@@ -37,6 +46,8 @@ card(ui.Text("mundo"))
 
 ### `ui.AspectRatio`
 
+Alias en minúsculas: `ui.aspect_ratio`
+
 Mantiene una proporción fija.
 
 ```text
@@ -48,6 +59,8 @@ ui.AspectRatio(ui.Center(ui.Text("16:9")), ratio="video")
 ```
 
 ### `ui.Center`
+
+Alias en minúsculas: `ui.center`
 
 Centra el contenido en ambos ejes.
 
@@ -61,6 +74,8 @@ ui.Center(ui.Text("centrado"), class_="h-40")
 
 ### `ui.Col`
 
+Alias en minúsculas: `ui.col`
+
 Columna responsive (`span`, `sm`, `md`, `lg`, `xl`, `xxl`).
 
 ```text
@@ -72,6 +87,8 @@ ui.Row(ui.Col(span=12, md=6, lg=4)(ui.Text("12 → 6 → 4 columnas")))
 ```
 
 ### `ui.Container`
+
+Alias en minúsculas: `ui.container`
 
 Centra el contenido y limita el ancho máximo.
 
@@ -85,6 +102,8 @@ ui.Container(size="prose")(ui.Text("ancho limitado y centrado"))
 
 ### `ui.Divider`
 
+Alias en minúsculas: `ui.divider`
+
 Separador con etiqueta opcional.
 
 ```text
@@ -96,6 +115,8 @@ ui.Divider("o")
 ```
 
 ### `ui.Grid`
+
+Alias en minúsculas: `ui.grid`
 
 Rejilla nativa de Tailwind (columnas por breakpoint).
 
@@ -121,6 +142,8 @@ ui.Row(ui.Col(span=6)(ui.Text("izquierda")), ui.Col(span=6)(ui.Text("derecha")))
 
 ### `ui.Screen`
 
+Alias en minúsculas: `ui.screen`
+
 Raíz de la ventana: ocupa todo el alto y define el fondo del tema.
 
 ```text
@@ -132,6 +155,8 @@ ui.Screen(ui.Text("contenido de la ventana"), class_="p-6")
 ```
 
 ### `ui.ScrollArea`
+
+Alias en minúsculas: `ui.scroll_area`
 
 Área con scroll y altura máxima.
 
@@ -145,6 +170,8 @@ ui.ScrollArea(ui.Text("mucho contenido"), max_h="48")
 
 ### `ui.Spacer`
 
+Alias en minúsculas: `ui.spacer`
+
 Empuja el contenido en un flexbox.
 
 ```python
@@ -152,6 +179,8 @@ ui.Stack(ui.Text("izq"), ui.Spacer(), ui.Text("der"), direction="row")
 ```
 
 ### `ui.Stack`
+
+Alias en minúsculas: `ui.stack`
 
 Apila hijos en vertical u horizontal con separación uniforme.
 
@@ -168,6 +197,8 @@ ui.Stack(ui.Text("uno"), ui.Text("dos"), direction="row", gap=3)
 
 ### `ui.Announcement`
 
+Alias en minúsculas: `ui.announcement`
+
 Franja de anuncio a todo el ancho.
 
 ```text
@@ -179,6 +210,8 @@ ui.Announcement("Nueva versión disponible")
 ```
 
 ### `ui.Badge`
+
+Alias en minúsculas: `ui.badge`
 
 Etiqueta compacta con variantes de color.
 
@@ -192,6 +225,8 @@ ui.Badge("nuevo", variant="success", dot=True)
 
 ### `ui.Blockquote`
 
+Alias en minúsculas: `ui.blockquote`
+
 Cita con autor opcional.
 
 ```text
@@ -203,6 +238,8 @@ ui.Blockquote("La simplicidad es la máxima sofisticación.", cite="Leonardo")
 ```
 
 ### `ui.Chip`
+
+Alias en minúsculas: `ui.chip`
 
 Etiqueta con botón de borrado.
 
@@ -216,6 +253,8 @@ ui.Chip("python", variant="primary")
 
 ### `ui.Code`
 
+Alias en minúsculas: `ui.code`
+
 Código en línea.
 
 ```text
@@ -227,6 +266,8 @@ ui.Code("pip install interui")
 ```
 
 ### `ui.CodeBlock`
+
+Alias en minúsculas: `ui.code_block`
 
 Bloque de código con botón de copiar.
 
@@ -240,6 +281,8 @@ ui.CodeBlock("print('hola')", language="python", filename="demo.py")
 
 ### `ui.Em`
 
+Alias en minúsculas: `ui.em`
+
 Texto en cursiva semántica.
 
 ```text
@@ -251,6 +294,8 @@ ui.Em("énfasis")
 ```
 
 ### `ui.Heading`
+
+Alias en minúsculas: `ui.heading`
 
 Encabezado `h1`–`h6`.
 
@@ -264,6 +309,8 @@ ui.Heading("Sección", level=2)
 
 ### `ui.Kbd`
 
+Alias en minúsculas: `ui.kbd`
+
 Tecla de teclado.
 
 ```text
@@ -275,6 +322,8 @@ ui.Stack(ui.Kbd("Ctrl"), ui.Kbd("K"), direction="row", gap=1)
 ```
 
 ### `ui.Label`
+
+Alias en minúsculas: `ui.label`
 
 Etiqueta de campo.
 
@@ -288,6 +337,8 @@ ui.Label("Correo electrónico", for_="campo", required=True)
 
 ### `ui.Lead`
 
+Alias en minúsculas: `ui.lead`
+
 Entradilla destacada.
 
 ```text
@@ -299,6 +350,8 @@ ui.Lead("Entradilla que resume el contenido.")
 ```
 
 ### `ui.Link`
+
+Alias en minúsculas: `ui.link`
 
 Enlace interno o externo.
 
@@ -312,6 +365,8 @@ ui.Link("Documentación", href="https://tailwindcss.com")
 
 ### `ui.Mark`
 
+Alias en minúsculas: `ui.mark`
+
 Texto resaltado.
 
 ```text
@@ -323,6 +378,8 @@ ui.Mark("resaltado")
 ```
 
 ### `ui.Muted`
+
+Alias en minúsculas: `ui.muted`
 
 Texto secundario atenuado.
 
@@ -336,6 +393,8 @@ ui.Muted("Texto secundario")
 
 ### `ui.Paragraph`
 
+Alias en minúsculas: `ui.paragraph`
+
 Párrafo con interlineado relajado.
 
 ```text
@@ -347,6 +406,8 @@ ui.Paragraph("Un párrafo con interlineado relajado para leer cómodo.")
 ```
 
 ### `ui.Small`
+
+Alias en minúsculas: `ui.small`
 
 Nota de tamaño reducido.
 
@@ -360,6 +421,8 @@ ui.Small("nota al pie")
 
 ### `ui.Strong`
 
+Alias en minúsculas: `ui.strong`
+
 Texto en negrita semántica.
 
 ```text
@@ -371,6 +434,8 @@ ui.Strong("importante")
 ```
 
 ### `ui.Text`
+
+Alias en minúsculas: `ui.text`
 
 Texto con tamaño, tono y peso.
 
@@ -399,6 +464,8 @@ ui.Title("Mi aplicación", subtitle="Subtítulo descriptivo")
 
 ### `ui.Button`
 
+Alias en minúsculas: `ui.button`
+
 Botón con variantes, tamaños, iconos y estado de carga.
 
 ```text
@@ -410,6 +477,8 @@ ui.Button("Guardar", icon="check", variant="primary", on_click=lambda: None)
 ```
 
 ### `ui.ButtonGroup`
+
+Alias en minúsculas: `ui.button_group`
 
 Botones pegados horizontal o verticalmente.
 
@@ -423,6 +492,8 @@ ui.ButtonGroup(ui.Button("Día", variant="outline"), ui.Button("Semana", variant
 
 ### `ui.CopyButton`
 
+Alias en minúsculas: `ui.copy_button`
+
 Copia un texto al portapapeles sin ir al servidor.
 
 ```text
@@ -434,6 +505,8 @@ ui.CopyButton("texto que se copia")
 ```
 
 ### `ui.Fab`
+
+Alias en minúsculas: `ui.fab`
 
 Botón flotante de acción.
 
@@ -447,6 +520,8 @@ ui.Fab("plus", label="Nuevo")
 
 ### `ui.IconButton`
 
+Alias en minúsculas: `ui.icon_button`
+
 Botón cuadrado solo con icono.
 
 ```text
@@ -459,6 +534,8 @@ ui.IconButton("settings", label="Ajustes", variant="outline")
 
 ### `ui.LinkButton`
 
+Alias en minúsculas: `ui.link_button`
+
 Botón con apariencia de botón que navega a `href`.
 
 ```text
@@ -470,6 +547,8 @@ ui.Button("Ir a ajustes", href="/ajustes", variant="outline")
 ```
 
 ### `ui.Spinner`
+
+Alias en minúsculas: `ui.spinner`
 
 Indicador de carga animado.
 
@@ -486,6 +565,8 @@ ui.Spinner(size=5)
 
 ### `ui.Checkbox`
 
+Alias en minúsculas: `ui.checkbox`
+
 Casilla con etiqueta.
 
 ```text
@@ -497,6 +578,8 @@ ui.Checkbox("Acepto los términos", checked=True)
 ```
 
 ### `ui.CheckboxGroup`
+
+Alias en minúsculas: `ui.checkbox_group`
 
 Grupo de casillas.
 
@@ -510,6 +593,8 @@ ui.CheckboxGroup(["Correo", "Push", "SMS"], values=["Push"], label="Canales")
 
 ### `ui.ColorInput`
 
+Alias en minúsculas: `ui.color_input`
+
 Selector de color.
 
 ```text
@@ -521,6 +606,8 @@ ui.ColorInput("#4f46e5", label="Color de marca")
 ```
 
 ### `ui.Combobox`
+
+Alias en minúsculas: `ui.combobox`
 
 Texto con sugerencias (`datalist`).
 
@@ -534,6 +621,8 @@ ui.Combobox("", items=["Madrid", "Barcelona"], label="Ciudad")
 
 ### `ui.Datalist`
 
+Alias en minúsculas: `ui.datalist`
+
 Lista de sugerencias suelta.
 
 ```text
@@ -545,6 +634,8 @@ ui.Datalist(["uno", "dos"])
 ```
 
 ### `ui.DateInput`
+
+Alias en minúsculas: `ui.date_input`
 
 Selector de fecha.
 
@@ -558,6 +649,8 @@ ui.DateInput("2026-01-31", label="Fecha")
 
 ### `ui.DateRangeInput`
 
+Alias en minúsculas: `ui.date_range_input`
+
 Rango de fechas.
 
 ```text
@@ -569,6 +662,8 @@ ui.DateRangeInput("2026-01-01", "2026-01-31", label="Periodo")
 ```
 
 ### `ui.DateTimeInput`
+
+Alias en minúsculas: `ui.date_time_input`
 
 Fecha y hora.
 
@@ -582,6 +677,8 @@ ui.DateTimeInput("2026-01-31T09:30", label="Fecha y hora")
 
 ### `ui.Dropzone`
 
+Alias en minúsculas: `ui.dropzone`
+
 Zona de arrastrar y soltar archivos.
 
 ```text
@@ -593,6 +690,8 @@ ui.Dropzone(label="Suelta archivos aquí", accept=".csv")
 ```
 
 ### `ui.EmailInput`
+
+Alias en minúsculas: `ui.email_input`
 
 Campo de correo.
 
@@ -606,6 +705,8 @@ ui.EmailInput("", label="Correo", help_text="No lo compartiremos")
 
 ### `ui.Fieldset`
 
+Alias en minúsculas: `ui.fieldset`
+
 Grupo de campos con leyenda.
 
 ```text
@@ -617,6 +718,8 @@ ui.Fieldset(ui.Input("", label="Calle"), legend="Dirección")
 ```
 
 ### `ui.FileInput`
+
+Alias en minúsculas: `ui.file_input`
 
 Selector de archivos (se suben al proceso local).
 
@@ -630,6 +733,8 @@ ui.FileInput(label="Adjuntar", accept=".pdf,.txt", multiple=True)
 
 ### `ui.Form`
 
+Alias en minúsculas: `ui.form`
+
 Formulario que envía todos los campos a Python.
 
 ```text
@@ -641,6 +746,8 @@ ui.Form(ui.Input("", label="Nombre"), ui.Button("Enviar", submit=True), on_submi
 ```
 
 ### `ui.FormField`
+
+Alias en minúsculas: `ui.form_field`
 
 Envuelve un control con etiqueta, ayuda y error.
 
@@ -654,6 +761,8 @@ ui.FormField(ui.Input(""), label="Nombre", help_text="Como en tu DNI", required=
 
 ### `ui.HiddenInput`
 
+Alias en minúsculas: `ui.hidden_input`
+
 Campo oculto.
 
 ```text
@@ -665,6 +774,8 @@ ui.HiddenInput("abc123", name="token")
 ```
 
 ### `ui.Input`
+
+Alias en minúsculas: `ui.input`
 
 Campo de texto con etiqueta, ayuda, error e iconos.
 
@@ -678,6 +789,8 @@ ui.Input("", label="Nombre", placeholder="Ana Ruiz", icon="user", required=True)
 
 ### `ui.MonthInput`
 
+Alias en minúsculas: `ui.month_input`
+
 Selector de mes.
 
 ```text
@@ -689,6 +802,8 @@ ui.MonthInput("2026-01", label="Mes")
 ```
 
 ### `ui.MultiSelect`
+
+Alias en minúsculas: `ui.multi_select`
 
 Selección múltiple.
 
@@ -702,6 +817,8 @@ ui.MultiSelect([("a", "A"), ("b", "B"), ("c", "C")], values=["a"], label="Opcion
 
 ### `ui.NumberInput`
 
+Alias en minúsculas: `ui.number_input`
+
 Campo numérico con `min`, `max`, `step`.
 
 ```text
@@ -713,6 +830,8 @@ ui.NumberInput(3, label="Cantidad", min=0, max=99)
 ```
 
 ### `ui.OtpInput`
+
+Alias en minúsculas: `ui.otp_input`
 
 Código de un solo uso.
 
@@ -726,6 +845,8 @@ ui.OtpInput(6, label="Código de verificación")
 
 ### `ui.PasswordInput`
 
+Alias en minúsculas: `ui.password_input`
+
 Contraseña con botón para mostrarla.
 
 ```text
@@ -737,6 +858,8 @@ ui.PasswordInput("", label="Contraseña")
 ```
 
 ### `ui.Radio`
+
+Alias en minúsculas: `ui.radio`
 
 Opción de radio individual.
 
@@ -750,6 +873,8 @@ ui.Radio("Tarjeta", value="card", name="pago", checked=True)
 
 ### `ui.RadioGroup`
 
+Alias en minúsculas: `ui.radio_group`
+
 Grupo de radios, en lista o tarjetas.
 
 ```text
@@ -761,6 +886,8 @@ ui.RadioGroup(["Tarjeta", "Bizum"], value="Bizum", label="Pago")
 ```
 
 ### `ui.RangeSlider`
+
+Alias en minúsculas: `ui.range_slider`
 
 Rango con dos deslizadores.
 
@@ -774,6 +901,8 @@ ui.RangeSlider(20, 80, label="Precio")
 
 ### `ui.Rating`
 
+Alias en minúsculas: `ui.rating`
+
 Valoración por estrellas.
 
 ```text
@@ -785,6 +914,8 @@ ui.Rating(4, label="Valoración", on_change=lambda e: None)
 ```
 
 ### `ui.SearchInput`
+
+Alias en minúsculas: `ui.search_input`
 
 Buscador con eventos en vivo.
 
@@ -798,6 +929,8 @@ ui.SearchInput("", label="Buscar", live=True, on_input=lambda e: None)
 
 ### `ui.SegmentedControl`
 
+Alias en minúsculas: `ui.segmented_control`
+
 Selector de segmentos.
 
 ```text
@@ -809,6 +942,8 @@ ui.SegmentedControl([("d", "Día"), ("s", "Semana")], value="s", label="Vista")
 ```
 
 ### `ui.Select`
+
+Alias en minúsculas: `ui.select`
 
 Lista desplegable.
 
@@ -822,6 +957,8 @@ ui.Select([("es", "Español"), ("en", "English")], label="Idioma", value="es")
 
 ### `ui.Slider`
 
+Alias en minúsculas: `ui.slider`
+
 Deslizador numérico.
 
 ```text
@@ -833,6 +970,8 @@ ui.Slider(64, label="Volumen", unit=" %")
 ```
 
 ### `ui.Stepper`
+
+Alias en minúsculas: `ui.stepper`
 
 Contador con botones − / +.
 
@@ -846,6 +985,8 @@ ui.Stepper(2, label="Pasajeros", min=0, max=9)
 
 ### `ui.Switch`
 
+Alias en minúsculas: `ui.switch`
+
 Interruptor de encendido/apagado.
 
 ```text
@@ -857,6 +998,8 @@ ui.Switch("Recordarme", checked=True, help_text="En este equipo")
 ```
 
 ### `ui.TagInput`
+
+Alias en minúsculas: `ui.tag_input`
 
 Etiquetas con alta y baja.
 
@@ -870,6 +1013,8 @@ ui.TagInput(["python", "tailwind"], label="Etiquetas")
 
 ### `ui.TextInput`
 
+Alias en minúsculas: `ui.text_input`
+
 Alias de `Input` para texto.
 
 ```text
@@ -881,6 +1026,8 @@ ui.TextInput("valor inicial", label="Texto")
 ```
 
 ### `ui.Textarea`
+
+Alias en minúsculas: `ui.textarea`
 
 Área de texto multilínea.
 
@@ -894,6 +1041,8 @@ ui.Textarea("", label="Notas", rows=4, placeholder="Escribe aquí…")
 
 ### `ui.TimeInput`
 
+Alias en minúsculas: `ui.time_input`
+
 Selector de hora.
 
 ```text
@@ -905,6 +1054,8 @@ ui.TimeInput("09:30", label="Hora")
 ```
 
 ### `ui.ToggleGroup`
+
+Alias en minúsculas: `ui.toggle_group`
 
 Botones de alternancia.
 
@@ -918,6 +1069,8 @@ ui.ToggleGroup([("b", "Negrita"), ("i", "Cursiva")], values=["b"])
 
 ### `ui.ValidationSummary`
 
+Alias en minúsculas: `ui.validation_summary`
+
 Resumen de errores de validación.
 
 ```text
@@ -929,6 +1082,8 @@ ui.ValidationSummary(["El nombre es obligatorio", "Correo inválido"])
 ```
 
 ### `ui.WeekInput`
+
+Alias en minúsculas: `ui.week_input`
 
 Selector de semana.
 
@@ -945,6 +1100,8 @@ ui.WeekInput("2026-W05", label="Semana")
 
 ### `ui.DataTable`
 
+Alias en minúsculas: `ui.data_table`
+
 Tabla con orden, búsqueda, selección y paginación.
 
 ```text
@@ -956,6 +1113,8 @@ ui.DataTable(columns=[{"key": "nombre", "label": "Nombre", "sortable": True}], r
 ```
 
 ### `ui.DescriptionItem`
+
+Alias en minúsculas: `ui.description_item`
 
 Término y definición.
 
@@ -969,6 +1128,8 @@ ui.DescriptionItem("Licencia", "MIT")
 
 ### `ui.DescriptionList`
 
+Alias en minúsculas: `ui.description_list`
+
 Lista de definiciones.
 
 ```text
@@ -980,6 +1141,8 @@ ui.DescriptionList(ui.DescriptionItem("Versión", "0.1.0"))
 ```
 
 ### `ui.EmptyState`
+
+Alias en minúsculas: `ui.empty_state`
 
 Estado vacío con acción.
 
@@ -993,6 +1156,8 @@ ui.EmptyState(title="Sin proyectos", description="Crea el primero para empezar."
 
 ### `ui.JsonView`
 
+Alias en minúsculas: `ui.json_view`
+
 Visualizador de JSON.
 
 ```text
@@ -1004,6 +1169,8 @@ ui.JsonView({"id": 42, "tags": ["a", "b"], "activo": True})
 ```
 
 ### `ui.KeyValueGrid`
+
+Alias en minúsculas: `ui.key_value_grid`
 
 Pares clave/valor.
 
@@ -1017,6 +1184,8 @@ ui.KeyValueGrid({"Nombre": "interui", "Versión": "0.1.0"})
 
 ### `ui.ListGroup`
 
+Alias en minúsculas: `ui.list_group`
+
 Lista agrupada.
 
 ```text
@@ -1028,6 +1197,8 @@ ui.ListGroup(ui.ListItem(title="Reunión", subtitle="10:00", icon="users", meta=
 ```
 
 ### `ui.ListItem`
+
+Alias en minúsculas: `ui.list_item`
 
 Elemento de lista con icono y meta.
 
@@ -1041,6 +1212,8 @@ ui.ListItem(title="Informe", subtitle="Ayer", icon="file", meta="PDF")
 
 ### `ui.LogView`
 
+Alias en minúsculas: `ui.log_view`
+
 Visor de registros con niveles.
 
 ```text
@@ -1052,6 +1225,8 @@ ui.LogView([{"level": "info", "time": "09:12", "message": "inicio"}], title="app
 ```
 
 ### `ui.Stat`
+
+Alias en minúsculas: `ui.stat`
 
 Indicador con valor y variación.
 
@@ -1065,6 +1240,8 @@ ui.Stat("Ingresos", "24.980 €", delta="+12 %", icon="chart")
 
 ### `ui.StatGrid`
 
+Alias en minúsculas: `ui.stat_grid`
+
 Rejilla de indicadores.
 
 ```text
@@ -1076,6 +1253,8 @@ ui.StatGrid(ui.Stat("A", "1"), ui.Stat("B", "2"), columns=2)
 ```
 
 ### `ui.Table`
+
+Alias en minúsculas: `ui.table`
 
 Tabla estática.
 
@@ -1089,6 +1268,8 @@ ui.Table(headers=["Nombre", "Rol"], rows=[["Ana", "Admin"], ["Luis", "Editor"]],
 
 ### `ui.Timeline`
 
+Alias en minúsculas: `ui.timeline`
+
 Línea de tiempo.
 
 ```text
@@ -1100,6 +1281,8 @@ ui.Timeline(ui.TimelineItem("Pedido creado", time="09:12", icon="check"))
 ```
 
 ### `ui.TimelineItem`
+
+Alias en minúsculas: `ui.timeline_item`
 
 Hito de la línea de tiempo.
 
@@ -1113,6 +1296,8 @@ ui.TimelineItem("Pago confirmado", time="09:15", tone="success", last=True)
 
 ### `ui.Tree`
 
+Alias en minúsculas: `ui.tree`
+
 Árbol jerárquico.
 
 ```text
@@ -1124,6 +1309,8 @@ ui.Tree(ui.TreeNode("src", icon="folder", expanded=True, children=[ui.TreeNode("
 ```
 
 ### `ui.TreeNode`
+
+Alias en minúsculas: `ui.tree_node`
 
 Nodo de árbol plegable.
 
@@ -1140,6 +1327,8 @@ ui.TreeNode("src", icon="folder", expanded=True)
 
 ### `ui.Alert`
 
+Alias en minúsculas: `ui.alert`
+
 Aviso con nivel y cierre.
 
 ```text
@@ -1151,6 +1340,8 @@ ui.Alert("Todo correcto.", level="success", title="Listo", dismissible=True)
 ```
 
 ### `ui.Banner`
+
+Alias en minúsculas: `ui.banner`
 
 Franja de aviso a todo el ancho.
 
@@ -1164,6 +1355,8 @@ ui.Banner("Mantenimiento programado", level="warning")
 
 ### `ui.Callout`
 
+Alias en minúsculas: `ui.callout`
+
 Alias de `Alert`.
 
 ```text
@@ -1175,6 +1368,8 @@ ui.Callout("Revisa la configuración.", level="warning")
 ```
 
 ### `ui.ConfirmDialog`
+
+Alias en minúsculas: `ui.confirm_dialog`
 
 Diálogo de confirmación gestionado en Python.
 
@@ -1188,6 +1383,8 @@ ui.ConfirmDialog("Esta acción no se puede deshacer.", title="¿Eliminar?", dial
 
 ### `ui.Hint`
 
+Alias en minúsculas: `ui.hint`
+
 Texto de ayuda pequeño.
 
 ```text
@@ -1199,6 +1396,8 @@ ui.Hint("Se guarda automáticamente")
 ```
 
 ### `ui.InlineToast`
+
+Alias en minúsculas: `ui.inline_toast`
 
 Aviso compacto en línea.
 
@@ -1212,6 +1411,8 @@ ui.InlineToast("Guardado correctamente", level="success")
 
 ### `ui.LoadingOverlay`
 
+Alias en minúsculas: `ui.loading_overlay`
+
 Superpone un cargando sobre su contenido.
 
 ```text
@@ -1223,6 +1424,8 @@ ui.LoadingOverlay(ui.Text("contenido"), message="Cargando…")
 ```
 
 ### `ui.Meter`
+
+Alias en minúsculas: `ui.meter`
 
 Medidor con color según el valor.
 
@@ -1236,6 +1439,8 @@ ui.Meter(82, label="Memoria")
 
 ### `ui.Progress`
 
+Alias en minúsculas: `ui.progress`
+
 Barra de progreso determinada o indeterminada.
 
 ```text
@@ -1247,6 +1452,8 @@ ui.Progress(72, label="Subiendo", show_value=True)
 ```
 
 ### `ui.ProgressRing`
+
+Alias en minúsculas: `ui.progress_ring`
 
 Anillo de progreso.
 
@@ -1260,6 +1467,8 @@ ui.ProgressRing(72, label="72 %")
 
 ### `ui.Skeleton`
 
+Alias en minúsculas: `ui.skeleton`
+
 Marcador de carga.
 
 ```text
@@ -1271,6 +1480,8 @@ ui.Skeleton(lines=3, height="3")
 ```
 
 ### `ui.StatusDot`
+
+Alias en minúsculas: `ui.status_dot`
 
 Punto de estado.
 
@@ -1287,6 +1498,8 @@ ui.StatusDot("Operativo", tone="success", pulse=True)
 
 ### `ui.Accordion`
 
+Alias en minúsculas: `ui.accordion`
+
 Lista de secciones plegables.
 
 ```text
@@ -1298,6 +1511,8 @@ ui.Accordion([("Uno", ui.Text("contenido 1")), ("Dos", ui.Text("contenido 2"))])
 ```
 
 ### `ui.Card`
+
+Alias en minúsculas: `ui.card`
 
 Tarjeta con cabecera, cuerpo y pie.
 
@@ -1311,6 +1526,8 @@ ui.Card(title="Tarjeta", description="Con cabecera", icon="layers")(ui.Text("cue
 
 ### `ui.Collapse`
 
+Alias en minúsculas: `ui.collapse`
+
 Sección plegable en el cliente.
 
 ```text
@@ -1322,6 +1539,8 @@ ui.Collapse(ui.Text("contenido oculto"), title="Más información")
 ```
 
 ### `ui.Drawer`
+
+Alias en minúsculas: `ui.drawer`
 
 Panel lateral deslizante.
 
@@ -1335,6 +1554,8 @@ ui.Drawer(ui.Text("Panel lateral"), drawer_id="detalle", title="Detalle")
 
 ### `ui.Dropdown`
 
+Alias en minúsculas: `ui.dropdown`
+
 Botón con menú desplegable.
 
 ```text
@@ -1346,6 +1567,8 @@ ui.Dropdown(ui.MenuItem("Editar", icon="edit"), ui.MenuItem("Borrar", danger=Tru
 ```
 
 ### `ui.Footer`
+
+Alias en minúsculas: `ui.footer`
 
 Pie de página.
 
@@ -1359,6 +1582,8 @@ ui.Footer(ui.Text("© 2026 interui"))
 
 ### `ui.Hero`
 
+Alias en minúsculas: `ui.hero`
+
 Bloque destacado con degradado.
 
 ```text
@@ -1370,6 +1595,8 @@ ui.Hero(ui.Title("Bienvenido"), eyebrow="Novedad")
 ```
 
 ### `ui.Menu`
+
+Alias en minúsculas: `ui.menu`
 
 Contenedor de menú.
 
@@ -1383,6 +1610,8 @@ ui.Menu(ui.MenuItem("Inicio", icon="home"), ui.MenuItem("Ajustes", icon="setting
 
 ### `ui.MenuItem`
 
+Alias en minúsculas: `ui.menu_item`
+
 Entrada de menú.
 
 ```text
@@ -1394,6 +1623,8 @@ ui.MenuItem("Duplicar", icon="copy", shortcut="⌘D")
 ```
 
 ### `ui.Modal`
+
+Alias en minúsculas: `ui.modal`
 
 Diálogo modal; `.trigger()` crea el botón que lo abre.
 
@@ -1407,6 +1638,8 @@ ui.Modal(ui.Text("Contenido del modal"), dialog_id="alta", title="Nueva ficha")
 
 ### `ui.PageHeader`
 
+Alias en minúsculas: `ui.page_header`
+
 Cabecera de página con migas y acciones.
 
 ```text
@@ -1418,6 +1651,8 @@ ui.PageHeader("Proyectos", subtitle="12 activos", actions=ui.Button("Nuevo", ico
 ```
 
 ### `ui.Panel`
+
+Alias en minúsculas: `ui.panel`
 
 Superficie con padding.
 
@@ -1431,6 +1666,8 @@ ui.Panel(ui.Text("contenido"), tone="muted")
 
 ### `ui.Paper`
 
+Alias en minúsculas: `ui.paper`
+
 Hoja con sombra.
 
 ```text
@@ -1442,6 +1679,8 @@ ui.Paper(ui.Text("hoja con sombra"))
 ```
 
 ### `ui.Popover`
+
+Alias en minúsculas: `ui.popover`
 
 Panel emergente anclado.
 
@@ -1455,6 +1694,8 @@ ui.Popover(ui.Text("detalle"), trigger="Ver más", title="Información")
 
 ### `ui.Section`
 
+Alias en minúsculas: `ui.section`
+
 Sección con título y acciones.
 
 ```text
@@ -1466,6 +1707,8 @@ ui.Section(ui.Text("contenido"), title="Sección", subtitle="Con subtítulo")
 ```
 
 ### `ui.Sheet`
+
+Alias en minúsculas: `ui.sheet`
 
 Hoja inferior.
 
@@ -1479,6 +1722,8 @@ ui.Sheet(ui.Text("Hoja inferior"), sheet_id="hoja", title="Opciones")
 
 ### `ui.Splitter`
 
+Alias en minúsculas: `ui.splitter`
+
 Dos paneles redimensionables.
 
 ```text
@@ -1490,6 +1735,8 @@ ui.Splitter(ui.Text("izquierda"), ui.Text("derecha"))
 ```
 
 ### `ui.StatusBar`
+
+Alias en minúsculas: `ui.status_bar`
 
 Barra inferior de estado.
 
@@ -1503,6 +1750,8 @@ ui.StatusBar(ui.Text("Listo"), ui.Badge("local", variant="success"))
 
 ### `ui.TitleBar`
 
+Alias en minúsculas: `ui.title_bar`
+
 Barra de título propia para ventanas sin marco.
 
 ```text
@@ -1514,6 +1763,8 @@ ui.TitleBar("Mi app", icon="layers")
 ```
 
 ### `ui.Toolbar`
+
+Alias en minúsculas: `ui.toolbar`
 
 Barra de herramientas.
 
@@ -1527,6 +1778,8 @@ ui.Toolbar(ui.Button("Nuevo", size="sm"), ui.Button("Filtrar", variant="outline"
 
 ### `ui.Tooltip`
 
+Alias en minúsculas: `ui.tooltip`
+
 Ayuda emergente al pasar el ratón.
 
 ```text
@@ -1538,6 +1791,8 @@ ui.Tooltip(ui.Button("?", variant="outline"), content="Ayuda contextual")
 ```
 
 ### `ui.Well`
+
+Alias en minúsculas: `ui.well`
 
 Caja hundida para contenido secundario.
 
@@ -1554,6 +1809,8 @@ ui.Well(ui.Text("bloque hundido"))
 
 ### `ui.Breadcrumb`
 
+Alias en minúsculas: `ui.breadcrumb`
+
 Migas de pan.
 
 ```text
@@ -1565,6 +1822,8 @@ ui.Breadcrumb([("/", "Inicio"), ("/proyectos", "Proyectos"), ("x", "interui")])
 ```
 
 ### `ui.CommandItem`
+
+Alias en minúsculas: `ui.command_item`
 
 Acción de la paleta.
 
@@ -1578,6 +1837,8 @@ ui.CommandItem("Nuevo proyecto", hint="N", icon="plus")
 
 ### `ui.CommandPalette`
 
+Alias en minúsculas: `ui.command_palette`
+
 Paleta de comandos con filtrado instantáneo.
 
 ```text
@@ -1589,6 +1850,8 @@ ui.CommandPalette(ui.CommandItem("Ir al inicio", hint="G H", icon="home"))
 ```
 
 ### `ui.NavLink`
+
+Alias en minúsculas: `ui.nav_link`
 
 Enlace de navegación con estado activo.
 
@@ -1602,6 +1865,8 @@ ui.NavLink("Equipo", href="/equipo", icon="users")
 
 ### `ui.Navbar`
 
+Alias en minúsculas: `ui.navbar`
+
 Barra superior de navegación.
 
 ```text
@@ -1613,6 +1878,8 @@ ui.Navbar(ui.NavLink("Inicio", href="/", active=True), brand="Mi app")
 ```
 
 ### `ui.Pagination`
+
+Alias en minúsculas: `ui.pagination`
 
 Paginación con eventos a Python.
 
@@ -1626,6 +1893,8 @@ ui.Pagination(3, pages=12, on_page=lambda e: None)
 
 ### `ui.Sidebar`
 
+Alias en minúsculas: `ui.sidebar`
+
 Barra lateral.
 
 ```text
@@ -1637,6 +1906,8 @@ ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True), title="Navegación
 ```
 
 ### `ui.SidebarItem`
+
+Alias en minúsculas: `ui.sidebar_item`
 
 Elemento de barra lateral.
 
@@ -1650,6 +1921,8 @@ ui.SidebarItem("Informes", icon="chart", badge=2)
 
 ### `ui.Steps`
 
+Alias en minúsculas: `ui.steps`
+
 Pasos de un asistente.
 
 ```text
@@ -1662,6 +1935,8 @@ ui.Steps(["Cuenta", "Perfil", "Pago"], current=1)
 
 ### `ui.TabBar`
 
+Alias en minúsculas: `ui.tab_bar`
+
 Alias de `Tabs`.
 
 ```text
@@ -1673,6 +1948,8 @@ ui.Tabs([("a", "Uno", ui.Text("A"))], active="a", variant="pills")
 ```
 
 ### `ui.Tabs`
+
+Alias en minúsculas: `ui.tabs`
 
 Pestañas; cambian en el cliente o en Python.
 
@@ -1689,6 +1966,8 @@ ui.Tabs([("a", "Uno", ui.Text("panel A")), ("b", "Dos", ui.Text("panel B"))], ac
 
 ### `ui.AreaChart`
 
+Alias en minúsculas: `ui.area_chart`
+
 Área con relleno.
 
 ```text
@@ -1700,6 +1979,8 @@ ui.AreaChart({"2025": [8, 14, 18, 16, 25]}, labels=["Ene", "Feb", "Mar", "Abr", 
 ```
 
 ### `ui.BarChart`
+
+Alias en minúsculas: `ui.bar_chart`
 
 Barras verticales.
 
@@ -1713,6 +1994,8 @@ ui.BarChart([[18, 26, 12, 30]], labels=["L", "M", "X", "J"], show_values=True)
 
 ### `ui.ChartCard`
 
+Alias en minúsculas: `ui.chart_card`
+
 Tarjeta con gráfico.
 
 ```text
@@ -1724,6 +2007,8 @@ ui.ChartCard(ui.Sparkline([1, 3, 2, 5]), title="Tendencia", subtitle="Últimos 7
 ```
 
 ### `ui.ColumnChart`
+
+Alias en minúsculas: `ui.column_chart`
 
 Alias de `BarChart`.
 
@@ -1737,6 +2022,8 @@ ui.ColumnChart([[5, 9, 3]], labels=["a", "b", "c"])
 
 ### `ui.DonutChart`
 
+Alias en minúsculas: `ui.donut_chart`
+
 Anillo con total.
 
 ```text
@@ -1748,6 +2035,8 @@ ui.DonutChart({"A": 60, "B": 40})
 ```
 
 ### `ui.Gauge`
+
+Alias en minúsculas: `ui.gauge`
 
 Arco de progreso.
 
@@ -1761,6 +2050,8 @@ ui.Gauge(64, label="CPU")
 
 ### `ui.Legend`
 
+Alias en minúsculas: `ui.legend`
+
 Leyenda de series.
 
 ```text
@@ -1772,6 +2063,8 @@ ui.Legend(["Ventas", "Costes"])
 ```
 
 ### `ui.LineChart`
+
+Alias en minúsculas: `ui.line_chart`
 
 Gráfico de líneas.
 
@@ -1785,6 +2078,8 @@ ui.LineChart([[3, 6, 4, 9, 7]], labels=["L", "M", "X", "J", "V"])
 
 ### `ui.PieChart`
 
+Alias en minúsculas: `ui.pie_chart`
+
 Gráfico circular.
 
 ```text
@@ -1797,6 +2092,8 @@ ui.PieChart({"Directo": 42, "Social": 28, "Búsqueda": 30})
 
 ### `ui.ScatterChart`
 
+Alias en minúsculas: `ui.scatter_chart`
+
 Dispersión de puntos.
 
 ```text
@@ -1808,6 +2105,8 @@ ui.ScatterChart([[3, 7, 2, 9]])
 ```
 
 ### `ui.Sparkline`
+
+Alias en minúsculas: `ui.sparkline`
 
 Mini gráfico de tendencia.
 
@@ -1824,6 +2123,8 @@ ui.Sparkline([4, 8, 6, 12, 9, 14])
 
 ### `ui.Audio`
 
+Alias en minúsculas: `ui.audio`
+
 Reproductor de audio.
 
 ```text
@@ -1835,6 +2136,8 @@ ui.Audio("https://ejemplo.com/audio.mp3")
 ```
 
 ### `ui.Avatar`
+
+Alias en minúsculas: `ui.avatar`
 
 Avatar con iniciales o foto.
 
@@ -1848,6 +2151,8 @@ ui.Avatar(name="Ana Ruiz", size="lg", status="online")
 
 ### `ui.AvatarGroup`
 
+Alias en minúsculas: `ui.avatar_group`
+
 Avatares apilados.
 
 ```text
@@ -1859,6 +2164,8 @@ ui.AvatarGroup(ui.Avatar(name="Ana Ruiz"), ui.Avatar(name="Luis Paz"), max_items
 ```
 
 ### `ui.Carousel`
+
+Alias en minúsculas: `ui.carousel`
 
 Carrusel controlado por Python.
 
@@ -1872,6 +2179,8 @@ ui.Carousel([ui.Text("diapositiva 1"), ui.Text("diapositiva 2")], index=0)
 
 ### `ui.Figure`
 
+Alias en minúsculas: `ui.figure`
+
 Imagen con pie de foto.
 
 ```text
@@ -1883,6 +2192,8 @@ ui.Figure(ui.Image("foto.png", alt="Foto"), caption="Figura 1")
 ```
 
 ### `ui.Gallery`
+
+Alias en minúsculas: `ui.gallery`
 
 Rejilla de imágenes.
 
@@ -1896,6 +2207,8 @@ ui.Gallery(ui.Image("a.png", alt="A"), ui.Image("b.png", alt="B"), columns=2)
 
 ### `ui.IconBadge`
 
+Alias en minúsculas: `ui.icon_badge`
+
 Icono en una caja de color.
 
 ```text
@@ -1908,6 +2221,8 @@ ui.IconBadge("zap", tone="primary")
 
 ### `ui.Image`
 
+Alias en minúsculas: `ui.image`
+
 Imagen con proporción y ajuste.
 
 ```text
@@ -1919,6 +2234,8 @@ ui.Image("https://picsum.photos/seed/a/600/400", alt="Paisaje", ratio="video")
 ```
 
 ### `ui.Video`
+
+Alias en minúsculas: `ui.video`
 
 Reproductor de vídeo.
 
@@ -1935,6 +2252,8 @@ ui.Video("https://ejemplo.com/video.mp4", poster="portada.jpg")
 
 ### `ui.Canvas`
 
+Alias en minúsculas: `ui.canvas`
+
 Lienzo para dibujar con JS.
 
 ```text
@@ -1946,6 +2265,8 @@ ui.Canvas(width=400, height=200)
 ```
 
 ### `ui.CodeEditor`
+
+Alias en minúsculas: `ui.code_editor`
 
 Editor de código con numeración.
 
@@ -1959,6 +2280,8 @@ ui.CodeEditor("print(1)", language="python", max_h="64")
 
 ### `ui.Html`
 
+Alias en minúsculas: `ui.html`
+
 HTML literal (no escapa nada).
 
 ```text
@@ -1970,6 +2293,8 @@ ui.Html("<b>HTML literal</b>")
 ```
 
 ### `ui.Iframe`
+
+Alias en minúsculas: `ui.iframe`
 
 Contenido incrustado aislado.
 
@@ -1983,6 +2308,8 @@ ui.Iframe(srcdoc="<h1>Hola</h1>", height="60")
 
 ### `ui.KeyValueEditor`
 
+Alias en minúsculas: `ui.key_value_editor`
+
 Editor de pares clave/valor.
 
 ```text
@@ -1994,6 +2321,8 @@ ui.KeyValueEditor({"API_URL": "https://api.ejemplo.com"})
 ```
 
 ### `ui.Markdown`
+
+Alias en minúsculas: `ui.markdown`
 
 Subconjunto de Markdown.
 
@@ -2007,6 +2336,8 @@ ui.Markdown("# Título\n\n- uno\n- dos\n\n**negrita** y `código`")
 
 ### `ui.ProgressTable`
 
+Alias en minúsculas: `ui.progress_table`
+
 Tabla con barras de progreso.
 
 ```text
@@ -2019,6 +2350,8 @@ ui.ProgressTable([{"label": "Diseño", "value": 100}, {"label": "Código", "valu
 
 ### `ui.RichTextEditor`
 
+Alias en minúsculas: `ui.rich_text_editor`
+
 Editor de texto enriquecido.
 
 ```text
@@ -2030,6 +2363,8 @@ ui.RichTextEditor("<b>Texto</b> editable", min_h="32")
 ```
 
 ### `ui.Terminal`
+
+Alias en minúsculas: `ui.terminal`
 
 Vista de terminal.
 
@@ -2046,6 +2381,8 @@ ui.Terminal(["pip install interui", "python app.py"], title="zsh")
 
 ### `ui.Icon`
 
+Alias en minúsculas: `ui.icon`
+
 Icono SVG del set incluido (`ui.ICON_NAMES`).
 
 ```text
@@ -2061,6 +2398,8 @@ ui.Icon("check", size=6, class_="text-emerald-600")
 
 ### `ui.A`
 
+Alias en minúsculas: `ui.a`
+
 Enlace `<a>` con estilo de enlace.
 
 ```text
@@ -2072,6 +2411,8 @@ ui.A("Enlace", href="/ruta")
 ```
 
 ### `ui.Article`
+
+Alias en minúsculas: `ui.article`
 
 Contenedor semántico `<article>`.
 
@@ -2085,6 +2426,8 @@ ui.Article("Contenido del artículo")
 
 ### `ui.Aside`
 
+Alias en minúsculas: `ui.aside`
+
 Contenido lateral `<aside>`.
 
 ```text
@@ -2096,6 +2439,8 @@ ui.Aside("Nota lateral")
 ```
 
 ### `ui.B`
+
+Alias en minúsculas: `ui.b`
 
 Negrita visual `<b>`.
 
@@ -2109,6 +2454,8 @@ ui.B("negrita")
 
 ### `ui.Br`
 
+Alias en minúsculas: `ui.br`
+
 Salto de línea `<br>`.
 
 ```python
@@ -2116,6 +2463,8 @@ ui.Br()
 ```
 
 ### `ui.Details`
+
+Alias en minúsculas: `ui.details`
 
 Sección desplegable nativa `<details>`.
 
@@ -2129,6 +2478,8 @@ ui.Details(ui.Summary("Más detalles"), ui.Text("contenido"))
 
 ### `ui.DetailsBlock`
 
+Alias en minúsculas: `ui.details_block`
+
 Alias de `Details`.
 
 ```text
@@ -2140,6 +2491,8 @@ ui.DetailsBlock(ui.Summary("Detalles"), ui.Text("contenido"))
 ```
 
 ### `ui.Div`
+
+Alias en minúsculas: `ui.div`
 
 Caja genérica `<div>`.
 
@@ -2153,6 +2506,8 @@ ui.Div("contenido")
 
 ### `ui.Figcaption`
 
+Alias en minúsculas: `ui.figcaption`
+
 Pie de figura.
 
 ```text
@@ -2164,6 +2519,8 @@ ui.Figcaption("Pie de figura")
 ```
 
 ### `ui.Figure`
+
+Alias en minúsculas: `ui.figure`
 
 Figura genérica.
 
@@ -2177,6 +2534,8 @@ ui.Figure(ui.Image("foto.png", alt="Foto"), caption="Figura 1")
 
 ### `ui.H1`
 
+Alias en minúsculas: `ui.h1`
+
 Encabezado `<h1>` con estilo.
 
 ```text
@@ -2188,6 +2547,8 @@ ui.H1("Título 1")
 ```
 
 ### `ui.H2`
+
+Alias en minúsculas: `ui.h2`
 
 Encabezado `<h2>` con estilo.
 
@@ -2201,6 +2562,8 @@ ui.H2("Título 2")
 
 ### `ui.H3`
 
+Alias en minúsculas: `ui.h3`
+
 Encabezado `<h3>` con estilo.
 
 ```text
@@ -2212,6 +2575,8 @@ ui.H3("Título 3")
 ```
 
 ### `ui.H4`
+
+Alias en minúsculas: `ui.h4`
 
 Encabezado `<h4>` con estilo.
 
@@ -2225,6 +2590,8 @@ ui.H4("Título 4")
 
 ### `ui.H5`
 
+Alias en minúsculas: `ui.h5`
+
 Encabezado `<h5>` con estilo.
 
 ```text
@@ -2236,6 +2603,8 @@ ui.H5("Título 5")
 ```
 
 ### `ui.H6`
+
+Alias en minúsculas: `ui.h6`
 
 Encabezado `<h6>` con estilo.
 
@@ -2249,6 +2618,8 @@ ui.H6("Título 6")
 
 ### `ui.Header`
 
+Alias en minúsculas: `ui.header`
+
 Cabecera semántica.
 
 ```text
@@ -2261,6 +2632,8 @@ ui.Header("cabecera")
 
 ### `ui.Hr`
 
+Alias en minúsculas: `ui.hr`
+
 Línea separadora `<hr>`.
 
 ```python
@@ -2268,6 +2641,8 @@ ui.Hr()
 ```
 
 ### `ui.I`
+
+Alias en minúsculas: `ui.i`
 
 Cursiva visual `<i>`.
 
@@ -2281,6 +2656,8 @@ ui.I("cursiva")
 
 ### `ui.Img`
 
+Alias en minúsculas: `ui.img`
+
 Imagen `<img>` sin recorte.
 
 ```text
@@ -2292,6 +2669,8 @@ ui.Img("foto.png", alt="Foto")
 ```
 
 ### `ui.Li`
+
+Alias en minúsculas: `ui.li`
 
 Elemento de lista `<li>`.
 
@@ -2305,6 +2684,8 @@ ui.Li("elemento")
 
 ### `ui.Main`
 
+Alias en minúsculas: `ui.main`
+
 Contenido principal (`flex-1`).
 
 ```text
@@ -2316,6 +2697,8 @@ ui.Main("contenido principal")
 ```
 
 ### `ui.Nav`
+
+Alias en minúsculas: `ui.nav`
 
 Contenedor de navegación.
 
@@ -2329,6 +2712,8 @@ ui.Nav("navegación")
 
 ### `ui.Ol`
 
+Alias en minúsculas: `ui.ol`
+
 Lista numerada `<ol>`.
 
 ```text
@@ -2340,6 +2725,8 @@ ui.Ol(ui.Li("primero"), ui.Li("segundo"))
 ```
 
 ### `ui.P`
+
+Alias en minúsculas: `ui.p`
 
 Párrafo `<p>`.
 
@@ -2353,6 +2740,8 @@ ui.P("párrafo")
 
 ### `ui.Pre`
 
+Alias en minúsculas: `ui.pre`
+
 Texto preformateado.
 
 ```text
@@ -2364,6 +2753,8 @@ ui.Pre("texto preformateado")
 ```
 
 ### `ui.S`
+
+Alias en minúsculas: `ui.s`
 
 Texto tachado.
 
@@ -2377,6 +2768,8 @@ ui.S("tachado")
 
 ### `ui.Section`
 
+Alias en minúsculas: `ui.section`
+
 Sección HTML (`ui.Section` es la versión con título).
 
 ```text
@@ -2388,6 +2781,8 @@ ui.Section(ui.Text("contenido"), title="Sección", subtitle="Con subtítulo")
 ```
 
 ### `ui.Span`
+
+Alias en minúsculas: `ui.span`
 
 Texto en línea `<span>`.
 
@@ -2401,6 +2796,8 @@ ui.Span("texto en línea")
 
 ### `ui.Sub`
 
+Alias en minúsculas: `ui.sub`
+
 Subíndice.
 
 ```text
@@ -2412,6 +2809,8 @@ ui.Sub("sub")
 ```
 
 ### `ui.Summary`
+
+Alias en minúsculas: `ui.summary`
 
 Encabezado de un `Details`.
 
@@ -2425,6 +2824,8 @@ ui.Summary("Resumen")
 
 ### `ui.Sup`
 
+Alias en minúsculas: `ui.sup`
+
 Superíndice.
 
 ```text
@@ -2436,6 +2837,8 @@ ui.Sup("sup")
 ```
 
 ### `ui.Template`
+
+Alias en minúsculas: `ui.template`
 
 Envoltura de composición sin semántica.
 
@@ -2449,6 +2852,8 @@ ui.Template("contenido")
 
 ### `ui.Time`
 
+Alias en minúsculas: `ui.time`
+
 Fecha/hora semántica.
 
 ```text
@@ -2461,6 +2866,8 @@ ui.Time("2026-01-31", datetime="2026-01-31")
 
 ### `ui.U`
 
+Alias en minúsculas: `ui.u`
+
 Subrayado.
 
 ```text
@@ -2472,6 +2879,8 @@ ui.U("subrayado")
 ```
 
 ### `ui.Ul`
+
+Alias en minúsculas: `ui.ul`
 
 Lista con viñetas `<ul>`.
 

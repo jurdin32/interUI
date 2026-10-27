@@ -6,6 +6,7 @@ from typing import Any, Callable, Iterable, Sequence
 
 from .context import RenderContext
 from .html import Markup, element, escape, flatten, is_safe
+from .state import Signal
 from .style import tw
 
 __all__ = ["Component", "Fragment", "render", "render_children", "bind_many"]
@@ -223,12 +224,18 @@ def render_children(children: Sequence[Any], ctx: RenderContext, path: str) -> s
             continue
         if isinstance(child, Component):
             out.append(child.render(ctx, ctx.child(path, index)))
+        elif isinstance(child, Signal):
+            # `text("Pulsaciones: ", count)` se actualiza solo en cada render.
+            out.append(escape(child.get()))
         elif isinstance(child, Markup):
             out.append(str(child))
         elif isinstance(child, str):
             out.append(escape(child))
         elif isinstance(child, (int, float)):
             out.append(escape(child))
+        elif callable(child) and not isinstance(child, type):
+            # Contenido calculado en el momento de pintar (texto reactivo).
+            out.append(render_children([child()], ctx, ctx.child(path, index)))
         elif isinstance(child, Iterable):
             out.append(render_children(list(child), ctx, path))
         else:

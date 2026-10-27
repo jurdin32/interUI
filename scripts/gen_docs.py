@@ -22,6 +22,8 @@ sys.path.insert(0, str(ROOT))
 
 OUTPUT = ROOT / "docs" / "controles.md"
 
+from interui.simple import RESERVED_ALIASES, snake_case  # noqa: E402  (tras ajustar sys.path)
+
 GROUPS: list[tuple[str, str]] = [
     ("ventana y estructura", "interui.grid"),
     ("tipografía y texto", "interui.controls.typography"),
@@ -553,7 +555,16 @@ import interui as ui
 | `style` | `str` / `dict` | Estilos en línea. |
 | `data` | `dict` | Atributos `data-*` (comportamientos del cliente). |
 | `aria` | `dict` | Atributos `aria-*`. |
-| `on_*` | `callable` | Handler en Python (`on_click`, `on_change`, `on_input`, `on_submit`, `on_enter`, …). |
+| `on_*` | `callable` | Handler en Python. Puede ser una función sin argumentos, una función que recibe el evento o **una señal** (`on_input=nombre`). |
+
+Además:
+
+* **Todos los controles tienen alias en minúsculas**: `ui.button` es `ui.Button`,
+  `ui.data_table` es `ui.DataTable`… Se muestran bajo cada título.
+* **Los hijos pueden ser señales o funciones**: `text("Total: ", total)` y
+  `text(lambda: f"{total.get() * 2}")` se recalculan en cada render.
+* Para una ventana con texto y botón en pocas líneas: `ui.window(...)`, `ui.state(...)`,
+  `ui.row(...)` (ver [la guía](guia.md)).
 
 Los hijos se pasan como posicionales y se pueden añadir después con `(...)`:
 
@@ -570,7 +581,10 @@ def build_markdown() -> str:
         lines.append(f"\n## {title.capitalize()}\n")
         for name, cls in controls_of(module_name):
             description = description_for(module_name, name) or (inspect.getdoc(cls) or "").split("\n")[0]
+            alias = snake_case(name)
             lines.append(f"### `ui.{name}`\n")
+            if alias != name and alias not in RESERVED_ALIASES:
+                lines.append(f"Alias en minúsculas: `ui.{alias}`\n")
             if description:
                 lines.append(f"{description.strip()}\n")
             signature = signature_of(cls)

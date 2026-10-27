@@ -44,7 +44,29 @@ instalado y que el CSS compilado existe.
 
 ## 2. La ventana más pequeña posible
 
-`interui` necesita **una página registrada**: sin ella no hay nada que pintar.
+La forma más corta es `window(...)`, que crea la app, registra la página `/` y
+envuelve el contenido en un contenedor:
+
+```python
+from interui import window
+
+window("Mi primera ventana").run()
+```
+
+Y con un texto y un botón, que es lo que casi siempre necesitas:
+
+```python
+from interui import window, text, button
+
+window(
+    "Mi ventana",
+    text("Hola mundo"),
+    button("Pulsar", on_click=lambda: print("clic")),
+).run()
+```
+
+Si prefieres el control explícito (útil cuando una ventana tiene varias vistas o
+una estructura propia), la API larga es esta:
 
 ```python
 from interui import App
@@ -64,6 +86,11 @@ Ejecuta con `python archivo.py`. Se abre una ventana nativa vacía con el títul
 «Mi primera ventana». El servidor interno escucha solo en `127.0.0.1` y muere al
 cerrar la ventana.
 
+> `window(...)` devuelve la `App`, así que `.run()` se puede encadenar. Si el
+> archivo puede importarse desde otro sitio (por ejemplo, en pruebas), deja
+> `.run()` dentro de `if __name__ == "__main__":` para que importar no abra la
+> ventana.
+
 Sobre `App`:
 
 ```python
@@ -81,7 +108,23 @@ También puedes arrancar desde la CLI: `interui run archivo.py`.
 
 ## 3. Añadir contenido y jerarquía
 
-Todo es un componente. Se anidan pasando hijos:
+En la API compacta los controles se llaman en minúsculas y se apilan solos:
+
+```python
+from interui import window, title, text, subtitle, card, row, button
+
+window(
+    "Mi app",
+    title("Hola, escritorio", subtitle="Una ventana nativa"),
+    text("Todo lo que ves son controles de interUI."),
+    row(
+        card(title="Uno")(text("Contenido")),
+        card(title="Dos")(text("Contenido")),
+    ),
+).run()
+```
+
+Con la API larga, todo es un componente que se anida pasando hijos:
 
 ```python
 from interui import App, Card, Container, Heading, Muted, Screen, Text
@@ -203,7 +246,28 @@ Eventos disponibles en cualquier control: `on_click`, `on_dblclick`,
 
 ## 6. Estado reactivo
 
-`app.state()` crea una señal. Al cambiarla, la vista se re-renderiza sola.
+Una señal es un valor que, al cambiar, repinta la ventana. Con la API compacta,
+un contador completo son ocho líneas:
+
+```python
+from interui import window, text, button, state
+
+count = state(0)
+
+window(
+    "Contador",
+    text("Pulsaciones: ", count),          # el texto depende de la señal
+    button("Pulsar", on_click=count.inc),  # el botón la incrementa
+).run()
+```
+
+También puedes pasar una función para calcular el texto:
+
+```python
+window("Contador", text(lambda: f"doble = {count.get() * 2}"))
+```
+
+La API larga, con `app.state()` y handlers propios:
 
 ```python
 from interui import App, Button, Card, Container, Screen, Text, Stack
@@ -243,6 +307,35 @@ Métodos de una señal: `get()`, `set(valor)`, `update(fn)`, `toggle()`,
 ---
 
 ## 7. Formularios con validación en Python
+
+La forma corta: pasa la señal como handler y el control guarda el valor.
+
+```python
+from interui import window, text, input, switch, button, state, toast
+
+nombre = state("")
+correo = state("")
+activo = state(True)
+
+
+def guardar() -> None:
+    if "@" not in correo.get():
+        toast("El correo no parece válido", "error")
+        return
+    toast(f"Guardado: {nombre.get()}", "success")
+
+
+window(
+    "Formulario",
+    input(value=nombre, label="Nombre", on_input=nombre),
+    input(value=correo, label="Correo", on_input=correo),
+    switch("Activo", checked=activo, on_change=activo),
+    text("Estado: ", lambda: "activo" if activo.get() else "inactivo"),
+    button("Guardar", on_click=guardar),
+).run()
+```
+
+La versión completa, con resumen de errores y validación por campo:
 
 ```python
 from interui import (

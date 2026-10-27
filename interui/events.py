@@ -82,19 +82,35 @@ class UIEvent:
 
 
 def invoke(handler: Callable[..., Any], event: UIEvent) -> Any:
-    """Llama al handler permitiendo firmas con o sin parámetro de evento."""
+    """Ejecuta un handler en cualquiera de sus formas admitidas.
+
+    * ``lambda: ...``            → sin argumentos
+    * ``lambda evento: ...``     → recibe el ``UIEvent``
+    * ``una_senal``              → guarda el valor del evento en la señal
+      (``input(on_input=nombre)``, ``switch(on_change=activo)``…)
+    * método de señal (``count.inc``) → se llama sin argumentos
+    """
+    setter = getattr(handler, "set", None)
+    if callable(setter) and not isinstance(handler, type):
+        # Señal pasada directamente como handler.
+        value = event.checked if event.checked is not None else event.value
+        return setter(value)
+
     try:
         signature = inspect.signature(handler)
     except (TypeError, ValueError):
         return handler(event)
 
-    positional = 0
+    # Solo cuentan los parámetros obligatorios: así `on_click=contador.inc`
+    # (cuyo `amount` tiene valor por defecto) se llama sin argumentos.
+    required = 0
     variadic = False
     for parameter in signature.parameters.values():
         if parameter.kind is parameter.VAR_POSITIONAL:
             variadic = True
         elif parameter.kind in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD):
-            positional += 1
-    if variadic or positional >= 1:
+            if parameter.default is parameter.empty:
+                required += 1
+    if variadic or required >= 1:
         return handler(event)
     return handler()

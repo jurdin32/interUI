@@ -36,6 +36,13 @@ class Signal:
     def update(self, fn: Callable[[Any], Any]) -> Any:
         return self.set(fn(self.value))
 
+    def inc(self, amount: Any = 1) -> Any:
+        """``on_click=contador.inc`` incrementa sin escribir lambdas."""
+        return self.set(self.get(0) + amount)
+
+    def dec(self, amount: Any = 1) -> Any:
+        return self.inc(-amount)
+
     def toggle(self) -> bool:
         return self.set(not self.get())
 

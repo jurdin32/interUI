@@ -8,6 +8,24 @@ direcciones, sin navegador y sin conexión a internet. El HTML se genera en Pyth
 Tailwind lo compila Vite, y JavaScript solo transporta eventos.
 
 ```python
+from interui import window, text, button, state
+
+count = state(0)
+
+window(
+    "Mi primera app",
+    text("Hola, escritorio"),
+    text("Pulsaciones: ", count),          # se actualiza solo
+    button("Pulsar", on_click=count.inc),  # sin lambdas ni eventos
+).run()
+```
+
+Eso abre una **ventana nativa** con un texto y un botón. No hay HTML, ni CSS, ni
+JavaScript que escribir.
+
+Si prefieres el control total, la API larga sigue disponible:
+
+```python
 from interui import App, Button, Card, Container, Heading, Screen
 
 app = App("Mi primera app")
@@ -30,8 +48,7 @@ def index():
     )
 
 
-if __name__ == "__main__":
-    app.run()          # ← abre una ventana nativa
+app.run()
 ```
 
 ---
@@ -45,6 +62,7 @@ if __name__ == "__main__":
 - [Inicio rápido](#inicio-rápido)
 - [Cómo funciona una app](#cómo-funciona-una-app)
 - [Rejilla de 12 columnas](#rejilla-de-12-columnas)
+- [API compacta (recomendada)](#api-compacta-recomendada)
 - [Controles](#controles)
 - [Eventos](#eventos)
 - [Estado reactivo](#estado-reactivo)
@@ -212,7 +230,8 @@ Ejemplos completos en [`examples/`](examples):
 
 | Archivo | Qué muestra |
 |---|---|
-| [`01_hello.py`](examples/01_hello.py) | Contador con estado reactivo. |
+| [`00_minimo.py`](examples/00_minimo.py) | Ventana + texto + botón en 8 líneas (API compacta). |
+| [`01_hello.py`](examples/01_hello.py) | Contador con la API explícita. |
 | [`02_grid.py`](examples/02_grid.py) | Rejilla de 12 columnas y breakpoints. |
 | [`03_catalog.py`](examples/03_catalog.py) | Catálogo visual de todos los controles. |
 | [`04_desktop.py`](examples/04_desktop.py) | Integración nativa: diálogos, notificaciones, barra de título. |
@@ -289,6 +308,123 @@ nativa de Tailwind con `ui.Grid(cols=1, md=2, lg=4)`.
 
 👉 Guía completa con patrones de dashboard, formularios y tarjetas:
 [`docs/rejilla.md`](docs/rejilla.md).
+
+---
+
+## API compacta (recomendada)
+
+Para el día a día hay una capa fina sobre los controles, pensada para escribir
+poco y leer fácil.
+
+### Una ventana y su contenido en una llamada
+
+```python
+from interui import window, text, button, state, toast
+
+count = state(0)                     # señal (estado reactivo)
+
+window(
+    "Contador",
+    text("Hola mundo"),
+    text("Pulsaciones: ", count),    # texto reactivo: se repinta solo
+    button("Pulsar", on_click=count.inc),
+).run()
+```
+
+- `window(título, *contenido)` crea la app, registra la página `/` y la envuelve
+  en `Screen + Container + Stack` (puedes ajustar `width`, `height`, `theme`,
+  `container`, `pad` y `gap`).
+- Los hijos se apilan en vertical con separación uniforme.
+
+### Controles en minúsculas
+
+Todos los controles tienen alias `snake_case`; el nombre indica qué son:
+
+```python
+from interui import text, title, card, input, table, progress, icon, row
+
+title("Panel", subtitle="Resumen del día")
+card(title="Ventas")(progress(72, label="Objetivo"), icon("chart", size=6))
+input(label="Buscar", icon="search", placeholder="Escribe…")
+table(headers=["A", "B"], rows=[["1", "2"]])
+```
+
+`ui.button is ui.Button`, `ui.input is ui.Input`, `ui.data_table is ui.DataTable`,
+etc. Son exactamente los mismos controles: puedes mezclar ambas formas.
+
+### Eventos sin ceremonia
+
+Un handler puede ser cualquiera de estas cosas:
+
+```python
+def guardar():                 # 1. función sin parámetros
+    toast("guardado", "success")
+
+def al_pulsar(evento):          # 2. función con el evento
+    print(evento.value)
+
+nombre = state("")              # 3. una señal: guarda el valor del evento
+activo = state(False)
+
+button("Guardar", on_click=guardar)
+button("Ver evento", on_click=al_pulsar)
+input(value=nombre, on_input=nombre)          # escribir → nombre.set(texto)
+switch("Activo", checked=activo, on_change=activo)   # checked → activo.set(bool)
+button("+1", on_click=count.inc)              # métodos de señal: inc/dec/toggle
+```
+
+### Texto y valores reactivos
+
+Cualquier hijo puede ser una señal o una función; se evalúa en cada render:
+
+```python
+count = state(0)
+nombre = state("Ana")
+
+text("Pulsaciones: ", count)
+text("Saludo: ", lambda: f"Hola {nombre.get()}")
+```
+
+### Fila con columnas automáticas
+
+`row(a, b, c)` reparte las 12 columnas sin escribir `Col`:
+
+```python
+from interui import row, card, text
+
+row(
+    card(title="Uno")(text("…")),
+    card(title="Dos")(text("…")),
+    card(title="Tres")(text("…")),
+)
+```
+
+### Varias vistas
+
+```python
+from interui import window, view, text, button
+
+window("Mi app", text("Inicio"))
+
+@view("/ajustes")
+def ajustes():
+    return text("Ajustes")
+
+# navega con ui.button("Ajustes", href="/ajustes") o app.navigate("/ajustes")
+```
+
+Resumen de la capa compacta:
+
+| Elemento | Para qué |
+|---|---|
+| `window(title, *children)` | crea la ventana, la página `/` y el contenedor |
+| `view(path)` | registra una vista adicional |
+| `state(valor)` | señal ligada a la ventana (`get`, `set`, `update`, `inc`, `dec`, `toggle`) |
+| `text`, `button`, `card`… | alias en minúsculas de todos los controles |
+| `row(*children)` | rejilla de 12 con columnas iguales automáticas |
+| `column(*children)` | apilado vertical |
+| `title`, `subtitle` | título principal y texto secundario |
+| `toast(msg, level)` | aviso flotante |
 
 ---
 

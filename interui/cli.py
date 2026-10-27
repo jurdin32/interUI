@@ -16,34 +16,24 @@ __all__ = ["main"]
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = PACKAGE_DIR / "static"
-TEMPLATE = '''"""{name} · aplicación de escritorio con interui."""
+TEMPLATE = '''"""{name} · aplicación de escritorio con interUI."""
 
-from interui import App, Button, Card, Col, Container, Heading, Muted, Row, Screen
+from interui import button, state, text, title, toast, window
 
-app = App("{name}")
-
-
-@app.page("/")
-def index():
-    clicks = app.state("clicks", 0)
-    return Screen(
-        Container(size="prose", class_="py-16")(
-            Heading("{name}", level=1),
-            Muted("Edita app.py y guarda: la ventana se recompone sola."),
-            Card(class_="mt-6")(
-                Muted(f"Pulsaciones: {{clicks.get()}}"),
-                Button(
-                    "Pulsar",
-                    icon="plus",
-                    on_click=lambda: clicks.set(clicks.get() + 1),
-                ),
-            ),
-        )
-    )
+count = state(0)
 
 
-if __name__ == "__main__":
-    app.run()
+def saludar() -> None:
+    toast(f"¡Hola! Llevas {{count.get()}} pulsaciones", "success")
+
+
+window(
+    "{name}",
+    title("{name}", subtitle="Edita app.py y guarda: la ventana se recompone sola."),
+    text("Pulsaciones: ", count),
+    button("Pulsar", icon="plus", on_click=count.inc),
+    button("Saludar", variant="soft", icon="send", on_click=saludar),
+).run()
 '''
 
 

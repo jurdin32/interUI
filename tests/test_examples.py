@@ -27,7 +27,14 @@ def _load(path: pathlib.Path, monkeypatch: pytest.MonkeyPatch, tmp_path: pathlib
 
 
 def _apps(module) -> list[ui.App]:
-    return [value for value in vars(module).values() if isinstance(value, ui.App)]
+    found = [value for value in vars(module).values() if isinstance(value, ui.App)]
+    if found:
+        return found
+    # La API compacta (`window(...)`) no necesita asignar la app a una variable.
+    from interui.simple import current_app
+
+    app = current_app()
+    return [app] if app.routes else []
 
 
 @pytest.mark.parametrize("path", EXAMPLES, ids=lambda p: p.name)
