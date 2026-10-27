@@ -1,0 +1,86 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} · Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.12", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint (compatibilidad Python 3.10)
+        run: ruff check interui tests examples
+      - name: Pruebas
+        run: python -m pytest -q
+
+  desktop:
+    name: ventana nativa · ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencias del motor de ventana (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-0 libwebkit2gtk-4.1-0 xvfb
+      - name: Instalar con extra desktop
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[desktop,dev]"
+      - name: Comprobar backend
+        run: python -c "from interui import desktop_info; import json; info = desktop_info(); print(json.dumps(info, indent=2)); assert info['pywebview']"
+      - name: Pruebas
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            xvfb-run -a python -m pytest -q
+          else
+            python -m pytest -q
+          fi
+
+  package:
+    name: empaquetado (wheel + sdist)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip build twine
+          python -m build
+          python -m twine check dist/*
+      - name: Instalar el wheel en limpio
+        run: |
+          python -m venv /tmp/verify
+          /tmp/verify/bin/pip install dist/*.whl
+          /tmp/verify/bin/python -c "
+          import interui
+          from interui.server import STATIC_DIR
+          assert (STATIC_DIR / 'app.css').exists(), 'falta app.css en el wheel'
+          assert (STATIC_DIR / 'interui.js').exists(), 'falta interui.js en el wheel'
+          print('wheel OK', interui.__version__)
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

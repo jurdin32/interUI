@@ -1,17 +1,27 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.24"]
 build-backend = "hatchling.build"
 
 [project]
 name = "interui"
-version = "0.1.0"
-description = "Framework declarativo para construir interfaces gráficas de Python con HTML, CSS (Tailwind) y JavaScript."
+dynamic = ["version"]
+description = "Framework para aplicaciones de escritorio en Python con HTML, Tailwind CSS y JavaScript."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
-authors = [{ name = "interui" }]
-keywords = ["gui", "html", "tailwindcss", "webview", "desktop", "ui"]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Johnny Urdin", email = "urdin32@live.com" }]
+keywords = [
+  "gui", "desktop", "html", "tailwindcss", "webview", "ui", "pywebview",
+  "cross-platform", "tailwind",
+]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: MacOS X",
+  "Environment :: Win32 (MS Windows)",
+  "Environment :: X11 Applications",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -20,21 +30,59 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Desktop Environment",
   "Topic :: Software Development :: User Interfaces",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+  "Typing :: Typed",
 ]
 dependencies = []
 
 [project.optional-dependencies]
+# Ventana nativa (WebKit / WebView2 / WebKitGTK).
 desktop = ["pywebview>=4.4"]
-dev = ["pytest>=8.0"]
+# Alias histórico usado en la documentación.
+gui = ["pywebview>=4.4"]
+# Desarrollo y publicación.
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.6",
+  "build>=1.2",
+  "twine>=5.0",
+]
 
 [project.scripts]
 interui = "interui.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/jurdin32/interUI"
+Repository = "https://github.com/jurdin32/interUI"
+Issues = "https://github.com/jurdin32/interUI/issues"
+Changelog = "https://github.com/jurdin32/interUI/commits/main"
+Documentation = "https://github.com/jurdin32/interUI#readme"
+
+[tool.hatch.version]
+path = "interui/__init__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["interui"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"interui/static" = "interui/static"
+[tool.hatch.build.targets.sdist]
+include = [
+  "/interui",
+  "/tests",
+  "/examples",
+  "/frontend",
+  "/docs",
+  "/README.md",
+  "/LICENSE",
+  "/pyproject.toml",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E9", "F"]
+ignore = ["F401"]

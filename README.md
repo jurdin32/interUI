@@ -50,6 +50,7 @@ if __name__ == "__main__":
 - [Integración con el escritorio](#integración-con-el-escritorio)
 - [CLI](#cli)
 - [Empaquetado en ejecutable](#empaquetado-en-ejecutable)
+- [Publicar en PyPI](#publicar-en-pypi)
 - [Estilos con Tailwind y Vite](#estilos-con-tailwind-y-vite)
 - [Arquitectura](#arquitectura)
 - [Pruebas](#pruebas)
@@ -116,24 +117,44 @@ Notas de compatibilidad garantizadas por el framework:
 
 ## Instalación
 
-```bash
-# 1. Núcleo + ventana nativa
-pip install -e ".[desktop]"
+### Instalar como paquete
 
-# 2. Estilos (solo la primera vez o al cambiar la paleta)
-cd frontend
-npm install
-npm run build          # genera interui/static/app.css
+```bash
+pip install "interui[desktop]"      # desde PyPI (incluye ventana nativa)
 ```
 
-Si distribuyes el paquete ya compilado (`pip install interui`) el CSS viene
-incluido: **Node.js solo hace falta para recompilar Tailwind**.
+El wheel ya trae el CSS de Tailwind compilado y el runtime JS: **no necesitas
+Node.js ni internet** para usar el framework.
 
-Comprobación rápida del entorno:
+Otras formas de instalación:
+
+```bash
+pip install interui                              # solo el núcleo, sin ventana nativa
+pipx install "interui[desktop]"                  # solo el comando `interui`, aislado
+uv add "interui[desktop]"                        # o: poetry add "interui[desktop]"
+pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+```
+
+### Instalar para desarrollar el framework
+
+```bash
+git clone https://github.com/jurdin32/interUI.git
+cd interUI
+python -m venv venv
+./venv/bin/pip install -e ".[desktop,dev]"
+
+# Estilos: solo al cambiar la paleta o añadir clases nuevas
+cd frontend && npm install && npm run build
+```
+
+Comprobación del entorno:
 
 ```bash
 interui doctor
 ```
+
+👉 Guía completa de instalación y **publicación en PyPI**:
+[`docs/publicar.md`](docs/publicar.md).
 
 ---
 
@@ -452,6 +473,33 @@ Consejos:
 
 ---
 
+## Publicar en PyPI
+
+El paquete está preparado para publicarse tal cual (nombre `interui` libre,
+`twine check` correcto, CSS incluido en el wheel):
+
+```bash
+pip install build twine
+python -m build                 # dist/interui-<version>-py3-none-any.whl + .tar.gz
+python -m twine check dist/*
+python -m twine upload --repository testpypi dist/*   # ensayo
+python -m twine upload dist/*                          # definitivo
+```
+
+La versión vive en un solo sitio: `__version__` en
+[`interui/__init__.py`](interui/__init__.py) (la lee `hatchling`).
+
+Publicación automática: [`.github/workflows/publish.yml`](.github/workflows/publish.yml)
+usa *Trusted Publishing* (OIDC, sin tokens en el repo) al crear un release.
+Solo hay que registrar el proyecto en
+[PyPI → Publishing](https://pypi.org/manage/account/publishing/) con
+`owner=jurdin32`, `repo=interUI`, `workflow=publish.yml`, `environment=pypi`.
+
+👉 Paso a paso, errores habituales y checklist de versión:
+[`docs/publicar.md`](docs/publicar.md).
+
+---
+
 ## Estilos con Tailwind y Vite
 
 El CSS se genera con la configuración oficial de Tailwind v4 sobre Vite
@@ -551,6 +599,7 @@ duplicados, catálogo exportado).
 - [Referencia de controles](docs/controles.md) — firmas y descripciones de todos los controles.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
+- [Instalación y publicación en PyPI](docs/publicar.md) — cómo instalarlo y cómo publicarlo.
 
 ---
 
