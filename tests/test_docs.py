@@ -77,6 +77,19 @@ def test_generated_markdown_is_up_to_date() -> None:
     )
 
 
+def test_icon_catalog_is_up_to_date() -> None:
+    current = (ROOT / "docs" / "iconos.md").read_text(encoding="utf-8")
+    assert current == gen_docs.build_icon_markdown(), (
+        "docs/iconos.md está desactualizado: ejecuta `python scripts/gen_docs.py`"
+    )
+
+
+def test_icon_catalog_lists_every_icon() -> None:
+    markdown = gen_docs.build_icon_markdown()
+    for name in ui.ICON_NAMES:
+        assert f"`{name}`" in markdown, f"falta el icono {name}"
+
+
 def test_markdown_has_examples_for_every_control() -> None:
     markdown = gen_docs.build_markdown()
     for _module, name in CONTROLS:

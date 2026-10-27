@@ -37,6 +37,10 @@ from .layout import (
 from .media import (
     Audio, Avatar, AvatarGroup, Carousel, Figure, Gallery, IconBadge, Image, Video,
 )
+from .shell import (
+    AppShell, CommandBar, ContextItem, ContextMenu, MenuBar, MenuButton,
+    NotificationButton,
+)
 from .navigation import (
     Breadcrumb, CommandItem, CommandPalette, NavLink, Navbar, Pagination, Sidebar,
     SidebarItem, Steps, TabBar, Tabs,

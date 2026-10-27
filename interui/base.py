@@ -20,6 +20,7 @@ EVENT_PROPS = {
     "on_keydown": "keydown",
     "on_keyup": "keyup",
     "on_key": "keydown",
+    "on_escape": "escape",
     "on_focus": "focus",
     "on_blur": "blur",
     "on_enter": "enter",

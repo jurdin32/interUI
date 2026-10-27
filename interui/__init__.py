@@ -21,11 +21,13 @@ from __future__ import annotations
 
 import sys
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 from .app import App
 from .base import Component, Fragment, bind_many, render, render_children
 from .desktop import DesktopError, Native, desktop_info
+from .dialogs import Dialog, DialogAPI, DialogHost
+from .dialogs import dialog
 from .context import RenderContext
 from .events import Attachment, UIEvent
 from .grid import (
@@ -33,7 +35,7 @@ from .grid import (
     Spacer, Stack,
 )
 from .html import Markup, escape, raw
-from .icons import ICON_NAMES, ICONS, Icon
+from .icons import ICON_NAMES, ICONS, Icon, IconGrid
 from .state import Signal
 from .style import cl, tw
 from .ui import BUTTON_SIZES, BUTTON_VARIANTS
@@ -47,7 +49,8 @@ from .simple import (  # API compacta (minúsculas, ventana implícita)
 __all__ = [
     "App", "Component", "Fragment", "RenderContext", "UIEvent", "Attachment",
     "Native", "DesktopError", "desktop_info",
-    "Signal", "Icon", "ICONS", "ICON_NAMES", "Markup", "raw", "escape", "tw", "cl",
+    "Dialog", "DialogAPI", "DialogHost", "dialog",
+    "Signal", "Icon", "IconGrid", "ICONS", "ICON_NAMES", "Markup", "raw", "escape", "tw", "cl",
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names",

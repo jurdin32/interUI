@@ -621,6 +621,97 @@ function filterCommand(input, listId) {
 }
 
 /* ------------------------------------------------------------------ */
+/* menús (barra de menús, desplegables y menú contextual)               */
+/* ------------------------------------------------------------------ */
+function closestData(target, key) {
+  let node = target instanceof Element ? target : null;
+  while (node && node !== document.documentElement) {
+    if (node.dataset && node.dataset[key] !== undefined) return node;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+function menuPanels() {
+  return document.querySelectorAll("[data-iui-menu-panel], [data-iui-context-panel]");
+}
+
+function closeMenus(except) {
+  for (const panel of menuPanels()) {
+    if (panel === except) continue;
+    panel.classList.add("hidden");
+    panel.classList.remove("flex");
+    const owner = panel.id;
+    document
+      .querySelectorAll(`[data-iui-menu="${owner}"], [data-iui-toggle="${owner}"]`)
+      .forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+  }
+}
+
+function openMenu(panelId, trigger) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  closeMenus(panel);
+  panel.classList.remove("hidden");
+  panel.classList.add("flex");
+  if (trigger) trigger.setAttribute("aria-expanded", "true");
+}
+
+function toggleMenu(panelId, trigger) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  if (panel.classList.contains("hidden")) openMenu(panelId, trigger);
+  else closeMenus();
+}
+
+function openContextMenu(panelId, x, y) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  closeMenus(panel);
+  panel.classList.remove("hidden");
+  panel.classList.add("flex");
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  const rect = panel.getBoundingClientRect();
+  const left = Math.min(x, window.innerWidth - rect.width - 8);
+  const top = Math.min(y, window.innerHeight - rect.height - 8);
+  panel.style.left = `${Math.max(8, left)}px`;
+  panel.style.top = `${Math.max(8, top)}px`;
+}
+
+document.addEventListener("contextmenu", (event) => {
+  const host = closestData(event.target, "iuiContext");
+  if (!host) return;
+  event.preventDefault();
+  openContextMenu(host.dataset.iuiContext, event.clientX, event.clientY);
+});
+
+document.addEventListener("click", (event) => {
+  const trigger = closestData(event.target, "iuiMenu");
+  const toggle = closestData(event.target, "iuiToggle");
+  if (trigger) {
+    event.stopPropagation();
+    toggleMenu(trigger.dataset.iuiMenu, trigger);
+    return;
+  }
+  const menuItem = closestData(event.target, "iuiMenuItem");
+  if (menuItem) closeMenus();
+  else if (!event.target.closest || !event.target.closest("[data-iui-menu-panel], [data-iui-context-panel]")) {
+    closeMenus();
+  }
+}, true);
+
+document.addEventListener("mouseover", (event) => {
+  // Con un menú abierto, pasar por otro elemento de la barra cambia de menú.
+  const bar = event.target.closest && event.target.closest('[role="menubar"]');
+  if (!bar) return;
+  const anyOpen = [...menuPanels()].some((panel) => !panel.classList.contains("hidden"));
+  if (!anyOpen) return;
+  const trigger = closestData(event.target, "iuiMenu");
+  if (trigger) openMenu(trigger.dataset.iuiMenu, trigger);
+});
+
+/* ------------------------------------------------------------------ */
 /* navegación interna                                                  */
 /* ------------------------------------------------------------------ */
 function navigate(path, options = {}) {
@@ -765,6 +856,7 @@ function escapeHtml(text) {
 /* arranque                                                            */
 /* ------------------------------------------------------------------ */
 function afterRender() {
+  closeMenus();
   applyTheme(document.documentElement.dataset.theme || CONFIG.theme || "light");
   document.querySelectorAll("[data-iui-autofocus]").forEach((element) => {
     if (document.activeElement === document.body) element.focus({ preventScroll: true });
@@ -775,7 +867,10 @@ function afterRender() {
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") closeDialog();
+  if (event.key === "Escape") {
+    closeMenus();
+    closeDialog();
+  }
 });
 
 /* ------------------------------------------------------------------ */
@@ -850,6 +945,9 @@ window.interui = {
   copy: copyText,
   upload: uploadFiles,
   download,
+  closeMenus,
+  openMenu,
+  toggleMenu,
   get page() {
     return state.page;
   },

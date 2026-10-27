@@ -12,6 +12,7 @@ from .controls import (
     Accordion,
     Alert,
     Announcement,
+    AppShell,
     AreaChart,
     Article,
     Aside,
@@ -42,9 +43,12 @@ from .controls import (
     ColorInput,
     ColumnChart,
     Combobox,
+    CommandBar,
     CommandItem,
     CommandPalette,
     ConfirmDialog,
+    ContextItem,
+    ContextMenu,
     CopyButton,
     DataTable,
     Datalist,
@@ -115,6 +119,8 @@ from .controls import (
     Mark,
     Markdown,
     Menu,
+    MenuBar,
+    MenuButton,
     MenuItem,
     Meter,
     Modal,
@@ -124,6 +130,7 @@ from .controls import (
     Nav,
     NavLink,
     Navbar,
+    NotificationButton,
     NumberInput,
     Ol,
     OtpInput,
@@ -212,6 +219,7 @@ from .grid import (
 )
 from .icons import (
     Icon,
+    IconGrid,
 )
 
 __all__ = [
@@ -219,6 +227,7 @@ __all__ = [
     "accordion",
     "alert",
     "announcement",
+    "app_shell",
     "area_chart",
     "article",
     "aside",
@@ -252,10 +261,13 @@ __all__ = [
     "color_input",
     "column_chart",
     "combobox",
+    "command_bar",
     "command_item",
     "command_palette",
     "confirm_dialog",
     "container",
+    "context_item",
+    "context_menu",
     "copy_button",
     "data_table",
     "datalist",
@@ -305,6 +317,7 @@ __all__ = [
     "icon",
     "icon_badge",
     "icon_button",
+    "icon_grid",
     "iframe",
     "image",
     "img",
@@ -329,6 +342,8 @@ __all__ = [
     "mark",
     "markdown",
     "menu",
+    "menu_bar",
+    "menu_button",
     "menu_item",
     "meter",
     "modal",
@@ -338,6 +353,7 @@ __all__ = [
     "nav",
     "nav_link",
     "navbar",
+    "notification_button",
     "number_input",
     "ol",
     "otp_input",
@@ -421,6 +437,7 @@ a = A
 accordion = Accordion
 alert = Alert
 announcement = Announcement
+app_shell = AppShell
 area_chart = AreaChart
 article = Article
 aside = Aside
@@ -454,10 +471,13 @@ collapse = Collapse
 color_input = ColorInput
 column_chart = ColumnChart
 combobox = Combobox
+command_bar = CommandBar
 command_item = CommandItem
 command_palette = CommandPalette
 confirm_dialog = ConfirmDialog
 container = Container
+context_item = ContextItem
+context_menu = ContextMenu
 copy_button = CopyButton
 data_table = DataTable
 datalist = Datalist
@@ -507,6 +527,7 @@ i = I
 icon = Icon
 icon_badge = IconBadge
 icon_button = IconButton
+icon_grid = IconGrid
 iframe = Iframe
 image = Image
 img = Img
@@ -531,6 +552,8 @@ main = Main
 mark = Mark
 markdown = Markdown
 menu = Menu
+menu_bar = MenuBar
+menu_button = MenuButton
 menu_item = MenuItem
 meter = Meter
 modal = Modal
@@ -540,6 +563,7 @@ muted = Muted
 nav = Nav
 nav_link = NavLink
 navbar = Navbar
+notification_button = NotificationButton
 number_input = NumberInput
 ol = Ol
 otp_input = OtpInput
@@ -617,4 +641,3 @@ validation_summary = ValidationSummary
 video = Video
 week_input = WeekInput
 well = Well
-

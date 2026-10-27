@@ -23,10 +23,12 @@ commit.
 9. [Varias vistas y navegación](#9-varias-vistas-y-navegación)
 10. [Diálogos, notificaciones y archivos](#10-diálogos-notificaciones-y-archivos)
 11. [Tema claro y oscuro](#11-tema-claro-y-oscuro)
-12. [Persistencia de datos](#12-persistencia-de-datos)
-13. [Estructura recomendada del proyecto](#13-estructura-recomendada-del-proyecto)
-14. [Empaquetar y distribuir](#14-empaquetar-y-distribuir)
-15. [Errores frecuentes](#15-errores-frecuentes)
+12. [Barra de menús y menú contextual](#12-barra-de-menús-y-menú-contextual)
+13. [Iconos](#13-iconos)
+14. [Persistencia de datos](#14-persistencia-de-datos)
+15. [Estructura recomendada del proyecto](#15-estructura-recomendada-del-proyecto)
+16. [Empaquetar y distribuir](#16-empaquetar-y-distribuir)
+17. [Errores frecuentes](#17-errores-frecuentes)
 
 ---
 
@@ -525,6 +527,45 @@ app.run()
 
 ## 10. Diálogos, notificaciones y archivos
 
+### Diálogos dentro de la app
+
+```python
+from interui import dialog, window, text, button, state, toast
+
+nombre = state("")
+
+
+def pedir_nombre() -> None:
+    dialog.input(
+        "Nombre del proyecto",
+        title="Nuevo proyecto",
+        placeholder="Mi proyecto",
+        on_accept=lambda evento: toast(f"Creado: {evento.value}", "success"),
+    )
+
+
+def borrar() -> None:
+    dialog.confirm(
+        "Esta acción no se puede deshacer.",
+        title="¿Eliminar el proyecto?",
+        accept_label="Eliminar",
+        on_accept=lambda: dialog.success("Proyecto eliminado"),
+    )
+
+
+window(
+    "Diálogos",
+    text("Panel"),
+    button("Nuevo", icon="plus", on_click=pedir_nombre),
+    button("Eliminar", variant="danger", on_click=borrar),
+).run()
+```
+
+Tipos: `show`, `info`, `success`, `warning`, `error`, `critical`, `confirm`,
+`input`, `form` y `custom`. Detalles en [la guía de diálogos](dialogos.md).
+
+### Diálogos del sistema operativo
+
 ```python
 from interui import App, Button, Card, Container, Modal, Screen, Stack, Text
 
@@ -609,11 +650,7 @@ def index():
     return Screen(
         Container(class_="py-8")(
             Text(f"Tema actual: {app.theme}"),
-            Button(
-                "Cambiar tema",
-                icon="moon",
-                on_click=lambda: setattr(app, "theme", "dark" if app.theme == "light" else "light"),
-            ),
+            Button("Cambiar tema", icon="moon", on_click=app.toggle_theme),
         )
     )
 
@@ -621,12 +658,88 @@ def index():
 app.run()
 ```
 
+`app.set_theme("dark")` hace lo mismo desde cualquier handler y `app.quit()`
+cierra la ventana (o detiene el servidor en modo navegador).
+
 Desde el cliente también puedes alternar con `data={"iui-theme": "dark"}` en
 cualquier elemento. El tema inicial se define en `App(theme="dark")`.
 
 ---
 
-## 12. Persistencia de datos
+## 12. Barra de menús y menú contextual
+
+Una app de escritorio se reconoce por sus menús. `AppShell` coloca el armazón y
+`MenuBar` dibuja los menús de arriba:
+
+```python
+from interui import (
+    App, AppShell, Container, ContextItem, ContextMenu, Heading, MenuBar, Sidebar,
+    SidebarItem, StatusBar, Text, TitleBar, toast,
+)
+
+app = App("Mi app")
+
+
+def nuevo() -> None:
+    toast("Nuevo proyecto", level="success")
+
+
+@app.page("/")
+def index():
+    contexto = ContextMenu(
+        ContextItem("Abrir", icon="folder", on_click=lambda: toast("Abrir")),
+        ContextItem("Eliminar", icon="trash", danger=True, on_click=lambda: toast("Eliminar", level="warning")),
+    )
+    return AppShell(
+        Container(class_="py-6")(contexto(Heading("Panel", level=2))),
+        title_bar=TitleBar("Mi app", icon="layers"),
+        header=MenuBar(
+            {
+                "Archivo": [
+                    ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
+                    "-",
+                    ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+                ],
+                "Ver": [ContextItem("Cambiar tema", icon="moon", on_click=app.toggle_theme)],
+            },
+            brand="Mi app",
+        ),
+        sidebar=Sidebar(SidebarItem("Panel", icon="grid", active=True)),
+        status=StatusBar(Text("Listo")),
+    )
+
+
+app.run()
+```
+
+Sin escribir JavaScript ya funciona: abrir/cerrar el menú con clic, cambiar de
+menú al pasar el ratón, cerrar con `Escape` o clic fuera, y el menú contextual
+con el botón derecho (se coloca en el puntero y no se sale de la ventana).
+
+También hay `MenuButton(...)` para un desplegable suelto, `CommandBar(...)` para
+un buscador con acciones y `NotificationButton(3, items=[...])` para la campana
+con contador. Todo el detalle está en [menús y armazón](menus.md).
+
+---
+
+## 13. Iconos
+
+El set propio trae 202 iconos; no hace falta instalar nada ni tener conexión:
+
+```python
+from interui import ICON_NAMES, Icon, IconGrid
+
+Icon("check", size=6, class_="text-emerald-600")
+len(ICON_NAMES)                                   # 202
+IconGrid(columns=10, searchable=True, on_pick=lambda nombre: print(nombre))
+```
+
+`IconGrid` es una galería buscable; con `on_pick` el nombre elegido llega a
+Python. La lista completa está en el [catálogo de iconos](iconos.md).
+
+---
+
+## 14. Persistencia de datos
 
 `app.data_dir` apunta a la carpeta de datos de la aplicación en cada sistema.
 Guarda ahí tus archivos (JSON, SQLite, ajustes):
@@ -684,7 +797,7 @@ Puedes sobreescribirla con `App(data_dir=...)` o `INTERUI_DATA_DIR`.
 
 ---
 
-## 13. Estructura recomendada del proyecto
+## 15. Estructura recomendada del proyecto
 
 ```
 mi_app/
@@ -708,7 +821,7 @@ Reglas prácticas:
 
 ---
 
-## 14. Empaquetar y distribuir
+## 16. Empaquetar y distribuir
 
 ```bash
 pip install pyinstaller
@@ -727,7 +840,7 @@ Requisitos por plataforma en [la guía de escritorio](escritorio.md).
 
 ---
 
-## 15. Errores frecuentes
+## 17. Errores frecuentes
 
 | Síntoma | Causa | Solución |
 |---|---|---|
@@ -745,7 +858,10 @@ Requisitos por plataforma en [la guía de escritorio](escritorio.md).
 ## Siguiente paso
 
 - [Referencia de controles](controles.md) — firma y ejemplo de cada control.
+- [Menús, barras y armazón](menus.md) — `AppShell`, barra de menús y menú contextual.
+- [Catálogo de iconos](iconos.md) — los 202 iconos incluidos.
 - [Guía de la rejilla](rejilla.md) — patrones responsive.
 - [Guía de escritorio](escritorio.md) — ventana, puente nativo y empaquetado.
 - [Instalación y publicación](publicar.md) — PyPI.
 - [`examples/05_crud.py`](../examples/05_crud.py) — app completa de referencia.
+- [`examples/06_app_moderna.py`](../examples/06_app_moderna.py) — armazón, menús, iconos y tema.

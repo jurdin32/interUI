@@ -67,6 +67,9 @@ app.run()
 - [Controles](#controles)
 - [Eventos](#eventos)
 - [Estado reactivo](#estado-reactivo)
+- [Diálogos y ventanas modales](#diálogos-y-ventanas-modales)
+- [Armazón de app, menús y barras](#armazón-de-app-menús-y-barras)
+- [Iconos](#iconos)
 - [Integración con el escritorio](#integración-con-el-escritorio)
 - [CLI](#cli)
 - [Empaquetado en ejecutable](#empaquetado-en-ejecutable)
@@ -86,6 +89,7 @@ app.run()
 | Motor de componentes y render HTML | ✅ estable |
 | Rejilla responsive de 12 columnas | ✅ estable |
 | Catálogo de controles | ✅ ~230 exportaciones (`docs/controles.md`) |
+| Shell, menús, barras e iconos propios | ✅ 202 iconos (`docs/iconos.md`) |
 | Canal en vivo (WebSocket propio, sin dependencias) | ✅ estable |
 | Ventana nativa + puente al sistema operativo | ✅ estable |
 | CLI (`run`, `new`, `build`, `doctor`, `assets`) | ✅ estable |
@@ -458,6 +462,7 @@ Categorías (referencia completa con firmas en [`docs/controles.md`](docs/contro
 | Gráficos | `LineChart`, `AreaChart`, `BarChart`, `PieChart`, `DonutChart`, `Sparkline`, `Gauge` |
 | Medios | `Image`, `Avatar`, `AvatarGroup`, `Carousel`, `Gallery`, `Video`, `Audio` |
 | Avanzados | `CodeEditor`, `RichTextEditor`, `Markdown`, `Terminal`, `Iframe`, `Canvas`, `Icon` |
+| Shell y menús | `AppShell`, `MenuBar`, `MenuButton`, `ContextMenu`, `ContextItem`, `CommandBar`, `NotificationButton`, `IconGrid` |
 
 Ejemplos de uso:
 
@@ -542,6 +547,132 @@ contador.push("item")   # listas
 
 Cualquier cambio de estado vuelve a renderizar todas las vistas conectadas; el
 cliente aplica los cambios de forma incremental.
+
+---
+
+## Diálogos y ventanas modales
+
+Un sistema completo de ventanas modales, sin escribir HTML ni JavaScript:
+
+```python
+from interui import dialog, toast
+
+dialog.show("Texto plano")
+dialog.info("Guardado", title="Listo")
+dialog.success("Todo correcto")
+dialog.warning("Quedan 2 días de prueba")
+dialog.error("No se pudo conectar")
+dialog.critical("Se perdió la conexión")          # fallo grave
+
+dialog.confirm("¿Eliminar el proyecto?", title="Atención", on_accept=borrar)
+dialog.input("Nombre", title="Nuevo", on_accept=nombre)      # nombre es una señal
+dialog.form([{"name": "correo", "label": "Correo", "type": "email"}],
+            title="Alta", on_accept=guardar)
+
+dialog.custom(                                    # 100 % personalizable
+    ui.text("Copia completada"),
+    ui.progress(100, label="Archivos"),
+    title="Resultado",
+    buttons=[("Cerrar", None, "outline")],
+)
+```
+
+| Función | Para qué |
+|---|---|
+| `dialog.show/info/success/warning/error/critical` | Avisos con su nivel e icono. |
+| `dialog.alert(msg, level=…)` | Aviso con nivel explícito. |
+| `dialog.confirm(msg, on_accept=…)` | Confirmar una acción. |
+| `dialog.input(label, on_accept=…)` | Pedir un dato (llega en `evento.value`). |
+| `dialog.form(fields, on_accept=…)` | Varios campos (`evento.data["values"]`). |
+| `dialog.custom(*children, buttons=…)` | Ventana a medida con tu propio contenido. |
+| `dialog.close()` / `app.close_all_dialogs()` | Cerrar. |
+
+Son HTML + Tailwind dentro de tu ventana (no diálogos del sistema), con
+`role="dialog"`, foco, `Escape`, cierre por fondo y animación. No bloquean: la
+respuesta llega a tu handler.
+
+👉 Guía completa, opciones y recetas: [`docs/dialogos.md`](docs/dialogos.md).
+
+---
+
+## Armazón de app, menús y barras
+
+Una ventana de escritorio «de verdad» se monta con `AppShell`, que coloca cada
+zona en su sitio (barra de título, menús, lateral, contenido con scroll, estado):
+
+```python
+import interui as ui
+
+app = ui.App("Mi app", width=1180, height=780)
+
+
+def nuevo() -> None:
+    ui.dialog.input("Nombre", title="Nuevo", on_accept=lambda v: ui.toast(f"Creado {v}"))
+
+
+@app.page("/")
+def index():
+    return ui.AppShell(
+        ui.Container(class_="py-6")(ui.heading("Panel", level=2)),
+        title_bar=ui.TitleBar("Mi app", icon="layers"),
+        header=ui.MenuBar(
+            {
+                "Archivo": [
+                    ui.ContextItem("Nuevo…", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
+                    "-",
+                    ui.ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+                ],
+                "Ver": [ui.ContextItem("Cambiar tema", icon="moon", on_click=app.toggle_theme)],
+            },
+            brand="Mi app",
+        ),
+        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)),
+        status=ui.StatusBar(ui.text("Listo")),
+    )
+
+
+app.run()
+```
+
+Los menús funcionan sin escribir JavaScript: clic abre el desplegable, el ratón
+cambia de menú cuando hay uno abierto, `Escape` o el clic fuera lo cierran y
+`aria-expanded` se mantiene sincronizado.
+
+Menú contextual (botón derecho) sobre cualquier contenido:
+
+```python
+CONTEXTO = ui.ContextMenu(
+    ui.ContextItem("Abrir", icon="folder", on_click=abrir),
+    ui.ContextItem("Renombrar", icon="edit", on_click=renombrar),
+    "-",
+    ui.ContextItem("Eliminar", icon="trash", danger=True, on_click=eliminar),
+)
+
+pagina = CONTEXTO(ui.table(headers=["Nombre"], rows=[["Ana"], ["Luis"]]))
+```
+
+Extras listos para usar: `ui.MenuButton(...)` (desplegable suelto),
+`ui.CommandBar(...)` (buscador + acciones), `ui.NotificationButton(3, items=[...])`
+(campana con contador) y `app.toggle_theme()` / `app.quit()` desde Python.
+
+Detalle completo en [menús y armazón](docs/menus.md) y en el ejemplo
+[`examples/06_app_moderna.py`](examples/06_app_moderna.py).
+
+---
+
+## Iconos
+
+El framework incluye su propio set de **202 iconos** vectoriales (trazo 24×24),
+sin dependencias externas ni acceso a red, así que también funciona dentro del
+ejecutable empaquetado:
+
+```python
+ui.Icon("check", size=6, class_="text-emerald-600")   # un icono
+len(ui.ICON_NAMES)                                    # 202
+ui.IconGrid(columns=10, searchable=True, on_pick=lambda n: ui.toast(n))  # galería
+```
+
+La lista completa está en el [catálogo de iconos](docs/iconos.md).
 
 ---
 
@@ -817,6 +948,9 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 - [Guía paso a paso](docs/guia.md) — de la ventana vacía a la app completa.
 - [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
+- [Diálogos y ventanas modales](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
+- [Menús, barras y armazón de app](docs/menus.md) — `AppShell`, barra de menús, menú contextual, comandos y notificaciones.
+- [Catálogo de iconos](docs/iconos.md) — los 202 iconos incluidos y cómo usarlos.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
 - [Instalación y publicación en PyPI](docs/publicar.md) — cómo instalarlo y cómo publicarlo.
 

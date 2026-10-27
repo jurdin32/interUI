@@ -77,6 +77,7 @@ class App:
         self.resizable = resizable
         self.frameless = frameless
         self.menus = list(menus or [])
+        self._dialogs: list[Any] = []
         self._on_start: list[Callable[[], None]] = []
         self._on_close: list[Callable[[], Any]] = []
         self._desktop: DesktopWindow | None = None
@@ -158,6 +159,10 @@ class App:
             html = ""
         else:
             html = escape(result)
+        if self._dialogs:
+            from .dialogs import DialogHost
+
+            html += DialogHost(*self._dialogs).render(ctx, "dlg")
         return page_title, f'<div id="iui-root" data-iui-page="{escape(route)}">{html}</div>', ctx.bindings
 
     def error_html(self, exc: BaseException) -> str:
@@ -305,6 +310,36 @@ class App:
         self._push_render(ws)
 
     # ------------------------------------------------------------------
+    # diálogos
+    # ------------------------------------------------------------------
+    @property
+    def dialogs(self) -> list[Any]:
+        """Diálogos abiertos (se pintan encima de la página actual)."""
+        return list(self._dialogs)
+
+    def show_dialog(self, component: Any) -> Any:
+        """Abre un diálogo modal encima de la vista actual."""
+        self._dialogs.append(component)
+        if not self._in_handler:
+            self.refresh()
+        return component
+
+    def close_dialog(self, component: Any = None) -> None:
+        """Cierra un diálogo concreto o el último abierto."""
+        if component is None:
+            if self._dialogs:
+                self._dialogs.pop()
+        else:
+            self._dialogs = [item for item in self._dialogs if item is not component]
+        if not self._in_handler:
+            self.refresh()
+
+    def close_all_dialogs(self) -> None:
+        self._dialogs.clear()
+        if not self._in_handler:
+            self.refresh()
+
+    # ------------------------------------------------------------------
     # escritorio
     # ------------------------------------------------------------------
     @property
@@ -344,6 +379,25 @@ class App:
     def eval_js(self, code: str) -> None:
         if self.server is not None:
             self.server.broadcast({"t": "eval", "js": code})
+
+    def quit(self) -> None:
+        """Cierra la ventana (modo escritorio) o detiene el servidor (navegador)."""
+        if self._desktop is not None:
+            self._desktop.close()
+        elif self.server is not None:
+            threading.Thread(target=self._shutdown, name="interui-quit", daemon=True).start()
+
+    def set_theme(self, theme: str = "dark") -> None:
+        """Cambia el tema del cliente: ``"claro"``/``"light"`` o ``"oscuro"``/``"dark"``."""
+        value = "dark" if theme.lower() in ("oscuro", "dark") else "light"
+        self.theme = value
+        if self.server is not None:
+            self.server.broadcast({"t": "theme", "theme": value})
+
+    def toggle_theme(self) -> str:
+        """Alterna claro/oscuro y devuelve el tema activo."""
+        self.set_theme("light" if self.theme == "dark" else "dark")
+        return self.theme
 
     def on_start(self, func: Callable[[], None]) -> Callable[[], None]:
         self._on_start.append(func)

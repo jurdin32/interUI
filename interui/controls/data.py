@@ -133,6 +133,16 @@ class Table(Component):
         )
 
 
+def _row_value(row: Any, key: str) -> Any:
+    """Valor de una celda admitiendo filas dict o secuencias."""
+    if isinstance(row, dict):
+        return row.get(key, "")
+    if key.isdigit():
+        index = int(key)
+        return row[index] if 0 <= index < len(row) else ""
+    return ""
+
+
 class DataTable(Component):
     """Tabla con orden, búsqueda, selección y paginación controladas por Python."""
 
@@ -141,7 +151,7 @@ class DataTable(Component):
     def __init__(
         self,
         columns: Sequence[dict[str, Any]] | None = None,
-        rows: Sequence[dict[str, Any]] | None = None,
+        rows: Sequence[dict[str, Any] | Sequence[Any]] | None = None,
         *,
         sort: str | None = None,
         direction: str = "asc",
@@ -258,7 +268,7 @@ class DataTable(Component):
 
         body_rows = []
         for row_index, row in enumerate(self.rows):
-            key = str(row.get("id", row_index))
+            key = str(row.get("id", row_index)) if isinstance(row, dict) else str(row_index)
             cells = []
             if self.selectable:
                 cells.append(
@@ -272,7 +282,7 @@ class DataTable(Component):
             for column in self.columns:
                 column_key = str(column.get("key", ""))
                 align = ALIGN.get(column.get("align", "left"), "")
-                value = row.get(column_key, "")
+                value = _row_value(row, column_key)
                 renderer = column.get("render")
                 if callable(renderer):
                     value = renderer(row)

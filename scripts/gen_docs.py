@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 OUTPUT = ROOT / "docs" / "controles.md"
+ICON_OUTPUT = ROOT / "docs" / "iconos.md"
 
 from interui.simple import RESERVED_ALIASES, snake_case  # noqa: E402  (tras ajustar sys.path)
 
@@ -32,6 +33,7 @@ GROUPS: list[tuple[str, str]] = [
     ("datos y tablas", "interui.controls.data"),
     ("retroalimentación", "interui.controls.feedback"),
     ("contenedores y superposiciones", "interui.controls.layout"),
+    ("shell de aplicación, menús y barras", "interui.controls.shell"),
     ("navegación", "interui.controls.navigation"),
     ("gráficos", "interui.controls.charts"),
     ("medios", "interui.controls.media"),
@@ -71,6 +73,17 @@ DESCRIPTIONS: dict[str, str] = {
     "Chip": "Etiqueta con botón de borrado.",
     "Blockquote": "Cita con autor opcional.",
     "Announcement": "Franja de anuncio a todo el ancho.",
+    "IconGrid": "Catálogo buscable de los 200+ iconos incluidos; `on_pick` recibe el nombre.",
+    "AppShell": (
+        "Armazón completo: barra de título, cabecera/menús, barra lateral, contenido con "
+        "scroll y barra de estado."
+    ),
+    "MenuBar": "Barra de menús de la ventana (`Archivo`, `Editar`…) con desplegables.",
+    "MenuButton": "Botón que despliega un menú de acciones en cualquier punto de la interfaz.",
+    "ContextMenu": "Envuelve contenido y abre un menú con el botón derecho.",
+    "ContextItem": "Entrada de menú contextual (icono, atajo, peligro, deshabilitada).",
+    "CommandBar": "Barra de comandos: buscador en vivo + acciones a la derecha.",
+    "NotificationButton": "Campana con contador y panel de notificaciones.",
     "Button": "Botón con variantes, tamaños, iconos y estado de carga.",
     "IconButton": "Botón cuadrado solo con icono.",
     "ButtonGroup": "Botones pegados horizontal o verticalmente.",
@@ -284,6 +297,34 @@ SNIPPETS: dict[str, str] = {
     "Chip": 'ui.Chip("python", variant="primary")',
     "Blockquote": 'ui.Blockquote("La simplicidad es la máxima sofisticación.", cite="Leonardo")',
     "Announcement": 'ui.Announcement("Nueva versión disponible")',
+    "IconGrid": 'ui.IconGrid(columns=8)',
+    "AppShell": (
+        'ui.AppShell(ui.Container(class_="py-6")(ui.Text("contenido")), '
+        'title_bar=ui.TitleBar("Mi app", icon="layers"), '
+        'header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon="power")]}, brand="Mi app"), '
+        'sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)), '
+        'status=ui.StatusBar(ui.Text("Listo")))'
+    ),
+    "MenuBar": (
+        'ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N"), '
+        '"-", ui.ContextItem("Salir", icon="power", danger=True)], '
+        '"Ver": [ui.ContextItem("Tema oscuro", icon="moon")]}, brand="Mi app")'
+    ),
+    "MenuButton": (
+        'ui.MenuButton("Acciones", icon="settings", items=[ui.ContextItem("Editar", icon="edit"), '
+        'ui.ContextItem("Eliminar", icon="trash", danger=True)])'
+    ),
+    "ContextMenu": (
+        'ui.ContextMenu(ui.ContextItem("Abrir", icon="folder"), "-", '
+        'ui.ContextItem("Borrar", icon="trash", danger=True))(ui.Text("Clic derecho aquí"))'
+    ),
+    "ContextItem": 'ui.ContextItem("Abrir", icon="folder", shortcut="Ctrl+O", on_click=lambda: None)',
+    "CommandBar": (
+        'ui.CommandBar(ui.Button("Nuevo", icon="plus", variant="primary"), search_placeholder="Buscar…")'
+    ),
+    "NotificationButton": (
+        'ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon="check")])'
+    ),
     # -- botones ---------------------------------------------------------
     "Button": 'ui.Button("Guardar", icon="check", variant="primary", on_click=lambda: None)',
     "IconButton": 'ui.IconButton("settings", label="Ajustes", variant="outline")',
@@ -598,20 +639,70 @@ def build_markdown() -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+ICON_HEADER = """# Catálogo de iconos
+
+interUI incluye su propio set de iconos vectoriales (trazo 24×24, `stroke-width`
+1.8): no depende de ninguna librería externa ni de la red, así que funciona
+igual en macOS, Windows y Linux, dentro del ejecutable empaquetado.
+
+```python
+import interui as ui
+
+ui.Icon("check", size=6, class_="text-emerald-600")   # por nombre
+ui.icon_grid(columns=10, searchable=True)             # galería navegable
+len(ui.ICON_NAMES)                                    # cuántos hay
+```
+
+Los nombres inexistentes no rompen la interfaz: se dibuja un icono de ayuda.
+
+> Este archivo se genera desde el código con `python scripts/gen_docs.py`.
+"""
+
+
+def build_icon_markdown() -> str:
+    from interui.icons import ICON_NAMES
+
+    lines = [
+        ICON_HEADER,
+        f"\n{len(ICON_NAMES)} iconos disponibles.\n",
+        "\n## Lista de nombres\n",
+    ]
+    columnas = 4
+    filas = -(-len(ICON_NAMES) // columnas)
+    lines.append("| " + " | ".join(["Nombre"] * columnas) + " |")
+    lines.append("|" + "|".join(["---"] * columnas) + "|")
+    for fila in range(filas):
+        celdas = []
+        for columna in range(columnas):
+            index = columna * filas + fila
+            celdas.append(f"`{ICON_NAMES[index]}`" if index < len(ICON_NAMES) else "")
+        lines.append("| " + " | ".join(celdas) + " |")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     markdown = build_markdown()
+    icons_markdown = build_icon_markdown()
     if "--check" in args:
-        current = OUTPUT.read_text(encoding="utf-8") if OUTPUT.exists() else ""
-        if current != markdown:
-            print("docs/controles.md está desactualizado: ejecuta python scripts/gen_docs.py")
+        stale = []
+        for path, content in ((OUTPUT, markdown), (ICON_OUTPUT, icons_markdown)):
+            current = path.read_text(encoding="utf-8") if path.exists() else ""
+            if current != content:
+                stale.append(str(path.relative_to(ROOT)))
+        if stale:
+            print("Documentación desactualizada: ejecuta python scripts/gen_docs.py")
+            for name in stale:
+                print(f"  - {name}")
             return 1
-        print("docs/controles.md está al día")
+        print("docs/controles.md y docs/iconos.md están al día")
         return 0
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(markdown, encoding="utf-8")
+    ICON_OUTPUT.write_text(icons_markdown, encoding="utf-8")
     total = sum(len(controls_of(module)) for _title, module in GROUPS)
     print(f"{OUTPUT.relative_to(ROOT)} regenerado: {total} controles documentados")
+    print(f"{ICON_OUTPUT.relative_to(ROOT)} regenerado")
     return 0
 
 

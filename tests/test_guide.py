@@ -16,7 +16,7 @@ import pytest
 import interui as ui
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-DOCS = [ROOT / "docs" / "guia.md", ROOT / "README.md"]
+DOCS = [ROOT / "docs" / "guia.md", ROOT / "docs" / "menus.md", ROOT / "README.md"]
 BLOCK = re.compile(r"```python\n(.*?)```", re.S)
 
 

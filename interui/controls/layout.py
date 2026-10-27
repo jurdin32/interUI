@@ -700,6 +700,13 @@ class Popover(Component):
 
 
 class MenuItem(Component):
+    """Entrada de un menú: barra de menús, desplegable o menú contextual.
+
+    ```python
+    ui.MenuItem("Guardar", icon="save", shortcut="Ctrl+S", on_click=guardar)
+    ```
+    """
+
     tag = "button"
 
     def __init__(
@@ -709,6 +716,7 @@ class MenuItem(Component):
         icon: str | None = None,
         shortcut: str | None = None,
         danger: bool = False,
+        disabled: bool = False,
         href: str | None = None,
         on_click: Any = None,
         **props: Any,
@@ -723,9 +731,14 @@ class MenuItem(Component):
             props.setdefault("type", "button")
         if on_click is not None:
             props["on_click"] = on_click
+        if disabled:
+            props["disabled"] = True
+            props["aria-disabled"] = "true"
         props["role"] = "menuitem"
+        props["data"] = {**props.get("data", {}), "iui-menu-item": "true"}
         props["base_class"] = tw(
-            "flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition",
+            "flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition "
+            "disabled:cursor-not-allowed disabled:opacity-40",
             "text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-500/10"
             if danger
             else "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800",

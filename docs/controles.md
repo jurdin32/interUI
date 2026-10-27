@@ -1615,7 +1615,7 @@ Alias en minúsculas: `ui.menu_item`
 Entrada de menú.
 
 ```text
-ui.MenuItem(label="", icon=None, shortcut=None, danger=False, href=None, on_click=None)
+ui.MenuItem(label="", icon=None, shortcut=None, danger=False, disabled=False, href=None, on_click=None)
 ```
 
 ```python
@@ -1802,6 +1802,107 @@ ui.Well(*children)
 
 ```python
 ui.Well(ui.Text("bloque hundido"))
+```
+
+
+## Shell de aplicación, menús y barras
+
+### `ui.AppShell`
+
+Alias en minúsculas: `ui.app_shell`
+
+Armazón completo: barra de título, cabecera/menús, barra lateral, contenido con scroll y barra de estado.
+
+```text
+ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_width="w-64")
+```
+
+```python
+ui.AppShell(ui.Container(class_="py-6")(ui.Text("contenido")), title_bar=ui.TitleBar("Mi app", icon="layers"), header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon="power")]}, brand="Mi app"), sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)), status=ui.StatusBar(ui.Text("Listo")))
+```
+
+### `ui.CommandBar`
+
+Alias en minúsculas: `ui.command_bar`
+
+Barra de comandos: buscador en vivo + acciones a la derecha.
+
+```text
+ui.CommandBar(*children, search="", search_placeholder="Buscar…", on_search=None)
+```
+
+```python
+ui.CommandBar(ui.Button("Nuevo", icon="plus", variant="primary"), search_placeholder="Buscar…")
+```
+
+### `ui.ContextItem`
+
+Alias en minúsculas: `ui.context_item`
+
+Entrada de menú contextual (icono, atajo, peligro, deshabilitada).
+
+```text
+ui.ContextItem(label="", icon=None, shortcut=None, danger=False, disabled=False, href=None, on_click=None)
+```
+
+```python
+ui.ContextItem("Abrir", icon="folder", shortcut="Ctrl+O", on_click=lambda: None)
+```
+
+### `ui.ContextMenu`
+
+Alias en minúsculas: `ui.context_menu`
+
+Envuelve contenido y abre un menú con el botón derecho.
+
+```text
+ui.ContextMenu(*children, min_width="12rem", hint=None)
+```
+
+```python
+ui.ContextMenu(ui.ContextItem("Abrir", icon="folder"), "-", ui.ContextItem("Borrar", icon="trash", danger=True))(ui.Text("Clic derecho aquí"))
+```
+
+### `ui.MenuBar`
+
+Alias en minúsculas: `ui.menu_bar`
+
+Barra de menús de la ventana (`Archivo`, `Editar`…) con desplegables.
+
+```text
+ui.MenuBar(menus=None, brand=None, logo="layers", actions=None, sticky=True)
+```
+
+```python
+ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N"), "-", ui.ContextItem("Salir", icon="power", danger=True)], "Ver": [ui.ContextItem("Tema oscuro", icon="moon")]}, brand="Mi app")
+```
+
+### `ui.MenuButton`
+
+Alias en minúsculas: `ui.menu_button`
+
+Botón que despliega un menú de acciones en cualquier punto de la interfaz.
+
+```text
+ui.MenuButton(label="Menú", items=None, icon=None, variant="ghost", size="sm", align="left")
+```
+
+```python
+ui.MenuButton("Acciones", icon="settings", items=[ui.ContextItem("Editar", icon="edit"), ui.ContextItem("Eliminar", icon="trash", danger=True)])
+```
+
+### `ui.NotificationButton`
+
+Alias en minúsculas: `ui.notification_button`
+
+Campana con contador y panel de notificaciones.
+
+```text
+ui.NotificationButton(count=0, items=None)
+```
+
+```python
+ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon="check")])
 ```
 
 
@@ -2391,6 +2492,20 @@ ui.Icon(name="check", size=5, stroke=None, class_=None)
 
 ```python
 ui.Icon("check", size=6, class_="text-emerald-600")
+```
+
+### `ui.IconGrid`
+
+Alias en minúsculas: `ui.icon_grid`
+
+Catálogo buscable de los 200+ iconos incluidos; `on_pick` recibe el nombre.
+
+```text
+ui.IconGrid(names=None, size=5, columns=8, searchable=False, on_pick=None)
+```
+
+```python
+ui.IconGrid(columns=8)
 ```
 
 

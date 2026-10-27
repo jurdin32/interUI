@@ -120,6 +120,35 @@
     padding-right: 0.5rem;
   }
 
+  /* Diálogos modales */
+  .iui-dialog {
+    animation: iui-fade 140ms ease-out;
+  }
+
+  .iui-dialog-panel {
+    animation: iui-pop 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes iui-fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes iui-pop {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
   [contenteditable]:empty::before {
     content: attr(data-placeholder);
     color: var(--color-slate-400);
