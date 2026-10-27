@@ -41,6 +41,7 @@ if __name__ == "__main__":
 - [Estado del proyecto](#estado-del-proyecto)
 - [Multiplataforma](#multiplataforma)
 - [Instalación](#instalación)
+- [Guía paso a paso](#guía-paso-a-paso)
 - [Inicio rápido](#inicio-rápido)
 - [Cómo funciona una app](#cómo-funciona-una-app)
 - [Rejilla de 12 columnas](#rejilla-de-12-columnas)
@@ -158,6 +159,30 @@ interui doctor
 
 ---
 
+## Guía paso a paso
+
+El recorrido completo, desde una ventana vacía hasta una app con formularios,
+tabla, búsqueda, validación, persistencia y diálogos nativos está en
+**[docs/guia.md](docs/guia.md)**:
+
+| Paso | Qué aprendes |
+|---|---|
+| 1–2 | Instalar y abrir la ventana más pequeña posible |
+| 3–4 | Jerarquía de componentes y rejilla de 12 columnas |
+| 5–6 | Botones, eventos y estado reactivo |
+| 7 | Formularios con validación hecha en Python |
+| 8 | Tablas, búsqueda, filtrado y estados vacíos |
+| 9 | Varias vistas y navegación |
+| 10 | Diálogos nativos, notificaciones, portapapeles y archivos |
+| 11–12 | Tema claro/oscuro y persistencia en `app.data_dir` |
+| 13–15 | Estructura de proyecto, empaquetado y errores frecuentes |
+
+Cada bloque de código de la guía se compila y se ejecuta en las pruebas
+([`tests/test_guide.py`](tests/test_guide.py)), así que no puede quedarse
+obsoleto.
+
+---
+
 ## Inicio rápido
 
 ```bash
@@ -191,6 +216,7 @@ Ejemplos completos en [`examples/`](examples):
 | [`02_grid.py`](examples/02_grid.py) | Rejilla de 12 columnas y breakpoints. |
 | [`03_catalog.py`](examples/03_catalog.py) | Catálogo visual de todos los controles. |
 | [`04_desktop.py`](examples/04_desktop.py) | Integración nativa: diálogos, notificaciones, barra de título. |
+| [`05_crud.py`](examples/05_crud.py) | **App completa**: alta/edición, búsqueda, validación, persistencia y exportación. |
 
 ---
 
@@ -328,10 +354,14 @@ ui.Button("Guardar", class_="w-full bg-emerald-600 hover:bg-emerald-500")
 Los handlers son funciones Python normales. Pueden recibir un `UIEvent` o nada:
 
 ```python
-def guardar() -> None:                    # sin parámetros
-    …
+import interui as ui
 
-def on_nombre(evento: ui.UIEvent) -> None:  # con evento
+
+def guardar() -> None:                       # sin parámetros
+    app.notify("guardado")
+
+
+def on_nombre(evento: ui.UIEvent) -> None:   # con evento
     print(evento.value, evento.name, evento.files, evento.mods)
 ```
 
@@ -596,7 +626,8 @@ duplicados, catálogo exportado).
 
 ## Documentación adicional
 
-- [Referencia de controles](docs/controles.md) — firmas y descripciones de todos los controles.
+- [Guía paso a paso](docs/guia.md) — de la ventana vacía a la app completa.
+- [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
 - [Instalación y publicación en PyPI](docs/publicar.md) — cómo instalarlo y cómo publicarlo.

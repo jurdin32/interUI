@@ -4,6 +4,7 @@
 @source "../../interui/**/*.py";
 @source "../../interui/static/*.js";
 @source "../../interui/static/*.html";
+@source "../../examples/**/*.py";
 @source "./index.html";
 
 /* ------------------------------------------------------------------

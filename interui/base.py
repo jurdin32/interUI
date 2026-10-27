@@ -67,7 +67,9 @@ class Component:
         extra_base = props.pop("base_class", None)
         self.hidden: bool = bool(props.pop("hidden", False))
         self.role: str | None = props.pop("role", None)
-        self.title: str | None = props.pop("title", None)
+        # `title=` aquí es el atributo HTML; no debe pisar el título de contenido
+        # que algunos controles (EmptyState, ListItem, TimelineItem…) ya fijaron.
+        self.title: str | None = props.pop("title", getattr(self, "title", None))
         self.tabindex: Any = props.pop("tabindex", None)
         if extra_base:
             self.base_class = tw(self.base_class, extra_base)
