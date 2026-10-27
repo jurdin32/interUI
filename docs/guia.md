@@ -37,8 +37,28 @@ pip install "interui[desktop]"
 python -c "import interui; print(interui.__version__)"
 ```
 
-Comprueba el entorno con `interui doctor`: debe decir que `pywebview` está
-instalado y que el CSS compilado existe.
+Comprueba el entorno:
+
+```bash
+interui doctor
+python -c "import interui; print(interui.__version__, interui.__file__)"
+```
+
+Debe decir que `pywebview` está instalado, que el CSS existe y que la versión es
+**≥ 0.2.0**. Si `import interui` te da una versión antigua (o `window` «es un
+símbolo de importación desconocido»), tienes otra copia instalada en el
+intérprete que usa tu editor:
+
+```bash
+# trabajando sobre el repositorio
+pip install -e ".[desktop,dev]"
+
+# desde GitHub, versión concreta
+pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.2.0"
+```
+
+En VS Code, selecciona el mismo intérprete con `Ctrl/Cmd + Shift + P` →
+*Python: Select Interpreter*.
 
 ---
 

@@ -166,11 +166,17 @@ python -m venv venv
 cd frontend && npm install && npm run build
 ```
 
-Comprobación del entorno:
+Comprobación del entorno e **del intérprete correcto**:
 
 ```bash
 interui doctor
+python -c "import interui; print(interui.__version__, interui.__file__)"
 ```
+
+Ese segundo comando es el que delata el 90 % de los «no funciona»: si la versión
+es antigua o la ruta no es la de tu código, tu editor está usando otro entorno.
+En VS Code: `Ctrl/Cmd + Shift + P` → *Python: Select Interpreter* → elige el
+`venv` del proyecto.
 
 👉 Guía completa de instalación y **publicación en PyPI**:
 [`docs/publicar.md`](docs/publicar.md).
@@ -757,6 +763,7 @@ duplicados, catálogo exportado).
 | Un clic no responde | El handler lanzó una excepción: se muestra como *toast*; revisa la consola o `--debug`. |
 | El ejecutable no arranca en Windows | Es una app `--windowed` sin `stdout`; los mensajes van a `<data_dir>/interui.log`. |
 | Los estilos nuevos no aparecen | Recompila (`interui assets`) y reinicia la app. |
+| `"window" es un símbolo de importación desconocido` o `state` «no se puede llamar al módulo» | Hay una versión antigua de `interui` instalada en el intérprete que usa tu editor. Comprueba con `python -c "import interui; print(interui.__version__, interui.__file__)"` (debe ser ≥ 0.2.0 y apuntar a tu código) y reinstala: `pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.2.0"` o, si trabajas sobre el repo, `pip install -e ".[desktop,dev]"`. |
 
 ---
 
