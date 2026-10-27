@@ -230,22 +230,9 @@ def install(namespace: dict[str, Any]) -> dict[str, str]:
 # ---------------------------------------------------------------------------
 # alias disponibles también al importar desde `interui.simple`
 # ---------------------------------------------------------------------------
-def _install_local_aliases() -> dict[str, str]:
-    from . import controls as _controls
-    from . import grid as _grid
+from .aliases import *  # noqa: E402,F401,F403  (alias estáticos)
+from .aliases import __all__ as _alias_all  # noqa: E402
 
-    mapping: dict[str, str] = {}
-    for module in (_controls, _grid):
-        for name in getattr(module, "__all__", []):
-            target = getattr(module, name, None)
-            alias = snake_case(name)
-            if not isinstance(target, type) or alias in _RESERVED or alias in mapping:
-                continue
-            globals()[alias] = target
-            mapping[alias] = name
-            if alias not in __all__:
-                __all__.append(alias)
-    return mapping
+__all__ = [*__all__, *_alias_all]
 
-
-SIMPLE_ALIASES = _install_local_aliases()
+SIMPLE_ALIASES: dict[str, str] = {alias: snake_case(alias) for alias in _alias_all}

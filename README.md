@@ -58,6 +58,7 @@ app.run()
 - [Estado del proyecto](#estado-del-proyecto)
 - [Multiplataforma](#multiplataforma)
 - [Instalación](#instalación)
+- [Por qué el editor marca errores](#por-qué-el-editor-marca-errores-y-el-programa-funciona)
 - [Guía paso a paso](#guía-paso-a-paso)
 - [Inicio rápido](#inicio-rápido)
 - [Cómo funciona una app](#cómo-funciona-una-app)
@@ -763,7 +764,51 @@ duplicados, catálogo exportado).
 | Un clic no responde | El handler lanzó una excepción: se muestra como *toast*; revisa la consola o `--debug`. |
 | El ejecutable no arranca en Windows | Es una app `--windowed` sin `stdout`; los mensajes van a `<data_dir>/interui.log`. |
 | Los estilos nuevos no aparecen | Recompila (`interui assets`) y reinicia la app. |
+| El editor subraya `window`/`text` en rojo **pero el programa funciona** | Pylance analiza con *otro* intérprete o con caché vieja. Ver [por qué el editor marca errores](#por-qué-el-editor-marca-errores-y-el-programa-funciona). |
 | `"window" es un símbolo de importación desconocido` o `state` «no se puede llamar al módulo» | Hay una versión antigua de `interui` instalada en el intérprete que usa tu editor. Comprueba con `python -c "import interui; print(interui.__version__, interui.__file__)"` (debe ser ≥ 0.2.0 y apuntar a tu código) y reinstala: `pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.2.0"` o, si trabajas sobre el repo, `pip install -e ".[desktop,dev]"`. |
+
+---
+
+## Por qué el editor marca errores y el programa funciona
+
+Son dos analizadores distintos:
+
+| | Ejecutar (`python app.py`) | Editor (Pylance / mypy) |
+|---|---|---|
+| Qué usa | el intérprete y `site-packages` reales | el intérprete **seleccionado en el editor** y su propio índice |
+| Cuándo se actualiza | al instalar | al recargar la ventana / reiniciar el servidor de lenguaje |
+| Qué ve | todo lo que existe en tiempo de ejecución | solo lo que puede resolverse **estáticamente** |
+
+Las tres causas habituales, en orden de frecuencia:
+
+1. **Intérprete distinto.** VS Code usa otro Python (o otro `venv`) que el de tu
+   terminal. Comprueba:
+   ```bash
+   python -c "import interui; print(interui.__version__, interui.__file__)"
+   ```
+   Elige el mismo en `Ctrl/Cmd + Shift + P` → *Python: Select Interpreter*.
+
+2. **Caché del analizador.** Instalaste la versión nueva, pero Pylance mantiene el
+   índice anterior: `Ctrl/Cmd + Shift + P` → *Developer: Reload Window*
+   (o *Python: Restart Language Server*).
+
+3. **Símbolos generados en tiempo de ejecución.** Los analizadores no ven nada
+   creado con `globals()[...] = ...`. Por eso los alias (`text`, `button`…) se
+   declaran **estáticamente** en [`interui/aliases.py`](interui/aliases.py), y una
+   prueba ([`tests/test_structure.py`](tests/test_structure.py)) impide volver a
+   inyectarlos dinámicamente.
+
+Comprobación rápida de que el paquete se analiza bien: abre un archivo con
+
+```python
+from interui import button, state, text, window
+
+count = state(0)
+window("App", text("Hola"), button("Pulsar", on_click=count.inc)).run()
+```
+
+y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
+«símbolo desconocido», es el punto 1 o 2, no el código.
 
 ---
 

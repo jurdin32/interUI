@@ -19,7 +19,9 @@
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+import sys
+
+__version__ = "0.2.1"
 
 from .app import App
 from .base import Component, Fragment, bind_many, render, render_children
@@ -56,10 +58,15 @@ __all__ = [
 
 
 # Alias en minúsculas para todos los controles: ui.button, ui.input, ui.card…
-# (SIMPLE_ALIASES se calcula una sola vez aquí, sobre el catálogo completo.)
-SIMPLE_ALIASES: dict[str, str] = alias_names([name for name in __all__ if name[:1].isupper()])
-globals().update({alias: globals()[control] for alias, control in SIMPLE_ALIASES.items()})
-__all__ = [*__all__, *SIMPLE_ALIASES]
+# Se importan de un módulo real y estático (interui/aliases.py) para que Pylance
+# y mypy resuelvan `from interui import text` sin falsos errores.
+from .aliases import *  # noqa: F401,F403,E402  (alias estáticos)
+from .aliases import __all__ as _alias_all  # noqa: E402
+
+SIMPLE_ALIASES: dict[str, str] = {
+    alias: getattr(sys.modules[__name__], alias).__name__ for alias in _alias_all
+}
+__all__ = [*__all__, *_alias_all]
 
 
 def run(app: "App", **kwargs: object) -> None:

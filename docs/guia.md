@@ -58,7 +58,14 @@ pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurd
 ```
 
 En VS Code, selecciona el mismo intérprete con `Ctrl/Cmd + Shift + P` →
-*Python: Select Interpreter*.
+*Python: Select Interpreter*, y si acabas de instalar, recarga la ventana
+(*Developer: Reload Window*): Pylance indexa cada intérprete por separado y
+seguiría marcando `window` en rojo con el índice antiguo.
+
+> Si el editor subraya `text`/`button` pero `python app.py` funciona, el problema
+> es del analizador (intérprete o caché), no del código. Los alias del framework
+> están declarados de forma estática en `interui/aliases.py` precisamente para
+> que el editor los vea.
 
 ---
 
