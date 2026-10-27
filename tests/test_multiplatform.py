@@ -29,6 +29,8 @@ from interui.desktop import _applescript, _extensions
     ],
 )
 def test_data_dir_per_platform(monkeypatch, tmp_path, system, env, expected_parts):
+    # Las rutas de Windows son relativas fuera de Windows: se trabaja en tmp.
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("INTERUI_DATA_DIR", raising=False)
     monkeypatch.setattr(app_module.platform, "system", lambda: system)
     for key, value in env.items():
