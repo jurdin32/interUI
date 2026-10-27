@@ -29,6 +29,7 @@ commit.
 15. [Estructura recomendada del proyecto](#15-estructura-recomendada-del-proyecto)
 16. [Empaquetar y distribuir](#16-empaquetar-y-distribuir)
 17. [Errores frecuentes](#17-errores-frecuentes)
+18. [Mantener interUI actualizado](#18-mantener-interui-actualizado)
 
 ---
 
@@ -855,9 +856,46 @@ Requisitos por plataforma en [la guía de escritorio](escritorio.md).
 
 ---
 
+## 18. Mantener interUI actualizado
+
+Al arrancar, la app comprueba en segundo plano si hay una versión más nueva de
+interUI y, si la hay, muestra un aviso con el comando exacto para actualizar
+(también en el log y en `app.update_available`). No tienes que programar nada.
+
+Desde la terminal:
+
+```bash
+interui update        # ¿hay versión nueva? muestra el comando
+interui update --run  # y la ejecuta
+```
+
+Si quieres reaccionar en tu interfaz:
+
+```python
+from interui import App, Badge, Container, Screen, heading
+
+app = App("Mi app")
+
+
+@app.page("/")
+def index():
+    aviso = Badge(f"Nueva versión {app.update.latest}", variant="warning") if app.update_available else None
+    return Screen(Container(class_="py-6")(heading("Hola"), aviso))
+
+
+app.run()
+```
+
+Se desactiva con `App("Mi app", check_updates=False)` o
+`INTERUI_NO_UPDATE_CHECK=1`. Detalle completo en
+[actualizar interUI](actualizar.md).
+
+---
+
 ## Siguiente paso
 
 - [Referencia de controles](controles.md) — firma y ejemplo de cada control.
+- [Actualizar interUI](actualizar.md) — versiones, comandos y aviso en la app.
 - [Menús, barras y armazón](menus.md) — `AppShell`, barra de menús y menú contextual.
 - [Catálogo de iconos](iconos.md) — los 202 iconos incluidos.
 - [Guía de la rejilla](rejilla.md) — patrones responsive.

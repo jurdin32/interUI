@@ -87,6 +87,9 @@ function handle(message) {
     case "nav":
       navigate(message.path, { push: true });
       break;
+    case "update":
+      updateBanner(message);
+      break;
     case "crash":
       renderCrash(message);
       break;
@@ -825,6 +828,87 @@ function toast(message, level = "info") {
 }
 
 /* ------------------------------------------------------------------ */
+/* aviso de versión nueva                                              */
+/* ------------------------------------------------------------------ */
+const UPDATE_KEY = "iui-update-dismissed";
+
+function updateBanner(message) {
+  const version = message.latest || "";
+  if (!version) return;
+  if (localStorage.getItem(UPDATE_KEY) === version) return;
+  const existing = document.getElementById("iui-update");
+  if (existing) existing.remove();
+
+  const box = document.createElement("div");
+  box.id = "iui-update";
+  box.setAttribute("role", "status");
+  box.className =
+    "fixed bottom-4 left-1/2 z-[90] w-[min(680px,calc(100vw-2rem))] -translate-x-1/2 " +
+    "rounded-xl border border-indigo-200 bg-white p-4 shadow-2xl " +
+    "dark:border-indigo-500/40 dark:bg-slate-900";
+
+  const title = document.createElement("p");
+  title.className = "text-sm font-semibold text-slate-900 dark:text-white";
+  title.textContent = `interUI ${version} ya está disponible`;
+  title.dataset.iuiUpdateTitle = "true";
+
+  const detail = document.createElement("p");
+  detail.className = "mt-1 text-xs text-slate-500 dark:text-slate-400";
+  detail.textContent = `Tienes la ${message.current || ""}. Actualiza con este comando:`;
+
+  const code = document.createElement("code");
+  code.className =
+    "mt-2 block overflow-x-auto rounded-lg bg-slate-100 px-3 py-2 " +
+    "font-mono text-[11px] text-slate-800 dark:bg-slate-800 dark:text-slate-100";
+  code.textContent = message.command || "";
+
+  const actions = document.createElement("div");
+  actions.className = "mt-3 flex flex-wrap items-center gap-2";
+
+  const copy = document.createElement("button");
+  copy.type = "button";
+  copy.className =
+    "rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-indigo-500";
+  copy.textContent = "Copiar comando";
+  copy.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(code.textContent || "");
+      copy.textContent = "¡Copiado!";
+      setTimeout(() => (copy.textContent = "Copiar comando"), 1600);
+    } catch (error) {
+      const range = document.createRange();
+      range.selectNodeContents(code);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  });
+
+  const link = document.createElement("a");
+  link.href = message.url || "https://github.com/jurdin32/interUI";
+  link.dataset.iuiExternal = link.href;
+  link.className =
+    "rounded-lg px-3 py-1.5 text-xs font-medium text-indigo-600 transition hover:bg-indigo-50 " +
+    "dark:text-indigo-400 dark:hover:bg-slate-800";
+  link.textContent = "Cómo actualizar";
+
+  const later = document.createElement("button");
+  later.type = "button";
+  later.className =
+    "ml-auto rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 transition " +
+    "hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800";
+  later.textContent = "Ahora no";
+  later.addEventListener("click", () => {
+    localStorage.setItem(UPDATE_KEY, version);
+    box.remove();
+  });
+
+  actions.append(copy, link, later);
+  box.append(title, detail, code, actions);
+  document.body.appendChild(box);
+}
+
+/* ------------------------------------------------------------------ */
 /* errores de render                                                   */
 /* ------------------------------------------------------------------ */
 function renderCrash(message) {
@@ -948,6 +1032,7 @@ window.interui = {
   closeMenus,
   openMenu,
   toggleMenu,
+  updateBanner,
   get page() {
     return state.page;
   },

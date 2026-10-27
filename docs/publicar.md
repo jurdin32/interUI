@@ -273,3 +273,11 @@ python -m twine upload dist/*
 # empaquetar una app creada con interUI en un ejecutable
 interui build app.py --name MiApp
 ```
+
+---
+
+## Actualizar una instalación existente
+
+Los comandos para actualizar (según se haya instalado desde Git, PyPI o en modo
+editable), el aviso automático de versión nueva y los problemas frecuentes están
+en [actualizar interUI](actualizar.md).

@@ -189,6 +189,12 @@ def index() -> object:
             Text(seccion.get(), weight="semibold"),
             Text("·"),
             Text("Todo guardado", tone="muted"),
+            # Si al arrancar se detectó una versión nueva, se muestra en la barra.
+            (
+                Badge(f"interUI {app.update.latest} disponible", variant="warning")
+                if app.update_available
+                else None
+            ),
         ),
     )
 

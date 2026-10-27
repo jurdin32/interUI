@@ -124,6 +124,28 @@ def cmd_new(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_update(args: argparse.Namespace) -> int:
+    from . import updates
+
+    info = updates.check(force=True, timeout=getattr(args, "timeout", 5.0))
+    origin, command = updates.install_info()
+    print(f"interui {updates.current_version()} (instalado desde {origin})")
+    if info is None:
+        print("No se pudo consultar la última versión (¿sin conexión?).")
+        print(f"Actualiza manualmente con:\n  {command}")
+        return 1
+    if info.available:
+        print(f"Hay una versión nueva: {info.latest}")
+        print(f"Actualiza con:\n  {info.command}")
+    else:
+        print(f"Estás al día (última publicada: {info.latest}).")
+        print(f"Para forzar la actualización:\n  {info.command}")
+    if getattr(args, "run", False):
+        print("[interui] ejecutando la actualización…")
+        return updates.run_upgrade(info.command if info.available else command)
+    return 0
+
+
 def cmd_doctor(_args: argparse.Namespace) -> int:
     from .desktop import desktop_info
 
@@ -269,6 +291,11 @@ def build_parser() -> argparse.ArgumentParser:
     build.add_argument("--console", action="store_true", help="mantiene la consola visible")
     build.add_argument("--icon", help="archivo .icns/.ico")
     build.set_defaults(func=cmd_build)
+
+    update = sub.add_parser("update", help="comprueba si hay versión nueva y muestra el comando")
+    update.add_argument("--run", action="store_true", help="ejecuta la actualización")
+    update.add_argument("--timeout", type=float, default=5.0)
+    update.set_defaults(func=cmd_update)
 
     sub.add_parser("doctor", help="comprueba el entorno").set_defaults(func=cmd_doctor)
     sub.add_parser("assets", help="recompila Tailwind (Vite)").set_defaults(func=cmd_assets)

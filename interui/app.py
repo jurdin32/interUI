@@ -22,6 +22,7 @@ from .html import escape
 from .log import log, log_file
 from .server import STATIC_DIR, Server, WebSocket
 from .state import Signal
+from . import updates as _updates
 
 __all__ = ["App"]
 
@@ -51,6 +52,7 @@ class App:
         menus: list[Any] | None = None,
         resizable: bool = True,
         frameless: bool = False,
+        check_updates: bool | None = None,
     ) -> None:
         if args:
             title = str(args[0])
@@ -82,6 +84,9 @@ class App:
         self._on_close: list[Callable[[], Any]] = []
         self._desktop: DesktopWindow | None = None
         self._native = Native(self)
+        self.check_updates = check_updates
+        self.update: _updates.UpdateInfo | None = None
+        self._update_thread: threading.Thread | None = None
         self.data_dir = Path(data_dir) if data_dir else _default_data_dir(self.title)
         log_file(self.data_dir / "interui.log")
 
@@ -238,6 +243,8 @@ class App:
             self._client_pages.setdefault(ws.id, "/")
         ws.send_json({"t": "ready", "app": self.title, "theme": self.theme})
         self._push_render(ws)
+        if self.update is not None and self.update.available:
+            ws.send_json(self.update.to_payload())
         if self._desktop is not None:
             # La ventana se creó oculta: se muestra con el primer render listo.
             self._desktop.reveal_when_ready()
@@ -404,6 +411,43 @@ class App:
         return func
 
     # ------------------------------------------------------------------
+    # actualizaciones
+    # ------------------------------------------------------------------
+    @property
+    def update_available(self) -> bool:
+        """``True`` si al arrancar se detectó una versión más nueva de interUI."""
+        return self.update is not None and self.update.available
+
+    def check_updates_now(self, *, broadcast: bool = True) -> _updates.UpdateInfo | None:
+        """Consulta la última versión publicada (bloquea; normalmente no hace falta)."""
+        info = _updates.check(cache_dir=self.data_dir)
+        if info is not None and info.available:
+            self.update = info
+            log(f"[interui] {info.message()}\n[interui] actualizar: {info.command}")
+            # Re-renderiza para que las vistas que usan app.update_available
+            # (badges, banners propios) reflejen la novedad, y avisa al cliente.
+            self.refresh()
+            if broadcast and self.server is not None:
+                self.server.broadcast(info.to_payload())
+        return info
+
+    def start_update_check(self) -> None:
+        """Comprueba si hay versión nueva en segundo plano y avisa a la interfaz."""
+        if self.check_updates is False or self._update_thread is not None:
+            return
+
+        def worker() -> None:
+            time.sleep(1.0)  # deja que la ventana pinte antes de tocar la red
+            try:
+                self.check_updates_now()
+            except Exception:  # noqa: BLE001 - una actualización nunca rompe la app
+                if self.verbose:
+                    traceback.print_exc()
+
+        self._update_thread = threading.Thread(target=worker, name="interui-update", daemon=True)
+        self._update_thread.start()
+
+    # ------------------------------------------------------------------
     # ejecución
     # ------------------------------------------------------------------
     def run(
@@ -445,6 +489,8 @@ class App:
 
         for hook in self._on_start:
             hook()
+
+        self.start_update_check()
 
         log(f"[interui] {self.title} -> {url}")
         try:

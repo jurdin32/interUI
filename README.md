@@ -53,10 +53,34 @@ app.run()
 
 ---
 
+## Actualizar interUI
+
+> **¿Ya tienes interUI instalado?** Comprueba la versión y actualiza con:
+>
+> ```bash
+> interui update      # te dice si hay una nueva y el comando exacto
+> ```
+>
+> ```bash
+> pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+> ```
+>
+> 📖 **Guía de actualización:** [docs/actualizar.md](docs/actualizar.md) ·
+> 🚀 **Última versión:** <https://github.com/jurdin32/interUI/releases>
+
+La aplicación avisa sola: al arrancar consulta (en segundo plano, sin bloquear la
+ventana) si hay una versión más nueva y, si la hay, muestra un aviso con el
+comando para copiar, `app.update_available` pasa a `True` y el log registra
+`[interui] Hay una versión nueva…`. Se desactiva con `App(..., check_updates=False)`
+o `INTERUI_NO_UPDATE_CHECK=1`.
+
+---
+
 ## Índice
 
 - [Estado del proyecto](#estado-del-proyecto)
 - [Multiplataforma](#multiplataforma)
+- [Actualizar interUI](#actualizar-interui)
 - [Instalación](#instalación)
 - [Por qué el editor marca errores](#por-qué-el-editor-marca-errores-y-el-programa-funciona)
 - [Guía paso a paso](#guía-paso-a-paso)
@@ -185,6 +209,9 @@ En VS Code: `Ctrl/Cmd + Shift + P` → *Python: Select Interpreter* → elige el
 
 👉 Guía completa de instalación y **publicación en PyPI**:
 [`docs/publicar.md`](docs/publicar.md).
+
+👉 Para **mantenerlo actualizado** (comandos por tipo de instalación, aviso en la
+app y problemas frecuentes): [`docs/actualizar.md`](docs/actualizar.md).
 
 ---
 
@@ -949,6 +976,7 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 - [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
 - [Diálogos y ventanas modales](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
+- [Actualizar interUI](docs/actualizar.md) — comprobar versión, comandos y aviso en la app.
 - [Menús, barras y armazón de app](docs/menus.md) — `AppShell`, barra de menús, menú contextual, comandos y notificaciones.
 - [Catálogo de iconos](docs/iconos.md) — los 202 iconos incluidos y cómo usarlos.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.

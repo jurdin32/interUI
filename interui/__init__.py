@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import sys
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 from .app import App
 from .base import Component, Fragment, bind_many, render, render_children
@@ -37,6 +37,7 @@ from .grid import (
 from .html import Markup, escape, raw
 from .icons import ICON_NAMES, ICONS, Icon, IconGrid
 from .state import Signal
+from . import updates
 from .style import cl, tw
 from .ui import BUTTON_SIZES, BUTTON_VARIANTS
 from .controls import *  # noqa: F401,F403  (catálogo de controles)
@@ -53,7 +54,7 @@ __all__ = [
     "Signal", "Icon", "IconGrid", "ICONS", "ICON_NAMES", "Markup", "raw", "escape", "tw", "cl",
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
-    "current_app", "snake_case", "alias_names",
+    "current_app", "snake_case", "alias_names", "updates",
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",
     "AspectRatio", "ScrollArea", "Grid", "Screen",
     *_controls_all,
