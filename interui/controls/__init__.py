@@ -18,7 +18,7 @@ from .data import (
     TreeNode,
 )
 from .feedback import (
-    Alert, Banner, Callout, ConfirmDialog, Hint, InlineToast, LoadingOverlay, Meter,
+    Alert, Banner, Callout, ConfirmDialog, Hint, Snackbar, InlineToast, LoadingOverlay, Meter,
     Progress, ProgressRing, Skeleton, StatusDot,
 )
 from .inputs import (

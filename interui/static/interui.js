@@ -16,7 +16,10 @@ const state = {
 /* ------------------------------------------------------------------ */
 function socketUrl() {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  return `${proto}//${location.host}/ws`;
+  // Cada ventana nativa abre su propio canal e incluye su id (?w=…).
+  const win = new URLSearchParams(location.search).get("w");
+  const suffix = win ? `?w=${encodeURIComponent(win)}` : "";
+  return `${proto}//${location.host}/ws${suffix}`;
 }
 
 function connect() {
@@ -75,7 +78,7 @@ function handle(message) {
       applyRender(message);
       break;
     case "toast":
-      toast(message.message, message.level || "info");
+      toast(message);
       break;
     case "eval":
       try {
@@ -582,9 +585,17 @@ async function copyText(text) {
 }
 
 function dismiss(element) {
-  const target = element.closest("[data-iui-dismissible]") || element;
+  const snackbar = element.closest("[data-iui-snackbar]");
+  const target = snackbar || element.closest("[data-iui-dismissible]") || element;
   target.remove();
 }
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest && event.target.closest("[data-iui-dismiss]");
+  if (!button) return;
+  event.preventDefault();
+  dismiss(button);
+});
 
 function scrollToId(id) {
   const element = document.getElementById(id);
@@ -799,32 +810,86 @@ const TOAST_STYLES = {
   error: "bg-rose-600 text-white ring-rose-500",
 };
 
-function toast(message, level = "info") {
+function toast(payload, level = "info") {
+  const data = typeof payload === "string" ? { message: payload, level } : payload || {};
   const host = document.getElementById("iui-toasts");
   if (!host) return;
+  const tone = data.level || "info";
   const wrapper = document.createElement("div");
   wrapper.className =
     "pointer-events-auto flex items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 " +
-    (TOAST_STYLES[level] || TOAST_STYLES.info) +
+    (TOAST_STYLES[tone] || TOAST_STYLES.info) +
     " translate-y-2 opacity-0 transition duration-200";
+  wrapper.setAttribute("role", "status");
+  wrapper.dataset.iuiSnackbar = "true";
+
+  if (data.image) {
+    const image = document.createElement("img");
+    image.src = data.image;
+    image.alt = "";
+    image.className = "h-9 w-9 shrink-0 rounded-lg object-cover";
+    wrapper.appendChild(image);
+  } else if (data.icon) {
+    // El marcado SVG llega ya dimensionado desde Python.
+    const icon = document.createElement("span");
+    icon.className = "shrink-0";
+    icon.innerHTML = data.icon;
+    wrapper.appendChild(icon);
+  }
+
+  const body = document.createElement("div");
+  body.className = "flex min-w-0 flex-1 flex-col gap-0.5";
+  if (data.title) {
+    const title = document.createElement("p");
+    title.className = "truncate font-semibold leading-snug";
+    title.textContent = data.title;
+    body.appendChild(title);
+  }
   const text = document.createElement("span");
-  text.className = "flex-1 leading-snug";
-  text.textContent = message;
+  text.className = "leading-snug" + (data.title ? " opacity-90" : "");
+  text.textContent = data.message || "";
+  body.appendChild(text);
+  wrapper.appendChild(body);
+
+  if (data.action && data.action.label) {
+    const action = document.createElement("button");
+    action.type = "button";
+    action.textContent = data.action.label;
+    action.className =
+      "shrink-0 rounded-md px-1 py-0.5 text-xs font-semibold underline-offset-2 hover:underline";
+    action.addEventListener("click", () => {
+      if (data.action.js) {
+        try {
+          new Function(data.action.js)();
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      wrapper.remove();
+    });
+    wrapper.appendChild(action);
+  }
+
   const close = document.createElement("button");
   close.type = "button";
   close.className = "shrink-0 rounded-md p-0.5 opacity-70 transition hover:opacity-100";
   close.textContent = "✕";
+  close.setAttribute("aria-label", "Cerrar aviso");
   close.addEventListener("click", () => wrapper.remove());
-  wrapper.append(text, close);
+  wrapper.appendChild(close);
+
   host.appendChild(wrapper);
   requestAnimationFrame(() => {
     wrapper.classList.remove("translate-y-2", "opacity-0");
     wrapper.classList.add("translate-y-0", "opacity-100");
   });
-  setTimeout(() => {
-    wrapper.classList.add("opacity-0", "translate-y-2");
-    setTimeout(() => wrapper.remove(), 250);
-  }, 4200);
+  const ms = Number(data.duration ?? 4200);
+  if (ms > 0) {
+    setTimeout(() => {
+      wrapper.classList.add("opacity-0", "translate-y-2");
+      setTimeout(() => wrapper.remove(), 250);
+    }, ms);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -947,6 +1012,17 @@ function afterRender() {
   });
   document.querySelectorAll("[data-iui-indeterminate]").forEach((element) => {
     element.indeterminate = true;
+  });
+  document.querySelectorAll("[data-iui-snackbar][data-iui-duration]").forEach((element) => {
+    if (element.dataset.iuiArmed) return;
+    element.dataset.iuiArmed = "1";
+    const ms = parseInt(element.dataset.iuiDuration || "0", 10);
+    if (ms > 0) {
+      setTimeout(() => {
+        element.classList.add("opacity-0");
+        setTimeout(() => element.remove(), 250);
+      }, ms);
+    }
   });
 }
 

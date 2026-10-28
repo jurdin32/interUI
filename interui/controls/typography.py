@@ -9,6 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..theme import utility
 from ..ui import BADGE_VARIANTS
 
 __all__ = [
@@ -80,8 +81,8 @@ class Text(Component):
         props["base_class"] = tw(
             TEXT_SIZES.get(size, "text-[15px]"),
             TEXT_TONES.get(tone, ""),
-            f"font-{weight}" if weight else "",
-            f"leading-{leading}" if leading else "",
+            utility("font", weight) if weight else "",
+            utility("leading", leading) if leading else "",
             "truncate" if truncate else "",
             props.get("base_class"),
         )

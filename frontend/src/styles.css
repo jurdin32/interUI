@@ -8,24 +8,67 @@
 @source "./index.html";
 
 /* ------------------------------------------------------------------
-   Safelist: clases que se construyen dinámicamente en Python
-   (rejilla, separaciones por parámetro, tamaños de icono…).
+   Safelist. Dos familias de clases no aparecen como literales en el
+   código y hay que generarlas aquí:
+
+   1. Las que arman los controles con parámetros (rejilla, separaciones,
+      tamaños de icono…).
+   2. Las que arman los tokens de `interui.theme`: `colors.red_500`,
+      `pad.py_6`, `md_hover_bg`… se combinan en tiempo de ejecución, así
+      que la clase final (`md:hover:bg-red-600`) tiene que existir ya.
    ------------------------------------------------------------------ */
 @source inline("grid-cols-{1..12} col-span-{1..12} col-start-{1..13} row-span-{1..6} order-{1..12}");
 @source inline("{sm,md,lg,xl,2xl}:grid-cols-{1..12}");
 @source inline("{sm,md,lg,xl,2xl}:col-span-{1..12}");
-@source inline("gap-{0..12} gap-x-{0..12} gap-y-{0..12}");
-@source inline("p-{0..12} px-{0..12} py-{0..12} pt-{0..12} pb-{0..12} pl-{0..12} pr-{0..12}");
-@source inline("m-{0..12} mx-{0..12} my-{0..12} mt-{0..12} mb-{0..12} ml-{0..12} mr-{0..12}");
+
+/* Espaciado: pad.*, margin.*, gap.* */
 @source inline("space-x-{0..8} space-y-{0..8}");
-@source inline("h-{2..16} w-{2..16} size-{2..16}");
-@source inline("min-h-{8,12,16,20,24,32,40,48,56,64} min-w-{8,12,16,20,24,32,40}");
-@source inline("max-h-{8,12,16,24,32,40,48,56,64,72,80,96} max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,none,prose}");
-@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("{p,px,py,pt,pr,pb,pl,ps,pe}-{0..32}");
+@source inline("{m,mx,my,mt,mr,mb,ml,ms,me}-{0..32}");
+@source inline("-{m,mx,my,mt,mr,mb,ml,ms,me}-{1..32}");
+@source inline("-{m,mx,my,mt,mr,mb,ml}-{0.5,1.5,2.5,3.5}");
+@source inline("{p,px,py,pt,pr,pb,pl,m,mx,my,mt,mr,mb,ml,gap,gap-x,gap-y}-{0.5,1.5,2.5,3.5}");
+@source inline("{gap,gap-x,gap-y}-{0..24}");
+@source inline("{sm,md,lg,xl,2xl}:{p,px,py,pt,pr,pb,pl,m,mx,my,mt,mr,mb,ml,gap,gap-x,gap-y}-{0..24}");
+
+/* Tamaños: width.*, height.* */
+@source inline("{h,w}-{0..96}");
+@source inline("{h,w}-{full,auto,screen,fit,min,max,px}");
+@source inline("{h,w}-{1/2,1/3,2/3,1/4,3/4,2/5,3/5,4/5}");
+@source inline("{min-h,min-w,max-h,max-w}-{0..96}");
+@source inline("size-{0..32}");
+@source inline("{sm,md,lg,xl,2xl}:{h,w}-{0..96}");
+@source inline("{hover,focus,active,dark}:{p,px,py,pt,pr,pb,pl,m,mx,my,mt,mr,mb,ml,gap,gap-x,gap-y}-{0..12}");
+
+/* Radio, sombra, borde, anillo */
+@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,4xl,full}");
+@source inline("rounded-{t,r,b,l,s,e,tl,tr,bl,br,ss,se,es,ee}-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("shadow-{none,sm,md,lg,xl,2xl,inner}");
+@source inline("border-{0,1,2,4,8} border-{x,y,t,r,b,l,s,e}-{0,1,2,4,8}");
+@source inline("border-{solid,dashed,dotted,double,hidden,none}");
+@source inline("ring-{0,1,2,4,8} ring-inset");
+
+/* Tipografía: font.* */
 @source inline("font-{thin,extralight,light,normal,medium,semibold,bold,extrabold,black}");
+@source inline("font-{sans,serif,mono}");
 @source inline("leading-{none,tight,snug,normal,relaxed,loose}");
-@source inline("text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl}");
-@source inline("grid-cols-{1..6} sm:grid-cols-{1..6} md:grid-cols-{1..6} lg:grid-cols-{1..6}");
+@source inline("tracking-{tighter,tight,normal,wide,wider,widest}");
+@source inline("text-{xs,sm,base,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,8xl,9xl}");
+@source inline("text-{left,center,right,justify,start,end}");
+@source inline("uppercase lowercase capitalize normal-case");
+
+/* Opacidad, capas y flex */
+@source inline("opacity-{0..100}");
+@source inline("z-{0..50}");
+@source inline("flex-{row,row-reverse,col,col-reverse,wrap,wrap-reverse,nowrap,1,auto,initial,none}");
+@source inline("{grow,shrink}-{0,1} grow shrink");
+@source inline("{items,justify}-{start,end,center,stretch,baseline,between,around,evenly}");
+@source inline("justify-items-{start,end,center,stretch} self-{auto,start,end,center,stretch,baseline}");
+
+/* Paleta de colores: colors.* */
+@source inline("{bg,text,border,ring}-{white,black,transparent,current}");
+@source inline("{bg,text,border,ring}-{slate,gray,zinc,neutral,stone,red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{50,100,200,300,400,500,600,700,800,900,950}");
+@source inline("{hover,focus,active,dark}:{bg,text,border,ring}-{slate,gray,zinc,neutral,stone,red,orange,amber,yellow,lime,green,emerald,teal,cyan,sky,blue,indigo,violet,purple,fuchsia,pink,rose}-{50,100,200,300,400,500,600,700,800,900,950}");
 
 /* El modo oscuro se activa con la clase .dark en <html>. */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -162,5 +205,25 @@
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+/* ------------------------------------------------------------------
+   AppShell(sidebar_position=side.right): el borde del sidebar cambia de lado.
+   ------------------------------------------------------------------ */
+@layer components {
+  .iui-shell-row[data-side="right"] > aside {
+    border-right-width: 0;
+    border-left-width: 1px;
+  }
+
+  .iui-shell-row[data-side="left"] > aside {
+    border-left-width: 0;
+    border-right-width: 1px;
+  }
+
+  /* Un diálogo bloqueante no deja pasar el puntero al resto de la interfaz. */
+  .iui-dialog[data-layer="blocking"] {
+    z-index: 100;
   }
 }

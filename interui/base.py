@@ -8,6 +8,7 @@ from .context import RenderContext
 from .html import Markup, element, escape, flatten, is_safe
 from .state import Signal
 from .style import tw
+from .theme import resolve_style_props
 
 __all__ = ["Component", "Fragment", "render", "render_children", "bind_many"]
 
@@ -73,8 +74,13 @@ class Component:
         # que algunos controles (EmptyState, ListItem, TimelineItem…) ya fijaron.
         self.title: str | None = props.pop("title", getattr(self, "title", None))
         self.tabindex: Any = props.pop("tabindex", None)
+        style_classes, style_declarations = resolve_style_props(props)
         if extra_base:
             self.base_class = tw(self.base_class, extra_base)
+        if style_classes:
+            self.base_class = tw(self.base_class, *style_classes)
+        if style_declarations:
+            self.style = _merge_style(self.style, style_declarations)
         self.handlers: dict[str, Callable[..., Any]] = {}
         self.props: dict[str, Any] = {}
         for name, value in props.items():
@@ -105,6 +111,7 @@ class Component:
     def clone(self, **overrides: Any) -> "Component":
         import copy as _copy
 
+        style_classes, style_declarations = resolve_style_props(overrides)
         twin = _copy.copy(self)
         twin.children = list(self.children)
         twin.handlers = dict(self.handlers)
@@ -118,6 +125,10 @@ class Component:
                 twin.explicit_id = value
             else:
                 twin.props[name] = value
+        if style_classes:
+            twin.base_class = tw(twin.base_class, *style_classes)
+        if style_declarations:
+            twin.style = _merge_style(twin.style, style_declarations)
         return twin
 
     # ------------------------------------------------------------------
@@ -208,6 +219,17 @@ def bind_many(ctx: RenderContext, uid: str, handlers: dict[str, Any], suffixes: 
             ctx.bind(f"{uid}-{suffix}", event, handler)
 
 
+def _merge_style(style: Any, declarations: dict[str, str]) -> Any:
+    """Combina el ``style=`` del usuario con las declaraciones de los tokens."""
+    if not declarations:
+        return style
+    if not style:
+        return dict(declarations)
+    if isinstance(style, dict):
+        return {**declarations, **style}
+    return f"{_style_text(declarations)}; {style}"
+
+
 def _style_text(style: Any) -> str:
     if isinstance(style, str):
         return style
@@ -231,7 +253,13 @@ def render_children(children: Sequence[Any], ctx: RenderContext, path: str) -> s
         elif isinstance(child, Markup):
             out.append(str(child))
         elif isinstance(child, str):
-            out.append(escape(child))
+            if getattr(type(child), "_is_icon_name", False):
+                # ``icons.car`` como hijo se dibuja; un texto normal se escapa.
+                from .icons import Icon
+
+                out.append(Icon(child).render(ctx, ctx.child(path, index)))
+            else:
+                out.append(escape(child))
         elif isinstance(child, (int, float)):
             out.append(escape(child))
         elif callable(child) and not isinstance(child, type):

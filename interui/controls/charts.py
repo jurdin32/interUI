@@ -9,6 +9,7 @@ from ..base import Component
 from ..context import RenderContext
 from ..html import escape
 from ..style import tw
+from ..theme import css_value
 
 __all__ = [
     "LineChart", "AreaChart", "BarChart", "ColumnChart", "ScatterChart",
@@ -358,7 +359,7 @@ class Sparkline(Component):
     def __init__(self, data: Sequence[float] | None = None, *, color: str = "#4f46e5",
                  height: int = 32, width: int = 120, fill: bool = True, **props: Any) -> None:
         self.data = [float(value) for value in (data or [])]
-        self.color = color
+        self.color = css_value(color)
         self.spark_height = height
         self.spark_width = width
         self.fill = fill
@@ -394,7 +395,7 @@ class Gauge(Component):
         self.value = value
         self.max_value = max_value or 100
         self.gauge_label = label
-        self.color = color
+        self.color = css_value(color)
         self.gauge_size = size
         props["base_class"] = tw("inline-flex flex-col items-center", props.get("base_class"))
         super().__init__(**props)

@@ -259,3 +259,157 @@ def test_api_close_without_argument_closes_last(app) -> None:
     dialog.close()
     assert len(app.dialogs) == 1
     assert dialog.close is not None
+
+
+# --- niveles de modal ---------------------------------------------------------
+
+
+def test_dialogo_de_primer_plano_no_se_puede_cerrar(app) -> None:
+    accepted: list[object] = []
+    node = Dialog(
+        ui.Text("Debes aceptar"),
+        title="Bloqueante",
+        layer=ui.layer.blocking,
+        on_accept=accepted.append,
+    )
+    _title, html, _bindings = app.render_page("/")
+    app.show_dialog(node)
+    _title, html, _bindings = app.render_page("/")
+
+    assert 'data-layer="blocking"' in html
+    assert node.is_blocking is True
+    assert node.dismissible is False and node.closable is False
+    assert "Cancelar" not in html          # sin salida lateral
+    assert "Aceptar" in html
+
+    # ni Escape ni la X están enlazados
+    assert "escape" not in node.handlers
+    assert not any(uid.endswith("-x") for uid in _bindings)
+
+
+def test_un_bloqueante_no_deja_abrir_otros(app) -> None:
+    blocking = Dialog(ui.Text("Acepta"), title="Primero", layer=ui.layer.blocking)
+    app.show_dialog(blocking)
+    otro = dialog.info("No debería abrirse")
+    result = app.show_dialog(otro)
+
+    assert result is blocking
+    assert otro not in app.dialogs
+    assert app.blocking_dialog is blocking
+
+
+def test_un_bloqueante_no_se_cierra_sin_aceptarlo(app) -> None:
+    blocking = Dialog(ui.Text("Acepta"), title="Primero", layer=ui.layer.blocking)
+    app.show_dialog(blocking)
+    app.close_dialog()
+    assert blocking in app.dialogs
+    blocking.close()                       # cerrarlo explícitamente sí puede
+    assert app.dialogs == []
+
+
+def test_force_abre_encima_de_un_bloqueante(app) -> None:
+    blocking = Dialog(ui.Text("Acepta"), title="Primero", layer=ui.layer.blocking)
+    app.show_dialog(blocking)
+    extra = dialog.info("Encima")
+    assert app.show_dialog(extra, force=True) is extra
+    assert extra in app.dialogs
+
+
+def test_modal_normal_sigue_siendo_cerrable(app) -> None:
+    node = dialog.info("Hola")          # dialog.info ya lo abre
+    assert node.is_blocking is False
+    app.close_dialog()
+    assert app.dialogs == []
+
+
+# --- snackbars ----------------------------------------------------------------
+
+
+def test_snackbar_con_texto_icono_y_accion() -> None:
+    node = ui.Snackbar(
+        "Proyecto archivado",
+        title="Hecho",
+        icon=ui.icons.check,
+        action=("Deshacer", lambda event: None),
+        variant=ui.variant.success,
+    )
+    html = ui.render(node)
+    assert "Proyecto archivado" in html
+    assert "Hecho" in html
+    assert "<svg" in html
+    assert "Deshacer" in html
+    assert "bg-emerald-600" in html
+    assert 'data-iui-dismiss="true"' in html
+    assert "fixed bottom-4 right-4" in html
+
+
+def test_snackbar_con_imagen() -> None:
+    html = ui.render(ui.Snackbar("Con foto", image="https://ejemplo/x.png"))
+    assert '<img src="https://ejemplo/x.png"' in html
+    assert "object-cover" in html
+
+
+def test_snackbar_sin_icono() -> None:
+    assert "<svg" not in ui.render(ui.Snackbar("Solo texto"))
+
+
+def test_snackbar_posiciones() -> None:
+    html = ui.render(ui.Snackbar("Arriba", position="top_center"))
+    assert "top-4 left-1/2 -translate-x-1/2" in html
+    with pytest.raises(ValueError):
+        ui.Snackbar("x", position="en_medio")
+
+
+def test_snackbar_con_temporizador() -> None:
+    html = ui.render(ui.Snackbar("Se va", duration=1500))
+    assert 'data-iui-duration="1500"' in html
+    assert 'data-iui-snackbar="true"' in html
+
+
+def test_snackbar_con_marcado_svg_propio() -> None:
+    html = ui.render(ui.Snackbar("x", icon='<svg class="mio"></svg>'))
+    assert 'class="mio"' in html
+
+
+def test_notify_manda_icono_e_imagen(monkeypatch) -> None:
+    app = window("Snackbars", text("contenido"))
+
+    class FakeServer:
+        def __init__(self) -> None:
+            self.sent: list[dict] = []
+
+        def broadcast(self, payload: dict) -> None:
+            self.sent.append(payload)
+
+    app.server = FakeServer()
+    app.notify(
+        "Guardado", "success", title="Hecho", icon=ui.icons.check,
+        duration=2000, action={"label": "Deshacer", "js": "1"},
+    )
+    payload = app.server.sent[0]
+    assert payload["t"] == "toast"
+    assert payload["title"] == "Hecho"
+    assert payload["duration"] == 2000
+    assert payload["icon"].startswith("<svg")
+    assert payload["action"] == {"label": "Deshacer", "js": "1"}
+
+    app.notify("Con imagen", image="https://ejemplo/y.png")
+    assert app.server.sent[1]["image"] == "https://ejemplo/y.png"
+
+
+def test_toast_compacto_acepta_opciones() -> None:
+    from interui import toast as toast_fn
+
+    app = window("Snackbars", text("contenido"))
+
+    class FakeServer:
+        def __init__(self) -> None:
+            self.sent: list[dict] = []
+
+        def broadcast(self, payload: dict) -> None:
+            self.sent.append(payload)
+
+    app.server = FakeServer()
+    toast_fn("Listo", "success", title="Hecho", icon=ui.icons.check)
+    assert app.server.sent[0]["title"] == "Hecho"
+    assert app.server.sent[0]["icon"].startswith("<svg")

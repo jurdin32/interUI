@@ -1479,6 +1479,20 @@ ui.Skeleton(width="full", height="4", circle=False, lines=1)
 ui.Skeleton(lines=3, height="3")
 ```
 
+### `ui.Snackbar`
+
+Alias en minúsculas: `ui.snackbar`
+
+Aviso flotante con icono o imagen, acción y cierre opcional.
+
+```text
+ui.Snackbar(message="", title=None, icon=None, image=None, variant="info", action=None, dismissible=True, position="bottom_right", duration=0)
+```
+
+```python
+ui.Snackbar("Proyecto archivado", title="Hecho", icon=ui.icons.check, action=("Deshacer", lambda e: None), variant=ui.variant.success)
+```
+
 ### `ui.StatusDot`
 
 Alias en minúsculas: `ui.status_dot`
@@ -1814,7 +1828,7 @@ Alias en minúsculas: `ui.app_shell`
 Armazón completo: barra de título, cabecera/menús, barra lateral, contenido con scroll y barra de estado.
 
 ```text
-ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_width="w-64")
+ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_position="left", sidebar_width="w-64")
 ```
 
 ```python

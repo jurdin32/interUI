@@ -193,3 +193,40 @@ def test_unknown_route_returns_404(tmp_path):
         assert error.value.code == 404
     finally:
         server.stop()
+
+
+def test_exit_is_an_alias_of_quit(tmp_path, monkeypatch):
+    app = ui.App("Salida", data_dir=tmp_path / "data")
+    calls: list[str] = []
+    monkeypatch.setattr(app, "quit", lambda: calls.append("quit"))
+    app.exit()
+    app.close()
+    assert calls == ["quit", "quit"]
+
+
+def test_exit_stops_a_running_app(tmp_path):
+    """``app.exit()`` cierra el bucle de ``run()`` y apaga el servidor."""
+    import threading
+    import time
+
+    app = ui.App("Salida", data_dir=tmp_path / "data")
+
+    @app.page("/")
+    def index():
+        return ui.Text("listo")
+
+    worker = threading.Thread(target=app.run, kwargs={"window": "none"}, daemon=True)
+    worker.start()
+    try:
+        for _ in range(200):
+            if app.server is not None:
+                break
+            time.sleep(0.01)
+        assert app.server is not None, "el servidor no arrancó"
+        app.exit()
+        worker.join(timeout=5)
+        assert not worker.is_alive(), "run() siguió bloqueado tras app.exit()"
+        assert app.server is None
+    finally:
+        app.quit()
+        worker.join(timeout=5)

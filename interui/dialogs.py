@@ -101,6 +101,7 @@ class Dialog(Component):
         dismissible: bool = True,
         width: str = "md",
         scrollable: bool = False,
+        layer: str | None = None,
         **props: Any,
     ) -> None:
         self.dialog_title = title
@@ -117,6 +118,11 @@ class Dialog(Component):
         self.accept_label = accept_label
         self.cancel_label = cancel_label
         self.close_label = close_label
+        self.layer = str(layer or "modal")
+        # Un diálogo de primer plano solo se cierra aceptándolo: ni Escape, ni
+        # clic en el fondo, ni la X.
+        if self.layer in ("blocking", "alert"):
+            closable = dismissible = False
         self.closable = closable
         self.dismissible = dismissible
         self.width = width
@@ -125,12 +131,18 @@ class Dialog(Component):
         if dismissible:
             props.setdefault("on_escape", self._escape)
         props["role"] = "dialog"
+        props["data"] = {"layer": self.layer, **(props.get("data") or {})}
         props["aria"] = {"modal": "true", **(props.get("aria") or {})}
         props["base_class"] = tw(
             "iui-dialog fixed inset-0 z-[60] flex items-center justify-center p-4",
             props.get("base_class"),
         )
         super().__init__(*children, **props)
+
+    @property
+    def is_blocking(self) -> bool:
+        """``True`` si el diálogo está en primer plano y bloquea el resto."""
+        return self.layer in ("blocking", "alert")
 
     # -- ciclo de vida ---------------------------------------------------
     def close(self) -> "Dialog":
@@ -323,6 +335,9 @@ class Dialog(Component):
                     )
                 )
             return out
+        if self.is_blocking:
+            # Sin salida lateral: el único camino es aceptar.
+            return [self._accept_button(uid, submit=False)]
         if self.kind in ("confirm", "input", "form"):
             return [self._cancel_button(uid), self._accept_button(uid, submit=False)]
         variant = LEVELS.get(self.level, LEVELS["neutral"])[2]

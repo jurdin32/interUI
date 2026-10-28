@@ -232,6 +232,7 @@ cierra el diálogo.
 | `level` | según el tipo | `info`, `success`, `warning`, `error`, `critical`, `question`, `neutral`. |
 | `icon` | según el nivel | Icono de la cabecera. |
 | `width` | `"md"` | `xs`, `sm`, `md`, `lg`, `xl`, `full`. |
+| `layer` | `"modal"` | `layer.modal`, `layer.panel` o `layer.blocking` (ver abajo). |
 | `closable` | `True` | Muestra el aspa de cerrar. |
 | `dismissible` | `True` | `Escape` y clic en el fondo cierran (ejecuta `on_close`). |
 | `scrollable` | `False` | El cuerpo hace scroll en vez de desbordar. |
@@ -242,6 +243,30 @@ cierra el diálogo.
 
 Se renderizan con `role="dialog"`, `aria-modal="true"`, foco inicial en el primer
 campo y animación de entrada (desactivada con `prefers-reduced-motion`).
+
+### Niveles de modal
+
+| `layer` | Comportamiento |
+|---|---|
+| `layer.modal` | Modal normal: se cierra con el aspa, `Escape` o el fondo. |
+| `layer.panel` | Pensado para paneles laterales; no secuestra el primer plano. |
+| `layer.blocking` | **Primer plano**: sin aspa, sin `Escape`, sin clic fuera. El único camino es aceptar. |
+| `layer.alert` | Igual que `blocking`, con el tono de alerta. |
+
+```python
+ui.Dialog(
+    ui.Text("Termina la importación antes de salir."),
+    title="Hay un proceso en marcha",
+    layer=ui.layer.blocking,
+    on_accept=lambda _e: ui.toast("vale"),
+)
+```
+
+Mientras haya uno abierto:
+
+- `app.show_dialog(otro)` **no** lo abre: devuelve el bloqueante (`force=True` lo salta).
+- `app.close_dialog()` sin argumentos no lo cierra; solo `dialogo.close()`.
+- El fondo cubre toda la ventana (`z-index: 100`) y bloquea el puntero.
 
 ---
 

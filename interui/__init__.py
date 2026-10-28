@@ -35,11 +35,23 @@ from .grid import (
     Spacer, Stack,
 )
 from .html import Markup, escape, raw
-from .icons import ICON_NAMES, ICONS, Icon, IconGrid
+from .icons import ICON_ALIASES, ICON_NAMES, ICONS, Icon, IconGrid, IconName, icons
 from .state import Signal
 from . import updates
 from .style import cl, tw
+from .theme import (
+    Color, Css, CssColor, Gradient, Token, Word, border, colors, flex, font, gap,
+    gradient, height, layer, margin, opacity, pad, radius, shadow, side, size, tone,
+    variant, width,
+)
 from .ui import BUTTON_SIZES, BUTTON_VARIANTS
+from . import config, db, migrations, orm
+from .config import Config, ConfigError
+from .orm import (
+    Auto, Blob, Bool, Date, DateTime, FK, Field, Float, Int, Json, LongText, Manager,
+    Model, QuerySet, Str,
+)
+from .migrations import Migration
 from .controls import *  # noqa: F401,F403  (catálogo de controles)
 from .controls import __all__ as _controls_all
 from .simple import (  # API compacta (minúsculas, ventana implícita)
@@ -51,7 +63,14 @@ __all__ = [
     "App", "Component", "Fragment", "RenderContext", "UIEvent", "Attachment",
     "Native", "DesktopError", "desktop_info",
     "Dialog", "DialogAPI", "DialogHost", "dialog",
-    "Signal", "Icon", "IconGrid", "ICONS", "ICON_NAMES", "Markup", "raw", "escape", "tw", "cl",
+    "Signal", "Icon", "IconGrid", "IconName", "ICONS", "ICON_NAMES", "ICON_ALIASES", "icons",
+    "Markup", "raw", "escape", "tw", "cl",
+    "colors", "gradient", "pad", "margin", "gap", "radius", "shadow", "border", "font",
+    "width", "height", "opacity", "flex", "variant", "tone", "size", "side", "layer",
+    "config", "db", "orm", "migrations", "Config", "ConfigError", "Migration",
+    "Model", "QuerySet", "Manager", "Field", "Auto", "Int", "Str", "LongText", "Bool",
+    "Float", "Date", "DateTime", "Json", "Blob", "FK",
+    "Token", "Color", "CssColor", "Css", "Gradient", "Word",
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names", "updates",

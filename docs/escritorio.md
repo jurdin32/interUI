@@ -31,6 +31,62 @@ def guardar() -> None:
     print("adiós")
 ```
 
+### Cerrar la aplicación desde Python
+
+`app.exit()` (también `app.quit()` y `app.close()`) cierra la ventana y detiene
+el servidor. Se puede llamar desde un handler sin ceremonia:
+
+```python
+@app.page("/")
+def index():
+    return Button("Salir", icon=icons.power, on_click=app.exit)
+```
+
+También funciona en modo navegador y en modo servidor (`window="none"`), donde
+`app.exit()` termina el bucle de `run()` en lugar de dejar el proceso colgado.
+
+> Ojo con los paréntesis: `on_click=app.exit` pasa la función; `on_click=app.exit()`
+> la ejecuta al construir la vista (y fallaría si la ventana aún no existe).
+
+### Tres niveles de cierre
+
+| Llamada | Cierra | Deja vivo |
+|---|---|---|
+| `app.close()` | solo la ventana que ejecuta el handler | el resto de ventanas y el servidor |
+| `app.dispose(ventana)` | esa ventana concreta (la libera) | todo lo demás |
+| `app.exit()` / `app.quit()` | todas las ventanas | nada: apaga el servidor |
+
+`app.close()` desde el botón de una ventana secundaria **no** cierra la principal;
+si era la última ventana, la aplicación termina porque ya no hay dónde mostrarse.
+
+## 2. Multiventana
+
+```python
+@app.page("/ajustes")
+def ajustes():
+    return ui.Text("Ajustes")
+
+def abrir_ajustes() -> None:
+    ventana = app.open_window("/ajustes", title="Ajustes", width=720, height=520)
+    ventana.set_title("Ajustes · Mi app")
+
+ui.Button("Ajustes", icon=ui.icons.settings, on_click=abrir_ajustes)
+ui.Button("Cerrar esta", icon=ui.icons.close, on_click=app.close)
+```
+
+Cada ventana:
+
+- tiene su **propia** conexión WebSocket (`/ws?w=w1`), así que su ruta y su
+  render son independientes;
+- se puede mover sola con `ventana.navigate("/otra")`, sin tocar las demás;
+- se cierra sola con `ventana.close()` o `app.close()` (desde un handler suyo);
+- aparece en `app.windows` (la principal primero) y `app.main_window`.
+
+`open_window()` requiere la ventana nativa en marcha: `app.run(window="desktop")`
+con el extra `interui[desktop]`. En modo `browser` lanza `DesktopError` con una
+explicación. Las operaciones de `app.native` (diálogos del sistema, portapapeles)
+siguen apuntando a la ventana principal.
+
 Parámetros útiles de `App`:
 
 | Parámetro | Por defecto | Descripción |
@@ -47,7 +103,7 @@ Parámetros útiles de `App`:
 `app.run(...)` acepta además `port`, `host`, `debug` (herramientas de desarrollo),
 `gui` (`"edgechromium"`, `"gtk"`, `"qt"`…) y `on_top`.
 
-## 2. Ventana sin marco
+## 3. Ventana sin marco
 
 ```python
 app = App("Mi app", frameless=True)
@@ -64,7 +120,7 @@ ui.Screen(
 botones nativos (`data-iui-native`) para minimizar, maximizar y cerrar. Si
 prefieres el marco del sistema, no uses `frameless` y omite `TitleBar`.
 
-## 3. Puente con el sistema operativo
+## 4. Puente con el sistema operativo
 
 Desde Python:
 
@@ -104,7 +160,7 @@ de eventos sigue vivo. En Windows/Linux se usa el diálogo nativo de `pywebview`
 en un hilo propio. Si necesitas ejecutar un diálogo desde un handler, hazlo
 normalmente: la interfaz no se bloquea, solo espera la respuesta ese handler.
 
-## 4. Datos persistentes
+## 5. Datos persistentes
 
 `app.data_dir` apunta a:
 
@@ -124,7 +180,7 @@ from pathlib import Path
 ajustes = Path(app.data_dir) / "ajustes.json"
 ```
 
-## 5. Empaquetado
+## 6. Empaquetado
 
 ```bash
 pip install pyinstaller
@@ -180,7 +236,7 @@ MiApp/
 Si `app.css` falta, la ventana se abre sin estilos: vuelve a empaquetar después
 de `interui assets`.
 
-## 6. Modo navegador (solo para depurar)
+## 7. Modo navegador (solo para depurar)
 
 ```bash
 interui run app.py --window browser --debug
@@ -190,7 +246,7 @@ interui run app.py --window browser --debug
 `app.native` no abre diálogos del sistema y `window.interui.desktop` es `false`;
 todo lo demás (rejilla, controles, eventos, estado) funciona igual.
 
-## 7. Buenas prácticas
+## 8. Buenas prácticas
 
 - Mantén los handlers rápidos: se ejecutan mientras el cliente espera el nuevo
   render. Para tareas largas, lanza un `threading.Thread` y actualiza el estado

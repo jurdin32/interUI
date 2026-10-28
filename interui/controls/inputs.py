@@ -9,6 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..theme import utility
 from ..ui import INPUT_BASE, INPUT_SIZES, field_shell
 
 __all__ = [
@@ -1307,7 +1308,7 @@ class Form(Component):
         props.setdefault("novalidate", True)
         props["base_class"] = tw(
             "flex flex-col" if layout != "grid" else "grid grid-cols-12",
-            f"gap-{gap}",
+            utility("gap", gap),
             props.get("base_class"),
         )
         super().__init__(**props)

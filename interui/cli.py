@@ -1,9 +1,10 @@
-"""CLI de interui: `interui run | new | build | doctor | assets`."""
+"""CLI de interui: `interui init | run | new | db | build | doctor | assets`."""
 
 from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import os
 import platform
 import shutil
@@ -121,6 +122,189 @@ def cmd_new(args: argparse.Namespace) -> int:
     (target / ".gitignore").write_text("__pycache__/\nbuild/\ndist/\n*.spec\n", encoding="utf-8")
     print(f"[interui] proyecto creado en {target}")
     print(f"[interui] siguiente paso: cd {target.name} && python app.py")
+    return 0
+
+
+MODELS_TEMPLATE = '''"""Modelos del proyecto.
+
+`interui db makemigrations` compara este archivo con la última migración y
+genera los cambios; `interui db migrate` los aplica.
+"""
+
+import interui as ui
+
+
+class Ejemplo(ui.Model):
+    nombre = ui.Str(max_length=80)
+    notas = ui.LongText(null=True)
+    activo = ui.Bool(default=True)
+    creado = ui.DateTime(auto_now_add=True)
+
+    class Meta:
+        table = "ejemplo"
+'''
+
+APP_TEMPLATE = '''"""{name} · aplicación de escritorio con interUI."""
+
+import interui as ui
+
+app = ui.App.from_config()
+
+
+@app.page("/")
+def index():
+    return ui.Screen(
+        ui.Container(pad=ui.pad.py_10)(
+            ui.Heading("{name}", level=1),
+            ui.Muted("Configuración leída de interui.json"),
+            ui.Button("Salir", icon=ui.icons.power, on_click=app.exit),
+        )
+    )
+
+
+if __name__ == "__main__":
+    app.run()
+'''
+
+
+def _ask(question: str, default: Any = None, *, input_fn: Any = input) -> str:
+    suffix = f" [{default}]" if default not in (None, "") else ""
+    try:
+        answer = str(input_fn(f"{question}{suffix}: ")).strip()
+    except (EOFError, KeyboardInterrupt):
+        answer = ""
+    return answer or (str(default) if default is not None else "")
+
+
+def _choose_engine(engines: dict[str, Any], input_fn: Any = input) -> str:
+    names = list(engines)
+    print("\nMotor de base de datos:")
+    for index, name in enumerate(names, start=1):
+        print(f"  {index}. {engines[name]['label']}")
+    answer = _ask("Elige un número", "1", input_fn=input_fn)
+    if answer.isdigit() and 1 <= int(answer) <= len(names):
+        return names[int(answer) - 1]
+    return answer if answer in engines else "sqlite"
+
+
+def cmd_init(args: argparse.Namespace) -> int:
+    """Asistente: crea interui.json, app.py, models.py y migrations/."""
+    from .config import CONFIG_NAME, DEFAULT_CONFIG, ENGINES, Config
+
+    target = Path(args.destination or ".").expanduser().resolve()
+    if target.exists() and any(target.iterdir()) and not args.force:
+        raise SystemExit(f"interui: {target} no está vacío (usa --force para continuar)")
+    target.mkdir(parents=True, exist_ok=True)
+    ask = (lambda question, default=None: str(default if default is not None else "")) \
+        if args.no_input else _ask
+
+    name = args.name or ask("Nombre de la aplicación", target.name or "Mi app")
+    engine = args.db or ("sqlite" if args.no_input else _choose_engine(ENGINES))
+    if engine not in ENGINES:
+        raise SystemExit(f"interui: motor desconocido {engine!r}; usa {', '.join(ENGINES)}")
+
+    settings: dict[str, Any] = {"engine": engine}
+    defaults = ENGINES[engine]["defaults"]
+    flag_values = {
+        "name": args.database, "host": args.host, "port": args.port,
+        "user": args.user, "password": args.password,
+    }
+    for field_name in ENGINES[engine]["fields"]:
+        value = flag_values.get(field_name)
+        if value is None:
+            value = ask(f"  {field_name}", defaults.get(field_name, ""))
+        if field_name == "port" and isinstance(value, str) and value.isdigit():
+            value = int(value)
+        settings[field_name] = value
+
+    data = json.loads(json.dumps(DEFAULT_CONFIG))
+    data["app"].update(
+        {
+            "name": name,
+            "title": args.title or name,
+            "theme": args.theme or "light",
+            "entry": "app.py",
+        }
+    )
+    data["databases"] = {"default": settings}
+    config = Config(data, path=target / "interui.json")
+    config.save()
+
+    (target / "app.py").write_text(APP_TEMPLATE.format(name=name), encoding="utf-8")
+    models = target / "models.py"
+    if not models.exists() or args.force:
+        models.write_text(MODELS_TEMPLATE, encoding="utf-8")
+    (target / "migrations").mkdir(exist_ok=True)
+    (target / "migrations" / ".gitkeep").write_text("", encoding="utf-8")
+    (target / ".gitignore").write_text(
+        "__pycache__/\nbuild/\ndist/\n*.spec\ndata/\n.env\n", encoding="utf-8"
+    )
+    (target / "README.md").write_text(
+        f"# {name}\n\n"
+        "Proyecto interUI con configuración en `interui.json`.\n\n"
+        "```bash\n"
+        'pip install "interui[desktop]"\n'
+        "interui db makemigrations\n"
+        "interui db migrate\n"
+        "python app.py\n"
+        "```\n\n"
+        f"Base de datos: `{settings['engine']}`.\n",
+        encoding="utf-8",
+    )
+
+    print(f"[interui] proyecto creado en {target}")
+    print(f"[interui] configuración: {target / 'interui.json'}")
+    if args.migrate:
+        location = str(target / CONFIG_NAME)
+        code = cmd_db(
+            argparse.Namespace(action="makemigrations", name=None, force=True, config=location)
+        )
+        if code:
+            return code
+        return cmd_db(
+            argparse.Namespace(action="migrate", name=None, force=False, config=location)
+        )
+    print("[interui] siguiente paso: interui db makemigrations && interui db migrate")
+    return 0
+
+
+def cmd_db(args: argparse.Namespace) -> int:
+    """Migraciones: ``makemigrations``, ``migrate`` y ``status``."""
+    from . import config as config_module
+    from . import db as db_module
+    from . import migrations as migrations_module
+    from .config import ConfigError
+
+    try:
+        cfg = config_module.load(getattr(args, "config", None))
+        db_module.configure(cfg)
+        if args.action == "makemigrations":
+            path = migrations_module.makemigrations(
+                cfg, getattr(args, "name", None), allow_destructive=getattr(args, "force", False)
+            )
+            if path is None:
+                print("[interui] no hay cambios en los modelos")
+            else:
+                print(f"[interui] migración creada: {path}")
+        elif args.action == "migrate":
+            applied = migrations_module.migrate(cfg)
+            if applied:
+                for name in applied:
+                    print(f"[interui] aplicada {name}")
+            else:
+                print("[interui] nada pendiente")
+        else:
+            rows = migrations_module.status(cfg)
+            if not rows:
+                print("[interui] no hay migraciones todavía")
+            for row in rows:
+                mark = "✔" if row["applied"] else "·"
+                print(f" {mark} {row['name']}")
+                for detail in row["operations"]:
+                    print(f"     - {detail}")
+    except (ConfigError, db_module.DatabaseError) as exc:
+        print(f"[interui] {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
@@ -282,6 +466,36 @@ def build_parser() -> argparse.ArgumentParser:
     new.add_argument("destination", help="carpeta del proyecto")
     new.add_argument("--name", help="nombre de la aplicación")
     new.set_defaults(func=cmd_new)
+
+    init = sub.add_parser("init", help="asistente: proyecto + interui.json + base de datos")
+    init.add_argument("destination", nargs="?", default=".", help="carpeta del proyecto")
+    init.add_argument("--name", help="nombre de la aplicación")
+    init.add_argument("--title", help="título de la ventana")
+    init.add_argument("--db", help="motor: sqlite, postgres, mysql, mongo o file")
+    init.add_argument("--database", help="nombre de la base de datos o ruta del archivo")
+    init.add_argument("--host")
+    init.add_argument("--port", type=int)
+    init.add_argument("--user")
+    init.add_argument("--password")
+    init.add_argument("--theme", choices=["light", "dark"])
+    init.add_argument("--no-input", action="store_true", help="sin preguntas (usa los valores por defecto)")
+    init.add_argument("--migrate", action="store_true", help="crea y aplica la migración inicial")
+    init.add_argument("--force", action="store_true", help="sobrescribe archivos existentes")
+    init.set_defaults(func=cmd_init)
+
+    database = sub.add_parser("db", help="migraciones de la base de datos")
+    db_sub = database.add_subparsers(dest="action", required=True)
+    make = db_sub.add_parser("makemigrations", help="genera la migración de los cambios")
+    make.add_argument("name", nargs="?", help="nombre de la migración")
+    make.add_argument("--force", action="store_true", help="permite cambios que borran datos")
+    make.add_argument("--config", help="ruta de interui.json")
+    make.set_defaults(func=cmd_db)
+    run_db = db_sub.add_parser("migrate", help="aplica las migraciones pendientes")
+    run_db.add_argument("--config", help="ruta de interui.json")
+    run_db.set_defaults(func=cmd_db, name=None, force=False)
+    show = db_sub.add_parser("status", help="muestra el estado de las migraciones")
+    show.add_argument("--config", help="ruta de interui.json")
+    show.set_defaults(func=cmd_db, name=None, force=False)
 
     build = sub.add_parser("build", help="empaqueta un ejecutable autónomo")
     build.add_argument("script")

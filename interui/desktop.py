@@ -28,7 +28,7 @@ from pathlib import Path
 from typing import Any, Callable, Sequence
 
 __all__ = [
-    "DesktopError", "DesktopWindow", "Native", "NativeBridge",
+    "DesktopError", "DesktopWindow", "Native", "NativeBridge", "Window",
     "available", "desktop_info",
 ]
 
@@ -305,19 +305,30 @@ class DesktopWindow:
         self._closing_hooks: list[Callable[[], Any]] = []
 
     # -- ciclo de vida ---------------------------------------------------
-    def create(self, url: str, *, debug: bool = False, on_top: bool = False) -> Any:
+    def create(
+        self,
+        url: str,
+        *,
+        debug: bool = False,
+        on_top: bool = False,
+        title: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
+    ) -> Any:
         webview = _webview()
         self.webview = webview
         app = self.app
         (Path(app.data_dir) / "webview").mkdir(parents=True, exist_ok=True)
+        window_width = width or app.width
+        window_height = height or app.height
 
         self.window = webview.create_window(
-            app.title,
+            title or app.title,
             url,
             js_api=NativeBridge(self),
-            width=app.width,
-            height=app.height,
-            min_size=(min(480, app.width), min(360, app.height)),
+            width=window_width,
+            height=window_height,
+            min_size=(min(480, window_width), min(360, window_height)),
             resizable=app.resizable,
             frameless=app.frameless,
             easy_drag=app.frameless,
@@ -675,6 +686,67 @@ class DesktopWindow:
             "data_dir": str(self.app.data_dir),
             "version": _version(),
         }
+
+
+# ---------------------------------------------------------------------------
+# Ventanas de la aplicación
+# ---------------------------------------------------------------------------
+class Window:
+    """Una ventana de la aplicación.
+
+    La principal es ``app.main_window``; las demás se abren con
+    ``app.open_window(route, title=…)``. Cada una tiene su propio canal, así que
+    se puede cerrar sola sin tocar el resto:
+
+    * :meth:`close` — cierra **esta** ventana.
+    * :meth:`dispose` — la cierra y la libera (las demás siguen vivas).
+    * :meth:`navigate` — cambia la ruta solo en esta ventana.
+    """
+
+    def __init__(self, app: Any, ident: str, title: str, route: str = "/") -> None:
+        self.app = app
+        self.ident = ident
+        self.title = title
+        self.route = route
+        self.native: "DesktopWindow | None" = None
+        self.closed = False
+
+    def __repr__(self) -> str:  # pragma: no cover - ayuda al depurar
+        state = "cerrada" if self.closed else "abierta"
+        return f"<Window {self.ident} {self.route} ({state})>"
+
+    @property
+    def is_open(self) -> bool:
+        if self.closed or self.native is None:
+            return False
+        return self.native.window is not None
+
+    def set_title(self, title: str) -> "Window":
+        self.title = title
+        if self.native is not None and self.native.window is not None:
+            self.native.set_title(title)
+        return self
+
+    def navigate(self, route: str = "/") -> "Window":
+        """Lleva **solo esta ventana** a otra ruta registrada."""
+        if not self.app.has_page(route):
+            raise ValueError(f"Ruta inexistente: {route}")
+        self.route = route
+        for ws in self.app.clients_for(self.ident):
+            ws.send_json({"t": "nav", "path": route})
+        return self
+
+    def close(self) -> None:
+        """Cierra esta ventana; la aplicación sigue con las demás."""
+        if self.native is not None:
+            self.native.close()
+        self.native = None
+        self.closed = True
+        self.app._forget_window(self)
+
+    def dispose(self) -> None:
+        """Cierra esta ventana y libera sus recursos (no apaga la app)."""
+        self.close()
 
 
 # ---------------------------------------------------------------------------

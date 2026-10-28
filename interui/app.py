@@ -16,7 +16,9 @@ from typing import Any, Callable
 
 from .base import Component
 from .context import RenderContext
-from .desktop import DesktopError, DesktopWindow, Native, available as desktop_available
+from .desktop import (
+    DesktopError, DesktopWindow, Native, Window, available as desktop_available,
+)
 from .events import Attachment, UIEvent, invoke
 from .html import escape
 from .log import log, log_file
@@ -83,12 +85,37 @@ class App:
         self._on_start: list[Callable[[], None]] = []
         self._on_close: list[Callable[[], Any]] = []
         self._desktop: DesktopWindow | None = None
+        self._windows: dict[str, Window] = {}
+        self._local = threading.local()
+        self._stopped = False
+        self._shutdown_done = False
         self._native = Native(self)
         self.check_updates = check_updates
         self.update: _updates.UpdateInfo | None = None
+        self.config: Any = None
         self._update_thread: threading.Thread | None = None
         self.data_dir = Path(data_dir) if data_dir else _default_data_dir(self.title)
         log_file(self.data_dir / "interui.log")
+
+    # ------------------------------------------------------------------
+    # configuración
+    # ------------------------------------------------------------------
+    @classmethod
+    def from_config(cls, path: "str | Path | None" = None, **overrides: Any) -> "App":
+        """Crea la app con los valores de ``interui.json``.
+
+        Deja la configuración en ``app.config`` y registra las bases de datos,
+        así que ``Model`` y las migraciones funcionan sin llamar a nada más.
+        """
+        from . import db as db_module
+        from .config import load as load_config
+
+        settings = load_config(path)
+        options = {**settings.app_options(), **overrides}
+        application = cls(**options)
+        application.config = settings
+        db_module.configure(settings)
+        return application
 
     # ------------------------------------------------------------------
     # rutas
@@ -239,8 +266,10 @@ class App:
     # mensajes del cliente
     # ------------------------------------------------------------------
     def on_client_connect(self, ws: WebSocket) -> None:
+        window = self._window_for(ws)
+        route = window.route if window is not None else "/"
         with self._lock:
-            self._client_pages.setdefault(ws.id, "/")
+            self._client_pages.setdefault(ws.id, route)
         ws.send_json({"t": "ready", "app": self.title, "theme": self.theme})
         self._push_render(ws)
         if self.update is not None and self.update.available:
@@ -255,6 +284,13 @@ class App:
             self._client_pages.pop(ws.id, None)
 
     def handle_message(self, ws: WebSocket, message: dict[str, Any]) -> None:
+        self._local.ws = ws
+        try:
+            self._handle_message(ws, message)
+        finally:
+            self._local.ws = None
+
+    def _handle_message(self, ws: WebSocket, message: dict[str, Any]) -> None:
         kind = message.get("t")
         if kind == "hello":
             with self._lock:
@@ -324,8 +360,24 @@ class App:
         """Diálogos abiertos (se pintan encima de la página actual)."""
         return list(self._dialogs)
 
-    def show_dialog(self, component: Any) -> Any:
-        """Abre un diálogo modal encima de la vista actual."""
+    @property
+    def blocking_dialog(self) -> Any:
+        """Diálogo de primer plano abierto, si lo hay."""
+        for item in reversed(self._dialogs):
+            if getattr(item, "is_blocking", False):
+                return item
+        return None
+
+    def show_dialog(self, component: Any, *, force: bool = False) -> Any:
+        """Abre un diálogo modal encima de la vista actual.
+
+        Mientras haya uno de primer plano (``layer=layer.blocking``) no se abre
+        nada más: se devuelve el que bloquea. ``force=True`` lo salta.
+        """
+        blocking = self.blocking_dialog
+        if blocking is not None and blocking is not component and not force:
+            log("[interui] hay un diálogo de primer plano abierto: acéptalo antes", error=True)
+            return blocking
         self._dialogs.append(component)
         if not self._in_handler:
             self.refresh()
@@ -334,6 +386,9 @@ class App:
     def close_dialog(self, component: Any = None) -> None:
         """Cierra un diálogo concreto o el último abierto."""
         if component is None:
+            if self._dialogs and getattr(self._dialogs[-1], "is_blocking", False):
+                log("[interui] un diálogo de primer plano solo se cierra aceptándolo", error=True)
+                return
             if self._dialogs:
                 self._dialogs.pop()
         else:
@@ -362,6 +417,9 @@ class App:
         return func
 
     def _shutdown(self) -> None:
+        if self._shutdown_done:
+            return
+        self._shutdown_done = True
         for hook in self._on_close:
             try:
                 hook()
@@ -373,11 +431,127 @@ class App:
             self.server = None
 
     # ------------------------------------------------------------------
+    # ventanas
+    # ------------------------------------------------------------------
+    @property
+    def windows(self) -> list["Window"]:
+        """Ventanas abiertas, la principal primero."""
+        main = self._windows.get("main")
+        rest = [item for key, item in self._windows.items() if key != "main"]
+        return ([main] if main is not None else []) + rest
+
+    @property
+    def main_window(self) -> "Window | None":
+        """Ventana principal (``None`` antes de ``run()``)."""
+        return self._windows.get("main")
+
+    @property
+    def current_window(self) -> "Window | None":
+        """Ventana que está ejecutando el handler actual, o la principal."""
+        ws = getattr(self._local, "ws", None)
+        ident = getattr(ws, "window_id", None) if ws is not None else None
+        if ident and ident in self._windows:
+            return self._windows[ident]
+        return self._windows.get("main")
+
+    def _window_for(self, ws: WebSocket) -> "Window | None":
+        return self._windows.get(getattr(ws, "window_id", None) or "main")
+
+    def _forget_window(self, window: "Window") -> None:
+        if self._windows.get(window.ident) is window:
+            del self._windows[window.ident]
+
+    def clients_for(self, ident: str) -> list[WebSocket]:
+        """Conexiones abiertas por una ventana concreta."""
+        if self.server is None:
+            return []
+        return [
+            ws
+            for ws in list(self.server.clients)
+            if ws.alive and (getattr(ws, "window_id", None) or "main") == ident
+        ]
+
+    def open_window(
+        self,
+        route: str = "/",
+        *,
+        title: str | None = None,
+        width: int | None = None,
+        height: int | None = None,
+    ) -> "Window":
+        """Abre **otra** ventana nativa en ``route`` (multiventana).
+
+        Cada ventana tiene su propio canal: se puede cerrar con
+        ``ventana.close()`` sin tocar el resto ni el servidor.
+        """
+        if not self.has_page(route):
+            raise ValueError(f"Ruta inexistente: {route}")
+        if self._desktop is None or self._desktop.webview is None or self.server is None:
+            raise DesktopError(
+                "open_window() necesita la ventana nativa en marcha: llama antes a "
+                'app.run() con window="desktop" e instala "interui[desktop]".'
+            )
+        ident = f"w{len(self._windows)}"
+        window = Window(self, ident, title or self.title, route)
+        native = DesktopWindow(self)
+        try:
+            native.create(
+                self._url_for(route, ident),
+                title=window.title,
+                width=width,
+                height=height,
+            )
+        except Exception as exc:  # noqa: BLE001 - el motor nativo puede rechazarlo
+            raise DesktopError(
+                f"No se pudo abrir otra ventana ({type(exc).__name__}: {exc}). "
+                "Algunos motores solo permiten ventanas antes de app.run()."
+            ) from exc
+        window.native = native
+        self._windows[ident] = window
+        return window
+
+    def _url_for(self, route: str, ident: str) -> str:
+        base = self.server.url.rstrip("/") if self.server is not None else ""
+        separator = "&" if "?" in route else "?"
+        return f"{base}{route}{separator}w={ident}"
+
+    # ------------------------------------------------------------------
     # utilidades para el usuario
     # ------------------------------------------------------------------
-    def notify(self, message: str, level: str = "info") -> None:
-        if self.server is not None:
-            self.server.broadcast({"t": "toast", "message": message, "level": level})
+    def notify(
+        self,
+        message: str,
+        level: str = "info",
+        *,
+        title: str | None = None,
+        icon: Any = None,
+        image: str | None = None,
+        duration: int = 4200,
+        action: dict[str, str] | None = None,
+    ) -> None:
+        """Snackbar flotante en todas las ventanas.
+
+        ``icon`` acepta un nombre (``ui.icons.check``) o marcado SVG, ``image``
+        una URL y ``action`` ``{"label": "Deshacer", "js": "…"}``. Para acciones
+        en Python usa el control :class:`interui.Snackbar`.
+        """
+        if self.server is None:
+            return
+        payload: dict[str, Any] = {
+            "t": "toast",
+            "message": message,
+            "level": level,
+            "duration": duration,
+        }
+        if title:
+            payload["title"] = str(title)
+        if icon:
+            payload["icon"] = _icon_markup(icon)
+        if image:
+            payload["image"] = str(image)
+        if action:
+            payload["action"] = dict(action)
+        self.server.broadcast(payload)
 
     def navigate(self, path: str) -> None:
         if self.server is not None:
@@ -387,11 +561,49 @@ class App:
         if self.server is not None:
             self.server.broadcast({"t": "eval", "js": code})
 
+    # -- tres niveles de cierre ----------------------------------------
+    def close(self) -> None:
+        """Cierra **solo** la ventana que ejecuta el handler.
+
+        Las demás ventanas y el servidor siguen vivos. Si era la última, la
+        aplicación termina (no hay dónde mostrarse).
+        """
+        window = self.current_window
+        if window is None:
+            self.quit()
+            return
+        window.close()
+        if not self._windows:
+            self.quit()
+
+    def dispose(self, window: "Window | None" = None) -> None:
+        """Cierra y libera una ventana (la actual por defecto). No apaga la app."""
+        target = window or self.current_window
+        if target is None:
+            self.quit()
+            return
+        target.dispose()
+        if not self._windows:
+            self.quit()
+
+    def exit(self) -> None:
+        """Cierra **todas** las ventanas y apaga el servidor."""
+        self.quit()
+
     def quit(self) -> None:
-        """Cierra la ventana (modo escritorio) o detiene el servidor (navegador)."""
+        """Cierra todas las ventanas y detiene el servidor.
+
+        Es seguro llamarlo desde un handler de un botón: el bucle de ``run()``
+        termina en cuanto las ventanas se destruyen.
+        """
+        self._stopped = True
+        for window in [item for item in self.windows if item.ident != "main"]:
+            window.close()
         if self._desktop is not None:
             self._desktop.close()
-        elif self.server is not None:
+        for window in list(self._windows.values()):
+            window.close()
+        if self._desktop is None and self.server is not None:
             threading.Thread(target=self._shutdown, name="interui-quit", daemon=True).start()
 
     def set_theme(self, theme: str = "dark") -> None:
@@ -481,9 +693,12 @@ class App:
             )
             window = "browser"
 
-        self.server = Server(self, host, port)
-        self.server.start()
-        url = self.server.url
+        server = Server(self, host, port)
+        self.server = server
+        server.start()
+        url = server.url
+        if "main" not in self._windows:
+            self._windows["main"] = Window(self, "main", self.title, "/")
         if not (STATIC_DIR / "app.css").exists():
             log("[interui] aviso: falta interui/static/app.css; ejecuta `npm run build` en frontend/", error=True)
 
@@ -496,6 +711,8 @@ class App:
         try:
             if window == "desktop":
                 self._desktop = DesktopWindow(self)
+                if "main" in self._windows:
+                    self._windows["main"].native = self._desktop
                 for hook in self._on_close:
                     self._desktop.on_closing(hook)
                 self._desktop.create(url, debug=debug, on_top=on_top)
@@ -505,11 +722,11 @@ class App:
                 self._desktop.start(debug=debug, gui=gui)
             elif window == "browser":
                 webbrowser.open(url)
-                while True:
-                    time.sleep(0.5)
+                while not self._stopped:
+                    time.sleep(0.2)
             else:
-                while True:
-                    time.sleep(0.5)
+                while not self._stopped:
+                    time.sleep(0.2)
         except KeyboardInterrupt:
             log("\n[interui] cerrando…")
         except DesktopError as exc:
@@ -518,6 +735,23 @@ class App:
         finally:
             self._shutdown()
             self._desktop = None
+
+
+def _icon_markup(icon: Any) -> str:
+    """SVG en línea a partir de un nombre de icono o de marcado propio."""
+    text = str(icon)
+    if text.lstrip().startswith("<"):
+        return text
+    from .icons import ICONS
+
+    paths = ICONS.get(text)
+    if paths is None:
+        return ""
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" '
+        'stroke="currentColor" stroke-width="1.8" stroke-linecap="round" '
+        f'stroke-linejoin="round" class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true">{paths}</svg>'
+    )
 
 
 def _default_data_dir(title: str) -> Path:

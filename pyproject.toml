@@ -40,6 +40,10 @@ dependencies = []
 desktop = ["pywebview>=4.4"]
 # Alias histórico usado en la documentación.
 gui = ["pywebview>=4.4"]
+# Motores de base de datos (SQLite y archivos JSON no necesitan extras).
+postgres = ["psycopg[binary]>=3.1"]
+mysql = ["pymysql>=1.1"]
+mongo = ["pymongo>=4.6"]
 # Desarrollo y publicación.
 dev = [
   "pytest>=8.0",

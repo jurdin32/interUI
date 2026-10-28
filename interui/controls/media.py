@@ -9,6 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..theme import utility
 
 __all__ = ["Image", "Figure", "Avatar", "AvatarGroup", "Video", "Audio", "Carousel", "Gallery", "IconBadge"]
 
@@ -42,7 +43,7 @@ class Image(Component):
         props["base_class"] = tw(
             "block",
             fit_cls,
-            f"rounded-{rounded}",
+            utility("rounded", rounded),
             ratios.get(ratio or "", f"{ratios[ratio]}" if ratio in ratios else ""),
             "w-full h-full object-center" if ratio else "",
             props.get("base_class"),
@@ -178,7 +179,11 @@ class Video(Component):
             props["loop"] = True
         if muted:
             props["muted"] = True
-        props["base_class"] = tw(f"w-full rounded-{rounded} bg-black shadow-sm", props.get("base_class"))
+        props["base_class"] = tw(
+            "w-full bg-black shadow-sm",
+            utility("rounded", rounded),
+            props.get("base_class"),
+        )
         super().__init__(**props)
 
 
@@ -252,7 +257,8 @@ class Gallery(Component):
 
     def __init__(self, *children: Any, columns: int = 3, gap: int = 3, **props: Any) -> None:
         props["base_class"] = tw(
-            "grid", f"grid-cols-2 sm:grid-cols-{columns}", f"gap-{gap}", props.get("base_class")
+            "grid", f"grid-cols-2 sm:grid-cols-{columns}", utility("gap", gap),
+            props.get("base_class"),
         )
         super().__init__(*children, **props)
 

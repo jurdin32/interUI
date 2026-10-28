@@ -11,10 +11,12 @@ from ..html import escape
 from ..icons import Icon
 from ..style import tw
 from ..ui import ALERT_VARIANTS
+from .buttons import Button
 
 __all__ = [
     "Alert", "Banner", "Callout", "Progress", "ProgressRing", "Meter", "Skeleton",
     "LoadingOverlay", "StatusDot", "InlineToast", "ConfirmDialog", "Hint",
+    "Snackbar", "SNACKBAR_POSITIONS", "SNACKBAR_VARIANTS",
 ]
 
 LEVEL_ICONS = {
@@ -421,3 +423,149 @@ class Hint(Component):
     def __init__(self, *children: Any, **props: Any) -> None:
         props["base_class"] = tw("text-xs text-slate-500 dark:text-slate-400", props.get("base_class"))
         super().__init__(*children, **props)
+
+
+
+SNACKBAR_POSITIONS = {
+    "bottom_right": "bottom-4 right-4",
+    "bottom_left": "bottom-4 left-4",
+    "bottom_center": "bottom-4 left-1/2 -translate-x-1/2",
+    "top_right": "top-4 right-4",
+    "top_left": "top-4 left-4",
+    "top_center": "top-4 left-1/2 -translate-x-1/2",
+    "static": "",
+}
+
+SNACKBAR_VARIANTS = {
+    "info": "bg-slate-900 text-white ring-slate-700/60",
+    "success": "bg-emerald-600 text-white ring-emerald-500/60",
+    "warning": "bg-amber-500 text-slate-950 ring-amber-400/60",
+    "danger": "bg-rose-600 text-white ring-rose-500/60",
+    "neutral": "bg-white text-slate-900 ring-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:ring-slate-700",
+}
+
+
+class Snackbar(Component):
+    """Aviso flotante con texto, icono **o** imagen y una acción opcional.
+
+    ```python
+    Snackbar(
+        "Proyecto archivado",
+        title="Hecho",
+        icon=ui.icons.check,
+        action=("Deshacer", deshacer),
+        variant=ui.variant.success,
+        position="bottom_right",
+    )
+    ```
+
+    * ``icon`` — nombre de icono (``ui.icons.check``) o marcado SVG propio.
+    * ``image`` — URL de imagen; si se indica, manda sobre ``icon``.
+    * ``action`` — ``(texto, handler)`` o un componente propio.
+    * ``dismissible`` — muestra la aspa (se quita sin volver a Python).
+    * ``duration`` — milisegundos antes de desaparecer (``0`` = permanece).
+    """
+
+    tag = "div"
+
+    def __init__(
+        self,
+        message: Any = "",
+        *,
+        title: Any = None,
+        icon: Any = None,
+        image: str | None = None,
+        variant: str = "info",
+        action: Any = None,
+        dismissible: bool = True,
+        position: str = "bottom_right",
+        duration: int = 0,
+        **props: Any,
+    ) -> None:
+        self.snackbar_message = message
+        self.snackbar_title = title
+        self.icon = icon
+        self.image = image
+        self.variant = str(variant)
+        self.action = action
+        self.dismissible = dismissible
+        self.position = str(position)
+        self.duration = int(duration)
+        if self.position not in SNACKBAR_POSITIONS:
+            raise ValueError(
+                f"position={position!r} no es válida; usa {', '.join(SNACKBAR_POSITIONS)}"
+            )
+        place = SNACKBAR_POSITIONS[self.position]
+        props["base_class"] = tw(
+            "z-[95] flex flex-col gap-2",
+            f"fixed {place}" if place else "",
+            props.get("base_class"),
+        )
+        super().__init__(**props)
+
+    # ------------------------------------------------------------------
+    def _icon(self, ctx: RenderContext, path: str) -> str:
+        markup = str(self.icon)
+        if markup.lstrip().startswith("<"):
+            return markup
+        return Icon(markup, size=4, class_="mt-0.5 shrink-0").render(ctx, path)
+
+    def _action(self, ctx: RenderContext, uid: str, path: str) -> str:
+        action = self.action
+        if isinstance(action, Component):
+            return action.render(ctx, path)
+        if isinstance(action, (tuple, list)):
+            label, handler = action[0], (action[1] if len(action) > 1 else None)
+            variant = str(action[2]) if len(action) > 2 else "secondary"
+            return Button(
+                label,
+                id=f"{uid}-act",
+                variant=variant,
+                size="sm",
+                class_="shrink-0",
+                on_click=handler,
+            ).render(ctx, path)
+        return Button(action, id=f"{uid}-act", variant="secondary", size="sm",
+                      class_="shrink-0").render(ctx, path)
+
+    def content(self, ctx: RenderContext, path: str) -> str:
+        from ..base import render_children
+
+        uid = ctx.uid(path, self.key, self.explicit_id)
+        tones = SNACKBAR_VARIANTS.get(self.variant, SNACKBAR_VARIANTS["info"])
+        parts: list[str] = []
+
+        if self.image:
+            parts.append(
+                f'<img src="{escape(self.image)}" alt="" '
+                'class="h-9 w-9 shrink-0 rounded-lg object-cover"/>'
+            )
+        elif self.icon is not None:
+            parts.append(self._icon(ctx, f"{path}-ic"))
+
+        body = ""
+        if self.snackbar_title is not None:
+            body += f'<p class="truncate font-semibold leading-snug">{escape(self.snackbar_title)}</p>'
+        if self.snackbar_message not in (None, ""):
+            muted = "" if self.snackbar_title is None else " opacity-90"
+            body += (
+                f'<span class="flex-1 leading-snug{muted}">'
+                f"{render_children([self.snackbar_message], ctx, f'{path}-msg')}</span>"
+            )
+        parts.append(f'<div class="flex min-w-0 flex-1 flex-col gap-0.5">{body}</div>')
+
+        if self.action is not None:
+            parts.append(self._action(ctx, uid, f"{path}-act"))
+        if self.dismissible:
+            parts.append(
+                '<button type="button" data-iui-dismiss="true" aria-label="Cerrar aviso" '
+                'class="shrink-0 rounded-md p-0.5 opacity-70 transition hover:opacity-100">✕</button>'
+            )
+
+        duration = f' data-iui-duration="{self.duration}"' if self.duration else ""
+        return (
+            f'<div id="{escape(uid)}-bar" class="pointer-events-auto flex w-full max-w-sm '
+            f'items-start gap-3 rounded-xl px-4 py-3 text-sm shadow-lg ring-1 '
+            f'transition-opacity duration-200 {tones}" '
+            f'data-iui-snackbar="true"{duration} role="status">' + "".join(parts) + "</div>"
+        )

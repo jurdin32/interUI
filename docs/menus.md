@@ -49,7 +49,30 @@ def index():
 | `sidebar` | `ui.Sidebar(...)`; si se omite, el contenido ocupa todo el ancho. |
 | `footer` | Franja opcional sobre la barra de estado. |
 | `status` | `ui.StatusBar(...)` fija al pie. |
-| `sidebar_width` | Clase de ancho de la barra lateral (`"w-64"` por defecto). |
+| `sidebar_position` | `ui.side.left` (por defecto) o `ui.side.right`; también `start`/`end`. |
+| `sidebar_width` | Clase de ancho del hueco cuando `sidebar` no es un `ui.Sidebar`. |
+
+### Posición de la barra lateral
+
+```python
+ui.AppShell(
+    ui.Container(class_="py-6")(ui.text("Contenido")),
+    sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid")),
+    sidebar_position=ui.side.right,
+)
+```
+
+El borde del sidebar se mueve solo al lado correcto. `side.start` y `side.end`
+respetan la dirección de escritura (`dir="rtl"`). Se aceptan también `"right"`,
+`"derecha"`, `"end"` y `"r"`, así que la preferencia puede venir de un ajuste
+guardado y cambiar entre renders:
+
+```python
+preferencia = ui.state("izquierda")
+
+ui.AppShell(..., sidebar_position=preferencia)
+ui.Button("Cambiar lado", on_click=lambda: preferencia.set(...))
+```
 
 ---
 
@@ -198,10 +221,13 @@ La lista completa está en [el catálogo de iconos](iconos.md).
 ```python
 app.toggle_theme()      # devuelve el tema activo ("light"/"dark")
 app.set_theme("dark")   # también acepta "oscuro"/"claro"
-app.quit()              # cierra la ventana nativa (o detiene el servidor)
+app.close()             # cierra SOLO la ventana que ejecuta la acción
+app.dispose(ventana)    # cierra y libera esa ventana; la app sigue viva
+app.exit()              # todas las ventanas y el servidor
 ```
 
-Perfecto para las entradas `Ver → Cambiar tema` y `Archivo → Salir` del menú.
+Perfecto para las entradas `Ver → Cambiar tema` y `Archivo → Salir` del menú
+(`on_click=app.exit`, sin paréntesis).
 
 ---
 

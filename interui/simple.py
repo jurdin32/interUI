@@ -185,9 +185,14 @@ def subtitle(text: Any, **props: Any) -> Component:
     return Muted(text, **props)
 
 
-def toast(message: str, level: str = "info") -> None:
-    """Aviso flotante en la ventana (equivale a ``app.notify``)."""
-    current_app().notify(message, level)
+def toast(message: str, level: str = "info", **options: Any) -> None:
+    """Snackbar flotante (equivale a ``app.notify``).
+
+    Acepta ``title``, ``icon``, ``image``, ``duration`` y ``action``::
+
+        toast("Guardado", "success", icon=icons.check, title="Hecho")
+    """
+    current_app().notify(message, level, **options)
 
 
 # ---------------------------------------------------------------------------

@@ -10,6 +10,7 @@ from typing import Any
 
 from .base import Component
 from .style import tw
+from .theme import utility
 
 __all__ = [
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",
@@ -73,7 +74,7 @@ class Row(Component):
             "start": "justify-start", "center": "justify-center", "end": "justify-end",
             "between": "justify-between", "around": "justify-around", "evenly": "justify-evenly",
         }
-        gap_cls = f"gap-{gap}" if isinstance(gap, int) or str(gap).isdigit() else f"gap-{gap}"
+        gap_cls = utility("gap", gap)
         base = tw(
             "grid w-full",
             f"grid-cols-{cols}",
@@ -144,7 +145,7 @@ class Stack(Component):
         base = tw(
             "flex",
             "flex-col" if direction in ("col", "column", "v", "vertical") else "flex-row",
-            f"gap-{gap}",
+            utility("gap", gap),
             align_map.get(align, f"items-{align}"),
             justify_map.get(justify, ""),
             "flex-wrap" if wrap else "",
@@ -229,7 +230,7 @@ class Grid(Component):
         gap: int | str = 4,
         **props: Any,
     ) -> None:
-        classes = [f"grid grid-cols-{cols} gap-{gap} w-full"]
+        classes = [tw("grid w-full", f"grid-cols-{cols}", utility("gap", gap))]
         for variant, value in (("sm", sm), ("md", md), ("lg", lg), ("xl", xl)):
             if value is not None:
                 classes.append(f"{variant}:grid-cols-{value}")

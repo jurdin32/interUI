@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from typing import Any, Callable, Sequence
 
-from .base import Component, bind_many
+from .base import Component, _style_text, bind_many
 from .html import escape
 from .style import tw
 
-__all__ = ["Icon", "ICONS", "ICON_NAMES", "IconGrid"]
+__all__ = ["Icon", "IconName", "ICONS", "ICON_NAMES", "ICON_ALIASES", "icons", "IconGrid"]
 
 ICONS: dict[str, str] = {
     "check": '<path d="M20 6 9 17l-5-5"/>',
@@ -158,11 +158,78 @@ ICONS: dict[str, str] = {
     "wrench": '<path d="M15.5 4a4.5 4.5 0 0 0-4 6.6L4 18.1 6 20l7.5-7.5A4.5 4.5 0 1 0 15.5 4z"/>',
     "cpu": '<rect x="7" y="7" width="10" height="10" rx="1.5"/>'
            '<path d="M4 10h3M4 14h3M17 10h3M17 14h3M10 4v3M14 4v3M10 17v3M14 17v3"/>',
+    "car": '<path d="M3 15.5V13l2-4.3A2 2 0 0 1 6.8 7.4h10.4a2 2 0 0 1 1.8 1.3l2 4.3v2.5"/>'
+           '<path d="M3 13h18"/><circle cx="7.2" cy="16.6" r="1.6"/>'
+           '<circle cx="16.8" cy="16.6" r="1.6"/>',
 }
 
 ICON_NAMES = tuple(sorted(ICONS))
 
+# Nombres cortos que apuntan a un icono existente.
+ICON_ALIASES: dict[str, str] = {
+    "close": "x",
+    "add": "plus",
+    "remove": "minus",
+    "delete": "trash",
+    "exit": "power",
+    "quit": "power",
+    "logout": "log-out",
+    "login": "log-in",
+    "config": "settings",
+    "preferences": "settings",
+    "avatar": "user",
+    "photo": "camera",
+}
+
 _SIZE = {n: f"h-{n} w-{n}" for n in range(3, 13)}
+
+
+class IconName(str):
+    """Nombre de icono con notación de punto: ``icons.car``.
+
+    Es un ``str``, así que sirve en cualquier argumento que espere un nombre
+    (``icon=icons.car``). Además:
+
+    * como hijo de un componente se dibuja el icono (``Card(icons.car)``);
+    * llamándolo se obtiene el control con opciones (``icons.car(size=6)``).
+    """
+
+    _is_icon_name = True
+
+    def __call__(self, size: int | str = 5, **options: Any) -> "Icon":
+        return Icon(str(self), size=size, **options)
+
+
+class _Icons:
+    """Espacio de nombres de los 200+ iconos: ``icons.edit``, ``icons.chevron_down``."""
+
+    def __getattr__(self, name: str) -> IconName:
+        if name.startswith("_"):
+            raise AttributeError(name)
+        key = name.replace("_", "-")
+        key = ICON_ALIASES.get(key, key)
+        if key in ICONS:
+            return IconName(key)
+        import difflib
+
+        close = difflib.get_close_matches(name.replace("_", "-"), ICON_NAMES, n=3)
+        hint = f" ¿Querías {', '.join(close)}?" if close else ""
+        raise AttributeError(f"icons.{name} no existe.{hint}")
+
+    def __call__(self, name: str) -> IconName:
+        """``icons("car")`` para nombres que llegan en una variable."""
+        return self.__getattr__(str(name).replace("-", "_"))
+
+    def __dir__(self) -> list[str]:
+        names = {item.replace("-", "_") for item in ICON_NAMES}
+        names.update(ICON_ALIASES)
+        return sorted(names)
+
+    def __repr__(self) -> str:
+        return "<interui.icons>"
+
+
+icons = _Icons()
 
 
 class Icon(Component):
@@ -180,7 +247,7 @@ class Icon(Component):
         **props: Any,
     ) -> None:
         super().__init__(**props)
-        self.name = name
+        self.name = str(name)
         self.size = size
         self.stroke = stroke
         self.class_ = class_
@@ -191,12 +258,13 @@ class Icon(Component):
             size_class = _SIZE.get(self.size, f"h-{self.size} w-{self.size}")
         else:
             size_class = str(self.size)
-        classes = tw("shrink-0", size_class, self.class_)
+        classes = tw("shrink-0", size_class, self.base_class, self.class_)
+        style = f' style="{_style_text(self.style)}"' if self.style else ""
         width = f' stroke-width="{self.stroke}"' if self.stroke else ' stroke-width="1.8"'
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"'
             f' stroke="currentColor"{width} stroke-linecap="round" stroke-linejoin="round"'
-            f' class="{classes}" aria-hidden="true">{paths}</svg>'
+            f' class="{classes}"{style} aria-hidden="true">{paths}</svg>'
         )
 
 

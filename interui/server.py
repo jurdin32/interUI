@@ -95,6 +95,8 @@ class WebSocket:
         self.alive = True
         self._send_lock = threading.Lock()
         self.id = uuid.uuid4().hex[:8]
+        # Ventana nativa que abrió esta conexión (``?w=``); ``None`` = principal.
+        self.window_id: str | None = None
 
     # -- envío -----------------------------------------------------------
     def send_text(self, text: str) -> None:
@@ -350,7 +352,9 @@ def _make_handler(server: Server) -> type[BaseHTTPRequestHandler]:
             self.wfile.flush()
             self.close_connection = True
 
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
             ws = WebSocket(self.rfile, self.wfile, self.connection)
+            ws.window_id = (query.get("w") or [None])[0]
             server.register(ws)
             try:
                 app.on_client_connect(ws)

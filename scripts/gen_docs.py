@@ -155,6 +155,7 @@ DESCRIPTIONS: dict[str, str] = {
     "LoadingOverlay": "Superpone un cargando sobre su contenido.",
     "StatusDot": "Punto de estado.",
     "InlineToast": "Aviso compacto en línea.",
+    "Snackbar": "Aviso flotante con icono o imagen, acción y cierre opcional.",
     "ConfirmDialog": "Diálogo de confirmación gestionado en Python.",
     "Hint": "Texto de ayuda pequeño.",
     "Card": "Tarjeta con cabecera, cuerpo y pie.",
@@ -401,6 +402,10 @@ SNIPPETS: dict[str, str] = {
     "LoadingOverlay": 'ui.LoadingOverlay(ui.Text("contenido"), message="Cargando…")',
     "StatusDot": 'ui.StatusDot("Operativo", tone="success", pulse=True)',
     "InlineToast": 'ui.InlineToast("Guardado correctamente", level="success")',
+    "Snackbar": (
+        'ui.Snackbar("Proyecto archivado", title="Hecho", icon=ui.icons.check, '
+        'action=("Deshacer", lambda e: None), variant=ui.variant.success)'
+    ),
     "ConfirmDialog": 'ui.ConfirmDialog("Esta acción no se puede deshacer.", title="¿Eliminar?", dialog_id="confirmar")',
     "Hint": 'ui.Hint("Se guarda automáticamente")',
     # -- contenedores ----------------------------------------------------
@@ -520,11 +525,14 @@ def auto_snippet(name: str) -> str:
 
 
 def controls_of(module_name: str) -> list[tuple[str, Any]]:
+    from interui.base import Component
+
     module = importlib.import_module(module_name)
     out = []
     for name in getattr(module, "__all__", []):
         obj = getattr(module, name, None)
-        if inspect.isclass(obj):
+        # Solo controles: los tokens de diseño (IconName, Word…) no se documentan aquí.
+        if inspect.isclass(obj) and issubclass(obj, Component):
             out.append((name, obj))
     return sorted(set(out), key=lambda item: item[0])
 
@@ -645,15 +653,26 @@ interUI incluye su propio set de iconos vectoriales (trazo 24×24, `stroke-width
 1.8): no depende de ninguna librería externa ni de la red, así que funciona
 igual en macOS, Windows y Linux, dentro del ejecutable empaquetado.
 
+Cada icono tiene su nombre con puntos: `icons.car`, `icons.edit`,
+`icons.chevron_down`. Los guiones de Tailwind se escriben con `_`.
+
 ```python
 import interui as ui
+from interui import icons
 
-ui.Icon("check", size=6, class_="text-emerald-600")   # por nombre
-ui.icon_grid(columns=10, searchable=True)             # galería navegable
-len(ui.ICON_NAMES)                                    # cuántos hay
+icons.car                     # el nombre: sirve en icon=…
+ui.Icon(icons.car, size=6)    # el control
+icons.car(size=6, stroke=2)   # el control con opciones
+ui.Card(icons.edit, "Editar") # como hijo se dibuja el icono
+icons.close                   # alias: close→x, delete→trash, exit→power
+ui.icon_grid(columns=10, searchable=True)   # galería navegable
 ```
 
-Los nombres inexistentes no rompen la interfaz: se dibuja un icono de ayuda.
+Un nombre inexistente falla al instante (`AttributeError` con sugerencias); si el
+nombre llega en una variable, `icons("car")`.
+
+Los nombres desconocidos pasados a `ui.Icon(...)` no rompen la interfaz: se dibuja
+un icono de ayuda.
 
 > Este archivo se genera desde el código con `python scripts/gen_docs.py`.
 """

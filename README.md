@@ -88,6 +88,8 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 - [Cómo funciona una app](#cómo-funciona-una-app)
 - [Rejilla de 12 columnas](#rejilla-de-12-columnas)
 - [API compacta (recomendada)](#api-compacta-recomendada)
+- [Estilos con notación de punto](#estilos-con-notación-de-punto)
+- [Datos: configuración, modelos y migraciones](#datos-configuración-modelos-y-migraciones)
 - [Controles](#controles)
 - [Eventos](#eventos)
 - [Estado reactivo](#estado-reactivo)
@@ -112,8 +114,10 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 |---|---|
 | Motor de componentes y render HTML | ✅ estable |
 | Rejilla responsive de 12 columnas | ✅ estable |
+| Estilos por tokens (`bg=colors.red_500`, `pad=pad.py_6`) | ✅ estable |
+| `interui.json` + modelos y migraciones (SQLite, archivos, PG, MySQL, Mongo) | ✅ estable |
 | Catálogo de controles | ✅ ~230 exportaciones (`docs/controles.md`) |
-| Shell, menús, barras e iconos propios | ✅ 202 iconos (`docs/iconos.md`) |
+| Shell, menús, barras e iconos propios | ✅ 203 iconos (`docs/iconos.md`) |
 | Canal en vivo (WebSocket propio, sin dependencias) | ✅ estable |
 | Ventana nativa + puente al sistema operativo | ✅ estable |
 | CLI (`run`, `new`, `build`, `doctor`, `assets`) | ✅ estable |
@@ -274,6 +278,8 @@ Ejemplos completos en [`examples/`](examples):
 | [`03_catalog.py`](examples/03_catalog.py) | Catálogo visual de todos los controles. |
 | [`04_desktop.py`](examples/04_desktop.py) | Integración nativa: diálogos, notificaciones, barra de título. |
 | [`05_crud.py`](examples/05_crud.py) | **App completa**: alta/edición, búsqueda, validación, persistencia y exportación. |
+| [`06_app_moderna.py`](examples/06_app_moderna.py) | Armazón de app, menús, iconos y diálogos. |
+| [`07_estilos.py`](examples/07_estilos.py) | Estilos con tokens: colores, variantes, hex y degradados. |
 
 ---
 
@@ -462,7 +468,104 @@ Resumen de la capa compacta:
 | `row(*children)` | rejilla de 12 con columnas iguales automáticas |
 | `column(*children)` | apilado vertical |
 | `title`, `subtitle` | título principal y texto secundario |
-| `toast(msg, level)` | aviso flotante |
+| `toast(msg, level, **opciones)` | snackbar flotante (`title`, `icon`, `image`, `duration`, `action`) |
+
+---
+
+## Estilos con notación de punto
+
+Los controles aceptan el estilo por argumentos: el nombre dice **qué** se cambia
+y el token dice **cuánto**. Ni una clase a mano.
+
+```python
+from interui import Card, Text, colors, font, pad, radius, shadow
+
+Card(
+    bg=colors.white,
+    border=colors.slate_200,
+    pad=pad.all_6,
+    rounded=radius.xxl,
+    shadow=shadow.md,
+    hover_bg=colors.slate_50,
+    dark_bg=colors.slate_900,
+    md_pad=pad.p_8,
+)(
+    Text("Hola", font=font.lg.semibold, color=colors.slate_700),
+)
+```
+
+Esto genera `bg-white border border-slate-200 p-6 rounded-2xl shadow-md
+hover:bg-slate-50 dark:bg-slate-900 md:p-8` y `text-lg font-semibold
+text-slate-700`: exactamente lo que escribirías en Tailwind, pero sin escribirlo.
+
+- **Espacios de nombres**: `colors`, `pad`, `margin`, `gap`, `radius`, `shadow`,
+  `border`, `font`, `width`, `height`, `opacity` y `flex`.
+- **Variantes con prefijo**: `hover_bg`, `focus_ring`, `active_bg`, `dark_bg`,
+  `md_pad`, `md_hover_bg`… (el punto de ruptura va primero).
+- **Valores exactos** cuando Tailwind no llega: `colors.hex("#0f172a")`,
+  `colors.rgb(34, 211, 238)`, `gradient.br(colors.fuchsia_500,
+  colors.indigo_500)` o `pad.py("18px")`. Se emiten como CSS en línea, así que
+  funcionan sin recompilar nada.
+- **Nada desaparece**: `class_` y `style` siguen disponibles y siempre ganan.
+- **También con puntos**: los iconos (`icons.car`, `icons.edit`) y los
+  enumerados de los controles (`variant.danger`, `tone.muted`, `size.lg`).
+
+👉 Referencia completa, tabla de argumentos y catálogo de tokens:
+[`docs/estilos.md`](docs/estilos.md).
+
+---
+
+## Datos: configuración, modelos y migraciones
+
+El asistente deja el proyecto listo: `interui.json` (el punto de partida),
+`app.py`, `models.py` y `migrations/`.
+
+```bash
+interui init tienda --db sqlite --migrate
+interui db makemigrations      # compara models.py con la última migración
+interui db migrate             # aplica lo pendiente
+interui db status              # ✔ aplicada · pendiente
+```
+
+```python
+import interui as ui
+
+class Cliente(ui.Model):
+    nombre = ui.Str(max_length=80, unique=True)
+    edad = ui.Int(null=True)
+    activo = ui.Bool(default=True)
+    alta = ui.DateTime(auto_now_add=True)
+
+    class Meta:
+        table = "clientes"
+
+Cliente.objects.create(nombre="Ana", edad=34)
+mayores = Cliente.objects.filter(edad__gte=18).order_by("-edad")
+ana = Cliente.objects.get(nombre="Ana")
+ana.edad = 35
+ana.save()
+```
+
+```json
+{
+  "databases": {
+    "default": { "engine": "sqlite", "name": "data/app.db" },
+    "reportes": {
+      "engine": "postgres", "host": "localhost", "port": 5432,
+      "user": "tienda", "password": "${PG_PASSWORD}", "name": "reportes"
+    }
+  }
+}
+```
+
+- **Motores**: `sqlite` y `file` funcionan sin instalar nada; `postgres`, `mysql`
+  y `mongo` van con extras (`pip install "interui[postgres]"` y compañía).
+- **Secretos fuera del JSON**: `${VARIABLE}` se lee del entorno, como un `.env`.
+- **Varias bases** por alias; cada modelo elige la suya con `Meta.database`.
+- **Migraciones** al estilo Django: se generan del diff entre modelos y esquema, y
+  los cambios que borran datos exigen `--force`.
+
+👉 Guía completa: [`docs/datos.md`](docs/datos.md).
 
 ---
 
@@ -678,9 +781,45 @@ CONTEXTO = ui.ContextMenu(
 pagina = CONTEXTO(ui.table(headers=["Nombre"], rows=[["Ana"], ["Luis"]]))
 ```
 
-Extras listos para usar: `ui.MenuButton(...)` (desplegable suelto),
+Extras listos para usar: `ui.MenuButton(...)` (despliegue suelto),
 `ui.CommandBar(...)` (buscador + acciones), `ui.NotificationButton(3, items=[...])`
-(campana con contador) y `app.toggle_theme()` / `app.quit()` desde Python.
+(campana con contador) y `app.toggle_theme()` desde Python.
+
+### Posición del sidebar
+
+```python
+ui.AppShell(..., sidebar=ui.Sidebar(...), sidebar_position=ui.side.right)
+```
+
+`side.left` (por defecto), `side.right`, `side.start` y `side.end` (respetan la
+dirección de escritura). También acepta `"derecha"` / `"right"`; el borde del
+sidebar se cambia de lado solo. Como el árbol se reconstruye en cada render, la
+posición puede venir de una preferencia del usuario.
+
+### Niveles de cierre
+
+| Llamada | Qué cierra |
+|---|---|
+| `app.close()` | **solo** la ventana que ejecuta el handler |
+| `app.dispose(ventana)` | cierra y libera esa ventana; la app sigue viva |
+| `app.exit()` / `app.quit()` | todas las ventanas y el servidor |
+
+### Multiventana
+
+```python
+@app.page("/ajustes")
+def ajustes():
+    return ui.Text("Ajustes")
+
+def abrir_ajustes() -> None:
+    app.open_window("/ajustes", title="Ajustes", width=720, height=520)
+
+ui.Button("Abrir ajustes", icon=ui.icons.settings, on_click=abrir_ajustes)
+```
+
+Cada ventana tiene su propio canal WebSocket, su ruta y su ciclo de vida:
+`app.windows`, `app.main_window`, `ventana.close()`, `ventana.navigate("/otra")`.
+Requiere `window="desktop"` y el extra `interui[desktop]`.
 
 Detalle completo en [menús y armazón](docs/menus.md) y en el ejemplo
 [`examples/06_app_moderna.py`](examples/06_app_moderna.py).
@@ -689,17 +828,32 @@ Detalle completo en [menús y armazón](docs/menus.md) y en el ejemplo
 
 ## Iconos
 
-El framework incluye su propio set de **202 iconos** vectoriales (trazo 24×24),
+El framework incluye su propio set de **203 iconos** vectoriales (trazo 24×24),
 sin dependencias externas ni acceso a red, así que también funciona dentro del
 ejecutable empaquetado:
 
 ```python
-ui.Icon("check", size=6, class_="text-emerald-600")   # un icono
-len(ui.ICON_NAMES)                                    # 202
-ui.IconGrid(columns=10, searchable=True, on_pick=lambda n: ui.toast(n))  # galería
+from interui import icons
+
+icons.car                       # el nombre, para icon=…
+ui.Icon(icons.car, size=6)      # el control
+icons.car(size=6, stroke=2)     # atajo: el control con opciones
+Card(icons.edit, "Editar")      # como hijo se dibuja el icono
+icons.chevron_down              # los guiones se escriben con _
+icons.close                     # alias cómodos: close→x, delete→trash, exit→power
 ```
 
-La lista completa está en el [catálogo de iconos](docs/iconos.md).
+En cualquier control que acepte `icon=`:
+
+```python
+Button("Guardar", icon=icons.check)
+Input(icon=icons.search, placeholder="Buscar…")
+ContextItem("Salir", icon=icons.power, on_click=app.exit)
+```
+
+`len(ui.ICON_NAMES)` → 203 iconos, y
+`ui.IconGrid(searchable=True)` dibuja la galería completa. La lista está en el
+[catálogo de iconos](docs/iconos.md).
 
 ---
 
@@ -975,10 +1129,12 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 - [Guía paso a paso](docs/guia.md) — de la ventana vacía a la app completa.
 - [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
+- [Estilos con notación de punto](docs/estilos.md) — tokens, variantes, hex y degradados.
+- [Datos y migraciones](docs/datos.md) — `interui.json`, modelos y motores.
 - [Diálogos y ventanas modales](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
 - [Actualizar interUI](docs/actualizar.md) — comprobar versión, comandos y aviso en la app.
 - [Menús, barras y armazón de app](docs/menus.md) — `AppShell`, barra de menús, menú contextual, comandos y notificaciones.
-- [Catálogo de iconos](docs/iconos.md) — los 202 iconos incluidos y cómo usarlos.
+- [Catálogo de iconos](docs/iconos.md) — los 203 iconos incluidos y cómo usarlos.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
 - [Instalación y publicación en PyPI](docs/publicar.md) — cómo instalarlo y cómo publicarlo.
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 
+import pytest
+
 import interui as ui
 
 
@@ -313,3 +315,42 @@ def test_icon_grid_entrega_el_nombre_elegido(tmp_path) -> None:
     app._bindings[ws.id] = bindings
     app.handle_message(ws, {"t": "event", "id": "galeria-i1", "e": "change", "v": "x"})
     assert elegidos == ["x"]
+
+
+# --- AppShell: posición del sidebar -------------------------------------------
+
+
+def test_sidebar_a_la_izquierda_por_defecto() -> None:
+    html = render(ui.AppShell(ui.Text("x"), sidebar=ui.Sidebar(ui.SidebarItem("Panel"))))
+    assert 'data-side="left"' in html
+    assert html.index("<aside") < html.index("<main")
+
+
+def test_sidebar_a_la_derecha() -> None:
+    html = render(
+        ui.AppShell(
+            ui.Text("x"),
+            sidebar=ui.Sidebar(ui.SidebarItem("Panel")),
+            sidebar_position=ui.side.right,
+        )
+    )
+    assert 'data-side="right"' in html
+    assert html.index("<main") < html.index("<aside")
+
+
+def test_posicion_del_sidebar_acepta_texto_y_espanol() -> None:
+    for value in ("right", "derecha", "end", "r"):
+        html = render(
+            ui.AppShell(ui.Text("x"), sidebar=ui.Sidebar(), sidebar_position=value)
+        )
+        assert 'data-side="right"' in html, value
+
+
+def test_posicion_del_sidebar_invalida() -> None:
+    with pytest.raises(ValueError):
+        ui.AppShell(ui.Text("x"), sidebar_position="arriba")
+
+
+def test_app_shell_sin_sidebar_no_emite_fila() -> None:
+    html = render(ui.AppShell(ui.Text("x")))
+    assert "iui-shell-row" not in html

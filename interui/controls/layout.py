@@ -9,6 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..theme import utility
 from .buttons import Button
 
 __all__ = [
@@ -95,7 +96,8 @@ class Card(Component):
                 f'<div class="ml-auto flex items-center gap-2">{action_html}</div></div>'
             )
         body = render_children(self.children, ctx, path)
-        body = f'<div class="{"p-4" if self.padding else ""} flex flex-col gap-3">{body}</div>' if body else ""
+        body_pad = "" if not self.padding else ("p-4" if self.padding is True else utility("p", self.padding))
+        body = f'<div class="{body_pad} flex flex-col gap-3">{body}</div>' if body else ""
         foot = ""
         if self.footer is not None:
             foot = (
@@ -136,7 +138,7 @@ class Panel(Component):
         props["base_class"] = tw(
             "flex flex-col gap-3 rounded-xl border border-slate-200 dark:border-slate-800",
             tones.get(tone, tones["muted"]),
-            f"p-{padding}",
+            utility("p", padding),
             props.get("base_class"),
         )
         super().__init__(*children, **props)

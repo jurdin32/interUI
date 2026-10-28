@@ -20,6 +20,7 @@ from ..base import Component, render_children
 from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
+from ..state import Signal
 from ..style import tw
 from .layout import MenuItem
 
@@ -286,6 +287,26 @@ class ContextMenu(Component):
         return f'<div data-iui-context="{escape(panel_id)}">{body}{hint}</div>{panel}'
 
 
+_SIDES = {
+    "left": "left", "l": "left", "start": "left", "izquierda": "left", "begin": "left",
+    "right": "right", "r": "right", "end": "right", "derecha": "right",
+}
+
+
+def _sidebar_side(value: Any) -> str:
+    """``side.left`` / ``side.right`` / ``"derecha"`` → ``"left"`` o ``"right"``."""
+    if isinstance(value, Signal):
+        value = value.get()
+    elif callable(value) and not isinstance(value, str):
+        value = value()
+    text = str(value).strip().lower()
+    if text not in _SIDES:
+        raise ValueError(
+            f"sidebar_position={value!r} no es válido; usa side.left o side.right"
+        )
+    return _SIDES[text]
+
+
 class AppShell(Component):
     """Armazón de una aplicación de escritorio.
 
@@ -313,6 +334,7 @@ class AppShell(Component):
         sidebar: Any = None,
         status: Any = None,
         footer: Any = None,
+        sidebar_position: str = "left",
         sidebar_width: str = "w-64",
         **props: Any,
     ) -> None:
@@ -321,6 +343,7 @@ class AppShell(Component):
         self.sidebar = sidebar
         self.status = status
         self.footer = footer
+        self.sidebar_position = _sidebar_side(sidebar_position)
         self.sidebar_width = sidebar_width
         props["base_class"] = tw(
             "flex h-screen w-full flex-col overflow-hidden bg-slate-50 text-slate-900 "
@@ -340,18 +363,26 @@ class AppShell(Component):
                 parts.append(render_children([slot], ctx, f"{path}-h{index}"))
 
         inner = render_children(self.children, ctx, f"{path}-main")
+        main = f'<main class="min-w-0 flex-1 overflow-y-auto">{inner}</main>'
         if self.sidebar is not None:
             side = (
                 self.sidebar.render(ctx, f"{path}-side")
                 if isinstance(self.sidebar, Component)
                 else render_children([self.sidebar], ctx, f"{path}-side")
             )
+            if not isinstance(self.sidebar, Component):
+                side = f'<div class="{self.sidebar_width} shrink-0">{side}</div>'
+            side_first = self.sidebar_position != "right"
             parts.append(
-                f'<div class="flex min-h-0 flex-1 overflow-hidden">{side}'
-                f'<main class="min-w-0 flex-1 overflow-y-auto">{inner}</main></div>'
+                f'<div class="iui-shell-row flex min-h-0 flex-1 overflow-hidden" '
+                f'data-side="{self.sidebar_position}">'
+                f'{side}{main}</div>'
+                if side_first
+                else f'<div class="iui-shell-row flex min-h-0 flex-1 overflow-hidden" '
+                f'data-side="{self.sidebar_position}">{main}{side}</div>'
             )
         else:
-            parts.append(f'<main class="min-w-0 flex-1 overflow-y-auto">{inner}</main>')
+            parts.append(main)
 
         if self.footer is not None:
             parts.append(
