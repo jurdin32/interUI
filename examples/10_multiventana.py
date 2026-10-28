@@ -14,6 +14,7 @@ fallar, así que el ejemplo se puede abrir igualmente.
 from interui import (
     App, Badge, Button, Card, Container, DesktopError, Heading, Muted, Row, Screen,
     Section, Stack, Text, colors, font, gap, icons, margin, pad, radius, variant,
+    size,
 )
 
 app = App("Multiventana", width=980, height=720)
@@ -43,12 +44,12 @@ def cerrar_actual() -> None:
 
 def fila_ventana(ventana):
     return Row(gap=gap.all_2)(
-        Badge(ventana.ident, variant="primary"),
+        Badge(ventana.ident, variant=variant.primary),
         Text(ventana.title, font=font.sm),
         Text(ventana.route, font=font.xs, color=colors.slate_500),
-        Button("Ir a /ajustes", size="sm", variant="ghost",
+        Button("Ir a /ajustes", size=size.sm, variant=variant.ghost,
                on_click=lambda: ventana.navigate("/ajustes")),
-        Button("Cerrar", size="sm", variant="soft", on_click=ventana.close),
+        Button("Cerrar", size=size.sm, variant=variant.soft, on_click=ventana.close),
     )
 
 

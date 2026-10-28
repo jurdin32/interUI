@@ -281,7 +281,7 @@ SNIPPETS: dict[str, str] = {
     # -- tipografía ------------------------------------------------------
     "Title": 'ui.Title("Mi aplicación", subtitle="Subtítulo descriptivo")',
     "Heading": 'ui.Heading("Sección", level=2)',
-    "Text": 'ui.Text("Texto normal", size="lg", tone="muted", weight="medium")',
+    "Text": 'ui.Text("Texto normal", size=ui.size.lg, tone=ui.tone.muted, weight="medium")',
     "Paragraph": 'ui.Paragraph("Un párrafo con interlineado relajado para leer cómodo.")',
     "Muted": 'ui.Muted("Texto secundario")',
     "Lead": 'ui.Lead("Entradilla que resume el contenido.")',
@@ -294,48 +294,48 @@ SNIPPETS: dict[str, str] = {
     "Kbd": 'ui.Stack(ui.Kbd("Ctrl"), ui.Kbd("K"), direction="row", gap=1)',
     "Label": 'ui.Label("Correo electrónico", for_="campo", required=True)',
     "Link": 'ui.Link("Documentación", href="https://tailwindcss.com")',
-    "Badge": 'ui.Badge("nuevo", variant="success", dot=True)',
-    "Chip": 'ui.Chip("python", variant="primary")',
+    "Badge": 'ui.Badge("nuevo", variant=ui.variant.success, dot=True)',
+    "Chip": 'ui.Chip("python", variant=ui.variant.primary)',
     "Blockquote": 'ui.Blockquote("La simplicidad es la máxima sofisticación.", cite="Leonardo")',
     "Announcement": 'ui.Announcement("Nueva versión disponible")',
     "IconGrid": 'ui.IconGrid(columns=8)',
     "AppShell": (
-        'ui.AppShell(ui.Container(class_="py-6")(ui.Text("contenido")), '
-        'title_bar=ui.TitleBar("Mi app", icon="layers"), '
-        'header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon="power")]}, brand="Mi app"), '
-        'sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)), '
+        'ui.AppShell(ui.Container(pad=ui.pad.py_6)(ui.Text("contenido")), '
+        'title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers), '
+        'header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]}, brand="Mi app"), '
+        'sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True)), '
         'status=ui.StatusBar(ui.Text("Listo")))'
     ),
     "MenuBar": (
-        'ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N"), '
-        '"-", ui.ContextItem("Salir", icon="power", danger=True)], '
-        '"Ver": [ui.ContextItem("Tema oscuro", icon="moon")]}, brand="Mi app")'
+        'ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon=ui.icons.plus, shortcut="Ctrl+N"), '
+        '"-", ui.ContextItem("Salir", icon=ui.icons.power, danger=True)], '
+        '"Ver": [ui.ContextItem("Tema oscuro", icon=ui.icons.moon)]}, brand="Mi app")'
     ),
     "MenuButton": (
-        'ui.MenuButton("Acciones", icon="settings", items=[ui.ContextItem("Editar", icon="edit"), '
-        'ui.ContextItem("Eliminar", icon="trash", danger=True)])'
+        'ui.MenuButton("Acciones", icon=ui.icons.settings, items=[ui.ContextItem("Editar", icon=ui.icons.edit), '
+        'ui.ContextItem("Eliminar", icon=ui.icons.trash, danger=True)])'
     ),
     "ContextMenu": (
-        'ui.ContextMenu(ui.ContextItem("Abrir", icon="folder"), "-", '
-        'ui.ContextItem("Borrar", icon="trash", danger=True))(ui.Text("Clic derecho aquí"))'
+        'ui.ContextMenu(ui.ContextItem("Abrir", icon=ui.icons.folder), "-", '
+        'ui.ContextItem("Borrar", icon=ui.icons.trash, danger=True))(ui.Text("Clic derecho aquí"))'
     ),
-    "ContextItem": 'ui.ContextItem("Abrir", icon="folder", shortcut="Ctrl+O", on_click=lambda: None)',
+    "ContextItem": 'ui.ContextItem("Abrir", icon=ui.icons.folder, shortcut="Ctrl+O", on_click=lambda: None)',
     "CommandBar": (
-        'ui.CommandBar(ui.Button("Nuevo", icon="plus", variant="primary"), search_placeholder="Buscar…")'
+        'ui.CommandBar(ui.Button("Nuevo", icon=ui.icons.plus, variant=ui.variant.primary), search_placeholder="Buscar…")'
     ),
     "NotificationButton": (
-        'ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon="check")])'
+        'ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon=ui.icons.check)])'
     ),
     # -- botones ---------------------------------------------------------
-    "Button": 'ui.Button("Guardar", icon="check", variant="primary", on_click=lambda: None)',
-    "IconButton": 'ui.IconButton("settings", label="Ajustes", variant="outline")',
-    "ButtonGroup": 'ui.ButtonGroup(ui.Button("Día", variant="outline"), ui.Button("Semana", variant="outline"))',
+    "Button": 'ui.Button("Guardar", icon=ui.icons.check, variant=ui.variant.primary, on_click=lambda: None)',
+    "IconButton": 'ui.IconButton("settings", label="Ajustes", variant=ui.variant.outline)',
+    "ButtonGroup": 'ui.ButtonGroup(ui.Button("Día", variant=ui.variant.outline), ui.Button("Semana", variant=ui.variant.outline))',
     "CopyButton": 'ui.CopyButton("texto que se copia")',
     "Fab": 'ui.Fab("plus", label="Nuevo")',
     "Spinner": 'ui.Spinner(size=5)',
-    "LinkButton": 'ui.Button("Ir a ajustes", href="/ajustes", variant="outline")',
+    "LinkButton": 'ui.Button("Ir a ajustes", href="/ajustes", variant=ui.variant.outline)',
     # -- formularios -----------------------------------------------------
-    "Input": 'ui.Input("", label="Nombre", placeholder="Ana Ruiz", icon="user", required=True)',
+    "Input": 'ui.Input("", label="Nombre", placeholder="Ana Ruiz", icon=ui.icons.user, required=True)',
     "TextInput": 'ui.TextInput("valor inicial", label="Texto")',
     "EmailInput": 'ui.EmailInput("", label="Correo", help_text="No lo compartiremos")',
     "SearchInput": 'ui.SearchInput("", label="Buscar", live=True, on_input=lambda e: None)',
@@ -376,20 +376,20 @@ SNIPPETS: dict[str, str] = {
     # -- datos -----------------------------------------------------------
     "Table": 'ui.Table(headers=["Nombre", "Rol"], rows=[["Ana", "Admin"], ["Luis", "Editor"]], striped=True)',
     "DataTable": 'ui.DataTable(columns=[{"key": "nombre", "label": "Nombre", "sortable": True}], rows=[{"id": 1, "nombre": "Ana"}], total=1, page=1, searchable=True)',
-    "ListGroup": 'ui.ListGroup(ui.ListItem(title="Reunión", subtitle="10:00", icon="users", meta="3"))',
-    "ListItem": 'ui.ListItem(title="Informe", subtitle="Ayer", icon="file", meta="PDF")',
-    "Tree": 'ui.Tree(ui.TreeNode("src", icon="folder", expanded=True, children=[ui.TreeNode("app.py", icon="file")]))',
-    "TreeNode": 'ui.TreeNode("src", icon="folder", expanded=True)',
-    "Timeline": 'ui.Timeline(ui.TimelineItem("Pedido creado", time="09:12", icon="check"))',
-    "TimelineItem": 'ui.TimelineItem("Pago confirmado", time="09:15", tone="success", last=True)',
-    "Stat": 'ui.Stat("Ingresos", "24.980 €", delta="+12 %", icon="chart")',
+    "ListGroup": 'ui.ListGroup(ui.ListItem(title="Reunión", subtitle="10:00", icon=ui.icons.users, meta="3"))',
+    "ListItem": 'ui.ListItem(title="Informe", subtitle="Ayer", icon=ui.icons.file, meta="PDF")',
+    "Tree": 'ui.Tree(ui.TreeNode("src", icon=ui.icons.folder, expanded=True, children=[ui.TreeNode("app.py", icon=ui.icons.file)]))',
+    "TreeNode": 'ui.TreeNode("src", icon=ui.icons.folder, expanded=True)',
+    "Timeline": 'ui.Timeline(ui.TimelineItem("Pedido creado", time="09:12", icon=ui.icons.check))',
+    "TimelineItem": 'ui.TimelineItem("Pago confirmado", time="09:15", tone=ui.tone.success, last=True)',
+    "Stat": 'ui.Stat("Ingresos", "24.980 €", delta="+12 %", icon=ui.icons.chart)',
     "StatGrid": 'ui.StatGrid(ui.Stat("A", "1"), ui.Stat("B", "2"), columns=2)',
     "DescriptionList": 'ui.DescriptionList(ui.DescriptionItem("Versión", "0.1.0"))',
     "DescriptionItem": 'ui.DescriptionItem("Licencia", "MIT")',
     "KeyValueGrid": 'ui.KeyValueGrid({"Nombre": "interui", "Versión": "0.1.0"})',
     "JsonView": 'ui.JsonView({"id": 42, "tags": ["a", "b"], "activo": True})',
     "LogView": 'ui.LogView([{"level": "info", "time": "09:12", "message": "inicio"}], title="app.log")',
-    "EmptyState": 'ui.EmptyState(title="Sin proyectos", description="Crea el primero para empezar.", icon="inbox")',
+    "EmptyState": 'ui.EmptyState(title="Sin proyectos", description="Crea el primero para empezar.", icon=ui.icons.inbox)',
     "ProgressTable": 'ui.ProgressTable([{"label": "Diseño", "value": 100}, {"label": "Código", "value": 60}])',
     # -- retroalimentación ----------------------------------------------
     "Alert": 'ui.Alert("Todo correcto.", level="success", title="Listo", dismissible=True)',
@@ -400,7 +400,7 @@ SNIPPETS: dict[str, str] = {
     "Meter": 'ui.Meter(82, label="Memoria")',
     "Skeleton": 'ui.Skeleton(lines=3, height="3")',
     "LoadingOverlay": 'ui.LoadingOverlay(ui.Text("contenido"), message="Cargando…")',
-    "StatusDot": 'ui.StatusDot("Operativo", tone="success", pulse=True)',
+    "StatusDot": 'ui.StatusDot("Operativo", tone=ui.tone.success, pulse=True)',
     "InlineToast": 'ui.InlineToast("Guardado correctamente", level="success")',
     "Snackbar": (
         'ui.Snackbar("Proyecto archivado", title="Hecho", icon=ui.icons.check, '
@@ -409,40 +409,40 @@ SNIPPETS: dict[str, str] = {
     "ConfirmDialog": 'ui.ConfirmDialog("Esta acción no se puede deshacer.", title="¿Eliminar?", dialog_id="confirmar")',
     "Hint": 'ui.Hint("Se guarda automáticamente")',
     # -- contenedores ----------------------------------------------------
-    "Card": 'ui.Card(title="Tarjeta", description="Con cabecera", icon="layers")(ui.Text("cuerpo"))',
-    "Panel": 'ui.Panel(ui.Text("contenido"), tone="muted")',
+    "Card": 'ui.Card(title="Tarjeta", description="Con cabecera", icon=ui.icons.layers)(ui.Text("cuerpo"))',
+    "Panel": 'ui.Panel(ui.Text("contenido"), tone=ui.tone.muted)',
     "Paper": 'ui.Paper(ui.Text("hoja con sombra"))',
     "Well": 'ui.Well(ui.Text("bloque hundido"))',
     "Section": 'ui.Section(ui.Text("contenido"), title="Sección", subtitle="Con subtítulo")',
-    "Toolbar": 'ui.Toolbar(ui.Button("Nuevo", size="sm"), ui.Button("Filtrar", variant="outline", size="sm"))',
-    "PageHeader": 'ui.PageHeader("Proyectos", subtitle="12 activos", actions=ui.Button("Nuevo", icon="plus"))',
+    "Toolbar": 'ui.Toolbar(ui.Button("Nuevo", size=ui.size.sm), ui.Button("Filtrar", variant=ui.variant.outline, size=ui.size.sm))',
+    "PageHeader": 'ui.PageHeader("Proyectos", subtitle="12 activos", actions=ui.Button("Nuevo", icon=ui.icons.plus))',
     "Hero": 'ui.Hero(ui.Title("Bienvenido"), eyebrow="Novedad")',
     "Footer": 'ui.Footer(ui.Text("© 2026 interui"))',
     "Navbar": 'ui.Navbar(ui.NavLink("Inicio", href="/", active=True), brand="Mi app")',
-    "Sidebar": 'ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True), title="Navegación")',
-    "SidebarItem": 'ui.SidebarItem("Informes", icon="chart", badge=2)',
-    "NavLink": 'ui.NavLink("Equipo", href="/equipo", icon="users")',
-    "TitleBar": 'ui.TitleBar("Mi app", icon="layers")',
-    "StatusBar": 'ui.StatusBar(ui.Text("Listo"), ui.Badge("local", variant="success"))',
+    "Sidebar": 'ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True), title="Navegación")',
+    "SidebarItem": 'ui.SidebarItem("Informes", icon=ui.icons.chart, badge=2)',
+    "NavLink": 'ui.NavLink("Equipo", href="/equipo", icon=ui.icons.users)',
+    "TitleBar": 'ui.TitleBar("Mi app", icon=ui.icons.layers)',
+    "StatusBar": 'ui.StatusBar(ui.Text("Listo"), ui.Badge("local", variant=ui.variant.success))',
     "Modal": 'ui.Modal(ui.Text("Contenido del modal"), dialog_id="alta", title="Nueva ficha")',
     "Drawer": 'ui.Drawer(ui.Text("Panel lateral"), drawer_id="detalle", title="Detalle")',
     "Sheet": 'ui.Sheet(ui.Text("Hoja inferior"), sheet_id="hoja", title="Opciones")',
     "Collapse": 'ui.Collapse(ui.Text("contenido oculto"), title="Más información")',
     "Accordion": 'ui.Accordion([("Uno", ui.Text("contenido 1")), ("Dos", ui.Text("contenido 2"))])',
     "Splitter": 'ui.Splitter(ui.Text("izquierda"), ui.Text("derecha"))',
-    "Tooltip": 'ui.Tooltip(ui.Button("?", variant="outline"), content="Ayuda contextual")',
+    "Tooltip": 'ui.Tooltip(ui.Button("?", variant=ui.variant.outline), content="Ayuda contextual")',
     "Popover": 'ui.Popover(ui.Text("detalle"), trigger="Ver más", title="Información")',
-    "Dropdown": 'ui.Dropdown(ui.MenuItem("Editar", icon="edit"), ui.MenuItem("Borrar", danger=True), label="Acciones")',
-    "Menu": 'ui.Menu(ui.MenuItem("Inicio", icon="home"), ui.MenuItem("Ajustes", icon="settings"))',
-    "MenuItem": 'ui.MenuItem("Duplicar", icon="copy", shortcut="⌘D")',
+    "Dropdown": 'ui.Dropdown(ui.MenuItem("Editar", icon=ui.icons.edit), ui.MenuItem("Borrar", danger=True), label="Acciones")',
+    "Menu": 'ui.Menu(ui.MenuItem("Inicio", icon=ui.icons.home), ui.MenuItem("Ajustes", icon=ui.icons.settings))',
+    "MenuItem": 'ui.MenuItem("Duplicar", icon=ui.icons.copy, shortcut="⌘D")',
     # -- navegación ------------------------------------------------------
     "Tabs": 'ui.Tabs([("a", "Uno", ui.Text("panel A")), ("b", "Dos", ui.Text("panel B"))], active="a")',
-    "TabBar": 'ui.Tabs([("a", "Uno", ui.Text("A"))], active="a", variant="pills")',
+    "TabBar": 'ui.Tabs([("a", "Uno", ui.Text("A"))], active="a", variant=ui.variant.pills)',
     "Breadcrumb": 'ui.Breadcrumb([("/", "Inicio"), ("/proyectos", "Proyectos"), ("x", "interui")])',
     "Pagination": 'ui.Pagination(3, pages=12, on_page=lambda e: None)',
     "Steps": 'ui.Steps(["Cuenta", "Perfil", "Pago"], current=1)',
-    "CommandPalette": 'ui.CommandPalette(ui.CommandItem("Ir al inicio", hint="G H", icon="home"))',
-    "CommandItem": 'ui.CommandItem("Nuevo proyecto", hint="N", icon="plus")',
+    "CommandPalette": 'ui.CommandPalette(ui.CommandItem("Ir al inicio", hint="G H", icon=ui.icons.home))',
+    "CommandItem": 'ui.CommandItem("Nuevo proyecto", hint="N", icon=ui.icons.plus)',
     # -- gráficos --------------------------------------------------------
     "LineChart": 'ui.LineChart([[3, 6, 4, 9, 7]], labels=["L", "M", "X", "J", "V"])',
     "AreaChart": 'ui.AreaChart({"2025": [8, 14, 18, 16, 25]}, labels=["Ene", "Feb", "Mar", "Abr", "May"])',
@@ -458,13 +458,13 @@ SNIPPETS: dict[str, str] = {
     # -- medios ----------------------------------------------------------
     "Image": 'ui.Image("https://picsum.photos/seed/a/600/400", alt="Paisaje", ratio="video")',
     "Figure": 'ui.Figure(ui.Image("foto.png", alt="Foto"), caption="Figura 1")',
-    "Avatar": 'ui.Avatar(name="Ana Ruiz", size="lg", status="online")',
+    "Avatar": 'ui.Avatar(name="Ana Ruiz", size=ui.size.lg, status="online")',
     "AvatarGroup": 'ui.AvatarGroup(ui.Avatar(name="Ana Ruiz"), ui.Avatar(name="Luis Paz"), max_items=2)',
     "Video": 'ui.Video("https://ejemplo.com/video.mp4", poster="portada.jpg")',
     "Audio": 'ui.Audio("https://ejemplo.com/audio.mp3")',
     "Carousel": 'ui.Carousel([ui.Text("diapositiva 1"), ui.Text("diapositiva 2")], index=0)',
     "Gallery": 'ui.Gallery(ui.Image("a.png", alt="A"), ui.Image("b.png", alt="B"), columns=2)',
-    "IconBadge": 'ui.IconBadge("zap", tone="primary")',
+    "IconBadge": 'ui.IconBadge("zap", tone=ui.tone.primary)',
     # -- avanzados -------------------------------------------------------
     "Html": 'ui.Html("<b>HTML literal</b>")',
     "CodeEditor": 'ui.CodeEditor("print(1)", language="python", max_h="64")',
@@ -475,7 +475,7 @@ SNIPPETS: dict[str, str] = {
     "Canvas": 'ui.Canvas(width=400, height=200)',
     "KeyValueEditor": 'ui.KeyValueEditor({"API_URL": "https://api.ejemplo.com"})',
     # -- iconos ----------------------------------------------------------
-    "Icon": 'ui.Icon("check", size=6, class_="text-emerald-600")',
+    "Icon": 'ui.Icon(ui.icons.check, size=6, color=ui.colors.emerald_600)',
 }
 
 # Etiquetas HTML: el ejemplo se genera a partir de la firma y un contenido típico.
@@ -537,6 +537,31 @@ def controls_of(module_name: str) -> list[tuple[str, Any]]:
     return sorted(set(out), key=lambda item: item[0])
 
 
+#: Parámetros cuyo valor por defecto es un token de ``interui.theme``/``icons``.
+TOKEN_PARAMS = {
+    "icon": ("icons",),
+    "variant": ("variant", "tone"),
+    "tone": ("tone",),
+    "size": ("size",),
+    "layer": ("layer",),
+    "sidebar_position": ("side",),
+}
+
+
+def _token_text(name: str, value: str) -> str | None:
+    """Devuelve ``namespace.valor`` si el texto por defecto es un token válido."""
+    import interui as ui
+
+    for namespace in TOKEN_PARAMS.get(name, ()):
+        target = getattr(ui, namespace, None)
+        if target is None:
+            continue
+        for candidate in (value.replace("-", "_"), value):
+            if isinstance(candidate, str) and hasattr(target, candidate):
+                return f"{namespace}.{candidate}"
+    return None
+
+
 def signature_of(cls: Any) -> str:
     try:
         signature = inspect.signature(cls.__init__)
@@ -555,7 +580,8 @@ def signature_of(cls: Any) -> str:
             if param.default is not param.empty:
                 default = param.default
                 if isinstance(default, str):
-                    text += f'="{default}"'
+                    token = _token_text(name, default)
+                    text += f"={token}" if token else f'="{default}"'
                 elif default is None or isinstance(default, (int, float, bool)):
                     text += f"={default}"
                 else:
@@ -594,9 +620,22 @@ import interui as ui
 
 ## Convenciones comunes
 
+El estilo se escribe con **notación de punto**, nunca con clases a mano:
+
+```python
+ui.Card(title="Hola", bg=ui.colors.white, rounded=ui.radius.xxl, shadow=ui.shadow.md)(
+    ui.Text("mundo", color=ui.colors.slate_700, font=ui.font.lg.semibold)
+)
+```
+
 | Propiedad | Tipo | Efecto |
 |---|---|---|
-| `class_` | `str` | Clases Tailwind extra; sustituyen a las del control cuando chocan. |
+| `bg`, `color`, `border_color` | token | `ui.colors.red_500`, `ui.colors.hex("#0f172a")`, `ui.gradient.br(a, b)`. |
+| `pad`, `margin`, `gap` | token | `ui.pad.py_6`, `ui.margin.mt_4`, `ui.gap.g_2`. |
+| `rounded`, `shadow`, `font` | token | `ui.radius.lg`, `ui.shadow.md`, `ui.font.sm.medium`. |
+| `variant`, `tone`, `size`, `layer`, `side` | token | `ui.variant.primary`, `ui.tone.danger`, `ui.size.lg`. |
+| `icon` | token | `ui.icons.check` (los 204 iconos, ver [iconos](iconos.md)). |
+| `class_` | `str` | Escape: clases Tailwind extra; sustituyen a las del control cuando chocan. |
 | `id` | `str` | Identificador estable (por defecto se genera por posición). |
 | `key` | `Any` | Sufijo estable del `id` dentro de listas. |
 | `visible` / `when` | `bool` / `callable` | No renderiza el control. |

@@ -21,9 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from interui import (
-    Alert, App, Badge, Button, Card, Col, Container, DataTable, Divider, EmptyState,
-    Hint, IconButton, Input, Modal, Row, Screen, Stack, Stat, StatGrid, StatusBar,
-    Switch, Text, TitleBar, Toolbar, ValidationSummary,
+    Alert, App, Badge, Button, Card, Col, Container, DataTable, Divider, EmptyState, Hint, IconButton, Input, Modal, Row, Screen, Stack, Stat, StatGrid, StatusBar, Switch, Text, TitleBar, Toolbar, ValidationSummary, icons, size, tone, variant, height, pad,
 )
 
 app = App("Agenda interUI", width=1080, height=720)
@@ -200,8 +198,8 @@ def index():
                     "label": "Estado",
                     "render": lambda row: Badge(
                         "activo" if row.get("active") else "inactivo",
-                        variant="success" if row.get("active") else "neutral",
-                        size="sm",
+                        variant=variant.success if row.get("active") else "neutral",
+                        size=size.sm,
                     ),
                 },
                 {
@@ -209,10 +207,10 @@ def index():
                     "label": "",
                     "align": "right",
                     "render": lambda row: Stack(
-                        IconButton("edit", label="Editar", size="sm",
+                        IconButton("edit", label="Editar", size=size.sm,
                                    data={"iui-emit": "edit", "iui-value": row["id"], "iui-cast": "int"}),
-                        IconButton("trash", label="Eliminar", size="sm",
-                                   variant="ghost",
+                        IconButton("trash", label="Eliminar", size=size.sm,
+                                   variant=variant.ghost,
                                    data={"iui-emit": "delete", "iui-value": row["id"], "iui-cast": "int"}),
                         direction="row",
                         gap=1,
@@ -228,39 +226,39 @@ def index():
         )
         if items
         else EmptyState(
-            Button("Nuevo contacto", icon="plus", on_click=open_new),
+            Button("Nuevo contacto", icon=icons.plus, on_click=open_new),
             title="Sin contactos",
             description="Añade el primero con el botón «Nuevo contacto».",
-            icon="users",
+            icon=icons.users,
         )
     )
 
     return Screen(
-        TitleBar("Agenda interUI", icon="users"),
-        Container(size="xl", class_="flex-1 overflow-y-auto py-6")(
+        TitleBar("Agenda interUI", icon=icons.users),
+        Container(size=size.xl, pad=pad.py_6, class_="flex-1 overflow-y-auto")(
             Stack(
                 StatGrid(
-                    Stat("Contactos", str(total), icon="users"),
-                    Stat("Activos", str(active), icon="check-circle"),
+                    Stat("Contactos", str(total), icon=icons.users),
+                    Stat("Activos", str(active), icon=icons.check_circle),
                     Stat("Empresas", str(len({c.get('company') for c in contacts.get([]) if c.get('company')})),
-                         icon="box"),
+                         icon=icons.box),
                     columns=3,
                 ),
                 Toolbar(
                     Input(query.get(), placeholder="Buscar por nombre, correo o empresa…",
-                          icon="search", live=True, on_input=lambda e: query.set(e.text),
+                          icon=icons.search, live=True, on_input=lambda e: query.set(e.text),
                           class_="max-w-md flex-1"),
-                    Button("Nuevo contacto", icon="plus", on_click=open_new),
-                    Button("Exportar CSV", icon="download", variant="outline", on_click=export_csv),
-                    Button("Tema", icon="moon", variant="ghost", on_click=toggle_theme),
+                    Button("Nuevo contacto", icon=icons.plus, on_click=open_new),
+                    Button("Exportar CSV", icon=icons.download, variant=variant.outline, on_click=export_csv),
+                    Button("Tema", icon=icons.moon, variant=variant.ghost, on_click=toggle_theme),
                 ),
                 Text(
                     f"{len(items)} de {total} contactos"
                     + (f" · filtro «{query.get()}»" if query.get() else ""),
-                    size="sm",
-                    tone="muted",
+                    size=size.sm,
+                    tone=tone.muted,
                 ),
-                Card(class_="p-0")(table),
+                Card(pad=pad.p_0)(table),
                 Divider(),
                 Hint(
                     "Los datos se guardan en "
@@ -270,23 +268,23 @@ def index():
             )
         ),
         StatusBar(
-            Badge("local", variant="success", size="sm"),
-            Text(f"{total} contactos · guardado automático", size="sm"),
+            Badge("local", variant=variant.success, size=size.sm),
+            Text(f"{total} contactos · guardado automático", size=size.sm),
         ),
         Modal(
             Stack(
                 ValidationSummary(errors.get()) if errors.get() else None,
-                Input(form_name.get(), label="Nombre", required=True, icon="user",
+                Input(form_name.get(), label="Nombre", required=True, icon=icons.user,
                       on_input=lambda e: form_name.set(e.text)),
-                Input(form_email.get(), label="Correo", required=True, icon="mail",
+                Input(form_email.get(), label="Correo", required=True, icon=icons.mail,
                       on_input=lambda e: form_email.set(e.text)),
-                Input(form_company.get(), label="Empresa", icon="box",
+                Input(form_company.get(), label="Empresa", icon=icons.box,
                       on_input=lambda e: form_company.set(e.text)),
                 Switch("Activo", checked=form_active.get(),
                        on_change=lambda e: form_active.set(bool(e.checked))),
                 Stack(
-                    Button("Cancelar", variant="outline", on_click=close_form),
-                    Button("Guardar", icon="check", on_click=save_contact),
+                    Button("Cancelar", variant=variant.outline, on_click=close_form),
+                    Button("Guardar", icon=icons.check, on_click=save_contact),
                     direction="row",
                     gap=2,
                     justify="end",
@@ -301,9 +299,9 @@ def index():
             Stack(
                 Text("Esta acción no se puede deshacer."),
                 Stack(
-                    Button("Cancelar", variant="outline",
+                    Button("Cancelar", variant=variant.outline,
                            on_click=lambda: app.eval_js("interui.closeDialog('delete-modal')")),
-                    Button("Eliminar", variant="danger", icon="trash", on_click=confirm_delete),
+                    Button("Eliminar", variant=variant.danger, icon=icons.trash, on_click=confirm_delete),
                     direction="row",
                     gap=2,
                     justify="end",
@@ -312,9 +310,9 @@ def index():
             ),
             dialog_id="delete-modal",
             title="¿Eliminar contacto?",
-            size="sm",
+            size=size.sm,
         ),
-        class_="flex flex-col h-screen",
+        h=height.screen, class_="flex flex-col",
     )
 
 

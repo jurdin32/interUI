@@ -32,10 +32,10 @@ import interui as ui
 @app.page("/")
 def index():
     return ui.AppShell(
-        ui.Container(class_="py-6")(ui.text("Contenido")),
-        title_bar=ui.TitleBar("Mi app", icon="layers"),
-        header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon="power")]}, brand="Mi app"),
-        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)),
+        ui.Container(pad=ui.pad.py_6)(ui.text("Contenido")),
+        title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
+        header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]}, brand="Mi app"),
+        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True)),
         footer=None,
         status=ui.StatusBar(ui.text("Listo")),
     )
@@ -56,8 +56,8 @@ def index():
 
 ```python
 ui.AppShell(
-    ui.Container(class_="py-6")(ui.text("Contenido")),
-    sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid")),
+    ui.Container(pad=ui.pad.py_6)(ui.text("Contenido")),
+    sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid)),
     sidebar_position=ui.side.right,
 )
 ```
@@ -82,13 +82,13 @@ ui.Button("Cambiar lado", on_click=lambda: preferencia.set(...))
 ui.MenuBar(
     {
         "Archivo": [
-            ui.ContextItem("Nuevo proyecto…", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
-            ui.ContextItem("Abrir carpeta…", icon="folder", shortcut="Ctrl+O"),
+            ui.ContextItem("Nuevo proyecto…", icon=ui.icons.plus, shortcut="Ctrl+N", on_click=nuevo),
+            ui.ContextItem("Abrir carpeta…", icon=ui.icons.folder, shortcut="Ctrl+O"),
             "-",                                      # separador
-            ui.ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+            ui.ContextItem("Salir", icon=ui.icons.power, danger=True, on_click=app.quit),
         ],
-        "Ver": [ui.ContextItem("Cambiar tema", icon="moon", on_click=alternar_tema)],
-        "Ayuda": [ui.ContextItem("Acerca de", icon="info", on_click=acerca_de)],
+        "Ver": [ui.ContextItem("Cambiar tema", icon=ui.icons.moon, on_click=alternar_tema)],
+        "Ayuda": [ui.ContextItem("Acerca de", icon=ui.icons.info, on_click=acerca_de)],
     },
     brand="Mi app",              # nombre + logo a la izquierda
     actions=ui.NotificationButton(3),   # zona derecha opcional
@@ -105,7 +105,7 @@ Qué hace el cliente por ti (sin escribir JavaScript):
 Los ítems pueden escribirse de tres formas equivalentes:
 
 ```python
-ui.ContextItem("Abrir", icon="folder", on_click=abrir)      # componente
+ui.ContextItem("Abrir", icon=ui.icons.folder, on_click=abrir)      # componente
 ("Abrir", "folder", abrir, "Ctrl+O", False)                 # tupla: label, icono, handler, atajo, peligro
 {"label": "Abrir", "icon": "folder", "on_click": abrir}     # dict
 "-"                                                          # separador
@@ -121,10 +121,10 @@ los declare.
 ```python
 ui.MenuButton(
     "Acciones",
-    icon="settings",
+    icon=ui.icons.settings,
     items=[
-        ui.ContextItem("Editar", icon="edit", on_click=editar),
-        ui.ContextItem("Eliminar", icon="trash", danger=True, on_click=borrar),
+        ui.ContextItem("Editar", icon=ui.icons.edit, on_click=editar),
+        ui.ContextItem("Eliminar", icon=ui.icons.trash, danger=True, on_click=borrar),
     ],
     align="right",      # el panel se abre alineado a la derecha
 )
@@ -138,10 +138,10 @@ Envuelve el contenido sobre el que se quiere actuar:
 
 ```python
 CONTEXTO = ui.ContextMenu(
-    ui.ContextItem("Abrir", icon="folder", on_click=abrir),
-    ui.ContextItem("Renombrar", icon="edit", on_click=renombrar),
+    ui.ContextItem("Abrir", icon=ui.icons.folder, on_click=abrir),
+    ui.ContextItem("Renombrar", icon=ui.icons.edit, on_click=renombrar),
     "-",
-    ui.ContextItem("Eliminar", icon="trash", danger=True, on_click=eliminar),
+    ui.ContextItem("Eliminar", icon=ui.icons.trash, danger=True, on_click=eliminar),
     hint="Clic derecho para más opciones",   # ayuda bajo el contenido (opcional)
 )
 
@@ -174,7 +174,7 @@ Son el mismo tipo de entrada; `ContextItem` es un alias semántico de
 
 ```python
 ui.CommandBar(
-    ui.Button("Nuevo", icon="plus", variant="primary", on_click=nuevo),
+    ui.Button("Nuevo", icon=ui.icons.plus, variant=ui.variant.primary, on_click=nuevo),
     search=filtro.get(),
     search_placeholder="Buscar…",
     on_search=lambda: None,       # se llama al escribir (evento input)
@@ -189,8 +189,8 @@ ui.CommandBar(
 ui.NotificationButton(
     notificaciones.get(),
     items=[
-        ui.ListItem("Nueva tarea asignada", icon="check"),
-        ui.ListItem("Comentario en tu informe", icon="mail"),
+        ui.ListItem("Nueva tarea asignada", icon=ui.icons.check),
+        ui.ListItem("Comentario en tu informe", icon=ui.icons.mail),
     ],
 )
 ```
@@ -204,7 +204,7 @@ Al pulsarla se abre/cierra el panel (comportamiento incluido en el cliente).
 El paquete trae **202 iconos** propios (trazo 24×24), sin dependencias ni red:
 
 ```python
-ui.Icon("check", size=6, class_="text-emerald-600")
+ui.Icon(ui.icons.check, size=6, color=ui.colors.emerald_600)
 len(ui.ICON_NAMES)                      # 202
 ui.IconGrid(columns=10, searchable=True, on_pick=lambda nombre: toast(nombre))
 ```

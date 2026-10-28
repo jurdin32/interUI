@@ -9,6 +9,7 @@ from ..base import Component
 from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
+from ..state import number_of
 from ..style import tw
 from ..ui import ALERT_VARIANTS
 from .buttons import Button
@@ -127,8 +128,8 @@ class Progress(Component):
         indeterminate: bool = False,
         **props: Any,
     ) -> None:
-        self.value = value
-        self.max_value = max_value or 100
+        self.value = number_of(value)
+        self.max_value = number_of(max_value, 100) or 100
         self.label = label
         self.show_value = show_value
         self.tone = tone
@@ -188,8 +189,8 @@ class ProgressRing(Component):
         tone: str = "primary",
         **props: Any,
     ) -> None:
-        self.value = value
-        self.max_value = max_value or 100
+        self.value = number_of(value)
+        self.max_value = number_of(max_value, 100) or 100
         self.size = size
         self.thickness = thickness
         self.label = label
@@ -229,8 +230,8 @@ class Meter(Component):
     tag = "div"
 
     def __init__(self, value: float = 0, *, max_value: float = 100, label: Any = None, **props: Any) -> None:
-        self.value = value
-        self.max_value = max_value or 100
+        self.value = number_of(value)
+        self.max_value = number_of(max_value, 100) or 100
         self.label = label
         props["base_class"] = tw("flex flex-col gap-1", props.get("base_class"))
         super().__init__(**props)

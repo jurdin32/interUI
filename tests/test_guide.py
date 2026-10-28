@@ -20,6 +20,8 @@ DOCS = [
     ROOT / "docs" / "guia.md",
     ROOT / "docs" / "menus.md",
     ROOT / "docs" / "actualizar.md",
+    ROOT / "docs" / "estilos.md",
+    ROOT / "docs" / "datos.md",
     ROOT / "README.md",
 ]
 BLOCK = re.compile(r"```python\n(.*?)```", re.S)

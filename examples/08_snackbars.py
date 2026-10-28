@@ -68,7 +68,7 @@ def index():
                         "Ana te ha mencionado",
                         title="Nueva mención",
                         image=AVATAR,
-                        variant="neutral",
+                        variant=variant.neutral,
                         action=("Ver", deshacer),
                         position="static",
                     ),
@@ -106,7 +106,7 @@ def index():
                     Text("position=…", font=font.sm.semibold),
                     Row(gap=gap.all_2)(
                         *[
-                            Badge(name, variant="neutral", margin=margin.t_2)
+                            Badge(name, variant=variant.neutral, margin=margin.t_2)
                             for name in ("bottom_right", "bottom_left", "bottom_center",
                                          "top_right", "top_left", "top_center")
                         ]

@@ -15,7 +15,7 @@ app = ui.App("Catálogo interui", width=1280, height=860)
 
 
 def demo(component: Any, code: str) -> ui.Component:
-    return ui.Card(class_="h-full")(
+    return ui.Card(h=ui.height.full)(
         component,
         ui.CodeBlock(code.strip(), language="python", max_h="64"),
     )
@@ -29,17 +29,17 @@ def section_basics() -> ui.Component:
                     demo(
                         ui.Stack(
                             ui.Title("Encabezado principal", subtitle="Con subtítulo descriptivo"),
-                            ui.Text("Texto normal con contenido del framework.", size="base"),
+                            ui.Text("Texto normal con contenido del framework.", size=ui.size.base),
                             ui.Paragraph("Párrafo con interlineado relajado para lectura larga."),
                             ui.Lead("Texto de entrada, algo más grande y atenuado."),
                             ui.Muted("Texto secundario en gris."),
                             ui.Stack(
                                 ui.Badge("neutral"),
-                                ui.Badge("primary", variant="primary"),
-                                ui.Badge("success", variant="success", dot=True),
-                                ui.Badge("warning", variant="warning"),
-                                ui.Badge("danger", variant="danger"),
-                                ui.Badge("info", variant="info", icon="zap"),
+                                ui.Badge("primary", variant=ui.variant.primary),
+                                ui.Badge("success", variant=ui.variant.success, dot=True),
+                                ui.Badge("warning", variant=ui.variant.warning),
+                                ui.Badge("danger", variant=ui.variant.danger),
+                                ui.Badge("info", variant=ui.variant.info, icon=ui.icons.zap),
                                 gap=2,
                                 direction="row",
                                 wrap=True,
@@ -53,9 +53,9 @@ def section_basics() -> ui.Component:
                         ),
                         """
 Title("Encabezado principal", subtitle="...")
-Text("Texto normal", size="base")
+Text("Texto normal", size=ui.size.base)
 Lead("Texto de entrada")
-Badge("success", variant="success", dot=True)
+Badge("success", variant=ui.variant.success, dot=True)
 Kbd("Ctrl") + Text("abre la paleta")
 Blockquote("...", cite="Leonardo")
 """,
@@ -67,23 +67,23 @@ Blockquote("...", cite="Leonardo")
                             ui.Card(
                                 title="Tarjeta con icono",
                                 description="Cabecera, cuerpo y pie",
-                                icon="layers",
+                                icon=ui.icons.layers,
                                 actions=[("Ver", None, "ghost")],
-                                footer=ui.Badge("actualizado hace 2 min", variant="info"),
+                                footer=ui.Badge("actualizado hace 2 min", variant=ui.variant.info),
                             )(
                                 ui.Text("Las tarjetas agrupan contenido relacionado."),
                                 ui.Progress(72, label="Uso del plan", show_value=True),
                             ),
                             ui.StatGrid(
-                                ui.Stat("Ingresos", "24.980 €", delta="+12,4 %", icon="chart"),
-                                ui.Stat("Usuarios", "1.284", delta="-2,1 %", positive=False, icon="users"),
+                                ui.Stat("Ingresos", "24.980 €", delta="+12,4 %", icon=ui.icons.chart),
+                                ui.Stat("Usuarios", "1.284", delta="-2,1 %", positive=False, icon=ui.icons.users),
                                 columns=2,
                             ),
                             ui.Hint("Pasa el ratón por los iconos para ver la ayuda."),
                             gap=3,
                         ),
                         """
-Card(title="Tarjeta", description="...", icon="layers",
+Card(title="Tarjeta", description="...", icon=ui.icons.layers,
      footer=Badge("hace 2 min"))(Text("..."))
 
 StatGrid(
@@ -101,7 +101,7 @@ StatGrid(
                 ui.Stack(
                     *[
                         ui.Stack(
-                            ui.Icon(name, size=5, class_="text-slate-500 dark:text-slate-300"),
+                            ui.Icon(name, size=5, color=ui.colors.slate_500, dark_color=ui.colors.slate_300),
                             ui.Small(name),
                             gap=1,
                             align="center",
@@ -123,45 +123,45 @@ def section_buttons() -> ui.Component:
         ui.Section(title="Variantes")(
             ui.Card()(
                 ui.Stack(
-                    ui.Button("Primario", variant="primary"),
-                    ui.Button("Secundario", variant="secondary"),
-                    ui.Button("Contorno", variant="outline"),
-                    ui.Button("Fantasma", variant="ghost"),
-                    ui.Button("Suave", variant="soft"),
-                    ui.Button("Éxito", variant="success"),
-                    ui.Button("Aviso", variant="warning"),
-                    ui.Button("Peligro", variant="danger"),
+                    ui.Button("Primario", variant=ui.variant.primary),
+                    ui.Button("Secundario", variant=ui.variant.secondary),
+                    ui.Button("Contorno", variant=ui.variant.outline),
+                    ui.Button("Fantasma", variant=ui.variant.ghost),
+                    ui.Button("Suave", variant=ui.variant.soft),
+                    ui.Button("Éxito", variant=ui.variant.success),
+                    ui.Button("Aviso", variant=ui.variant.warning),
+                    ui.Button("Peligro", variant=ui.variant.danger),
                     direction="row", wrap=True, gap=2,
                 ),
                 ui.Divider("tamaños"),
                 ui.Stack(
-                    ui.Button("xs", size="xs"),
-                    ui.Button("sm", size="sm"),
-                    ui.Button("md", size="md"),
-                    ui.Button("lg", size="lg"),
-                    ui.Button("xl", size="xl"),
+                    ui.Button("xs", size=ui.size.xs),
+                    ui.Button("sm", size=ui.size.sm),
+                    ui.Button("md", size=ui.size.md),
+                    ui.Button("lg", size=ui.size.lg),
+                    ui.Button("xl", size=ui.size.xl),
                     direction="row", wrap=True, gap=2, align="center",
                 ),
                 ui.Divider("estados"),
                 ui.Stack(
                     ui.Button("Cargando", loading=True),
                     ui.Button("Deshabilitado", disabled=True),
-                    ui.Button("Con icono", icon="download"),
-                    ui.Button("Icono final", icon_right="arrow-right", variant="outline"),
-                    ui.Button("Píldora", pill=True, variant="soft"),
-                    ui.Button("Enlace", variant="link"),
+                    ui.Button("Con icono", icon=ui.icons.download),
+                    ui.Button("Icono final", icon_right="arrow-right", variant=ui.variant.outline),
+                    ui.Button("Píldora", pill=True, variant=ui.variant.soft),
+                    ui.Button("Enlace", variant=ui.variant.link),
                     direction="row", wrap=True, gap=2,
                 ),
                 ui.Divider("iconos y grupos"),
                 ui.Stack(
                     ui.IconButton("settings", label="Ajustes"),
-                    ui.IconButton("trash", label="Borrar", variant="ghost"),
-                    ui.IconButton("bell", label="Avisos", variant="outline"),
+                    ui.IconButton("trash", label="Borrar", variant=ui.variant.ghost),
+                    ui.IconButton("bell", label="Avisos", variant=ui.variant.outline),
                     ui.CopyButton("texto copiado"),
                     ui.ButtonGroup(
-                        ui.Button("Día", variant="outline", size="sm"),
-                        ui.Button("Semana", variant="outline", size="sm"),
-                        ui.Button("Mes", variant="outline", size="sm"),
+                        ui.Button("Día", variant=ui.variant.outline, size=ui.size.sm),
+                        ui.Button("Semana", variant=ui.variant.outline, size=ui.size.sm),
+                        ui.Button("Mes", variant=ui.variant.outline, size=ui.size.sm),
                     ),
                     direction="row", wrap=True, gap=2, align="center",
                 ),
@@ -178,7 +178,7 @@ def section_forms() -> ui.Component:
     return ui.Row(
         ui.Col(span=12, lg=6)(
             ui.Card(title="Entradas de texto")(
-                ui.Input(name.get(), label="Nombre", placeholder="Ana Ruiz", icon="user",
+                ui.Input(name.get(), label="Nombre", placeholder="Ana Ruiz", icon=ui.icons.user,
                          required=True, on_input=lambda e: name.set(e.text)),
                 ui.EmailInput("", label="Correo", help_text="Nunca compartiremos tu dirección."),
                 ui.PasswordInput("", label="Contraseña"),
@@ -264,9 +264,9 @@ def section_forms() -> ui.Component:
 
 def section_data() -> ui.Component:
     rows = [
-        ["Ana Ruiz", "ana@ejemplo.com", ui.Badge("Admin", variant="primary")],
-        ["Luis Paz", "luis@ejemplo.com", ui.Badge("Editor", variant="neutral")],
-        ["Marta Gil", "marta@ejemplo.com", ui.Badge("Lector", variant="outline")],
+        ["Ana Ruiz", "ana@ejemplo.com", ui.Badge("Admin", variant=ui.variant.primary)],
+        ["Luis Paz", "luis@ejemplo.com", ui.Badge("Editor", variant=ui.variant.neutral)],
+        ["Marta Gil", "marta@ejemplo.com", ui.Badge("Lector", variant=ui.variant.outline)],
     ]
     return ui.Stack(
         ui.Section(title="Tablas")(
@@ -301,38 +301,38 @@ def section_data() -> ui.Component:
                 ui.Col(span=12, lg=6)(
                     ui.Card(title="Lista agrupada")(
                         ui.ListGroup(
-                            ui.ListItem(title="Reunión de equipo", subtitle="Hoy · 10:00", icon="users", meta="3"),
-                            ui.ListItem(title="Revisar PR #42", subtitle="Ayer", icon="code", meta="1"),
-                            ui.ListItem(title="Despliegue", subtitle="Viernes", icon="upload"),
+                            ui.ListItem(title="Reunión de equipo", subtitle="Hoy · 10:00", icon=ui.icons.users, meta="3"),
+                            ui.ListItem(title="Revisar PR #42", subtitle="Ayer", icon=ui.icons.code, meta="1"),
+                            ui.ListItem(title="Despliegue", subtitle="Viernes", icon=ui.icons.upload),
                         )
                     ),
                     ui.Card(title="Línea de tiempo")(
                         ui.Timeline(
-                            ui.TimelineItem("Pedido creado", time="09:12", icon="check"),
-                            ui.TimelineItem("Pago confirmado", time="09:15", tone="success", icon="check"),
-                            ui.TimelineItem("En reparto", time="11:40", tone="warning", icon="send", last=True),
+                            ui.TimelineItem("Pedido creado", time="09:12", icon=ui.icons.check),
+                            ui.TimelineItem("Pago confirmado", time="09:15", tone=ui.tone.success, icon=ui.icons.check),
+                            ui.TimelineItem("En reparto", time="11:40", tone=ui.tone.warning, icon=ui.icons.send, last=True),
                         )
                     ),
                 ),
                 ui.Col(span=12, lg=6)(
                     ui.Card(title="Árbol")(
                         ui.Tree(
-                            ui.TreeNode("src", icon="folder", expanded=True, children=[
-                                ui.TreeNode("interui", icon="folder", expanded=True, children=[
-                                    ui.TreeNode("app.py", icon="file"),
-                                    ui.TreeNode("base.py", icon="file"),
-                                    ui.TreeNode("controls", icon="folder", children=[
-                                        ui.TreeNode("inputs.py", icon="file"),
+                            ui.TreeNode("src", icon=ui.icons.folder, expanded=True, children=[
+                                ui.TreeNode("interui", icon=ui.icons.folder, expanded=True, children=[
+                                    ui.TreeNode("app.py", icon=ui.icons.file),
+                                    ui.TreeNode("base.py", icon=ui.icons.file),
+                                    ui.TreeNode("controls", icon=ui.icons.folder, children=[
+                                        ui.TreeNode("inputs.py", icon=ui.icons.file),
                                     ]),
                                 ]),
-                                ui.TreeNode("tests", icon="folder"),
+                                ui.TreeNode("tests", icon=ui.icons.folder),
                             ]),
                         )
                     ),
                     ui.Card(title="Definiciones")(
                         ui.DescriptionList(
                             ui.DescriptionItem("Nombre", "interui"),
-                            ui.DescriptionItem("Versión", ui.Badge("0.1.0", variant="primary")),
+                            ui.DescriptionItem("Versión", ui.Badge("0.1.0", variant=ui.variant.primary)),
                             ui.DescriptionItem("Licencia", "MIT"),
                         )
                     ),
@@ -372,9 +372,9 @@ def section_feedback() -> ui.Component:
                 ui.Alert("Novedad: soporte para temas oscuros.", level="info"),
             ),
             ui.Card(title="Progreso")(
-                ui.Progress(35, label="Subiendo archivos", show_value=True, size="md"),
-                ui.Progress(70, label="Con rayas", striped=True, tone="success"),
-                ui.Progress(0, label="Indeterminado", indeterminate=True, tone="warning"),
+                ui.Progress(35, label="Subiendo archivos", show_value=True, size=ui.size.md),
+                ui.Progress(70, label="Con rayas", striped=True, tone=ui.tone.success),
+                ui.Progress(0, label="Indeterminado", indeterminate=True, tone=ui.tone.warning),
                 ui.Stack(
                     ui.ProgressRing(72, label="72 %"),
                     ui.Gauge(64, label="CPU"),
@@ -386,10 +386,10 @@ def section_feedback() -> ui.Component:
         ui.Col(span=12, lg=5)(
             ui.Card(title="Estado vacío")(
                 ui.EmptyState(
-                    ui.Button("Crear proyecto", icon="plus"),
+                    ui.Button("Crear proyecto", icon=ui.icons.plus),
                     title="Sin proyectos",
                     description="Crea tu primer proyecto para empezar.",
-                    icon="inbox",
+                    icon=ui.icons.inbox,
                 )
             ),
             ui.Card(title="Esqueletos")(
@@ -409,9 +409,9 @@ def section_feedback() -> ui.Component:
                     ui.InlineToast("Guardado correctamente", level="success"),
                     ui.InlineToast("Sin conexión", level="danger"),
                     ui.Stack(
-                        ui.StatusDot("Operativo", tone="success", pulse=True),
-                        ui.StatusDot("Mantenimiento", tone="warning"),
-                        ui.StatusDot("Caído", tone="danger"),
+                        ui.StatusDot("Operativo", tone=ui.tone.success, pulse=True),
+                        ui.StatusDot("Mantenimiento", tone=ui.tone.warning),
+                        ui.StatusDot("Caído", tone=ui.tone.danger),
                         direction="row", gap=4,
                     ),
                     gap=2,
@@ -435,7 +435,7 @@ def section_navigation() -> ui.Component:
             ),
             ui.Tabs(
                 [("a", "Píldoras A", ui.Text("Panel A")), ("b", "Píldoras B", ui.Text("Panel B"))],
-                active="a", variant="pills",
+                active="a", variant=ui.variant.pills,
             ),
         ),
         ui.Row(
@@ -451,20 +451,20 @@ def section_navigation() -> ui.Component:
                 ui.Card(title="Menús y paleta")(
                     ui.Stack(
                         ui.Dropdown(
-                            ui.MenuItem("Editar", icon="edit", shortcut="⌘E"),
-                            ui.MenuItem("Duplicar", icon="copy"),
-                            ui.MenuItem("Eliminar", icon="trash", danger=True),
-                            label="Acciones", icon="settings",
+                            ui.MenuItem("Editar", icon=ui.icons.edit, shortcut="⌘E"),
+                            ui.MenuItem("Duplicar", icon=ui.icons.copy),
+                            ui.MenuItem("Eliminar", icon=ui.icons.trash, danger=True),
+                            label="Acciones", icon=ui.icons.settings,
                         ),
                         ui.Popover(ui.Text("Contenido del popover con detalles."), trigger="Popover", title="Título"),
-                        ui.Tooltip(ui.Button("Pasa el ratón", variant="outline"), content="Soy un tooltip"),
+                        ui.Tooltip(ui.Button("Pasa el ratón", variant=ui.variant.outline), content="Soy un tooltip"),
                         direction="row", gap=2, align="center", wrap=True,
                     ),
                     ui.Divider("paleta de comandos"),
                     ui.CommandPalette(
-                        ui.CommandItem("Ir al inicio", hint="G H", icon="home"),
-                        ui.CommandItem("Nuevo proyecto", hint="N", icon="plus"),
-                        ui.CommandItem("Ajustes", hint="⌘,", icon="settings"),
+                        ui.CommandItem("Ir al inicio", hint="G H", icon=ui.icons.home),
+                        ui.CommandItem("Nuevo proyecto", hint="N", icon=ui.icons.plus),
+                        ui.CommandItem("Ajustes", hint="⌘,", icon=ui.icons.settings),
                     ),
                 )
             ),
@@ -472,9 +472,9 @@ def section_navigation() -> ui.Component:
         ui.Card(title="Barra y menú lateral")(
             ui.Navbar(
                 ui.Stack(
-                    ui.NavLink("Inicio", href="/", icon="home", active=True),
-                    ui.NavLink("Proyectos", href="/proyectos", icon="folder", badge="3"),
-                    ui.NavLink("Equipo", href="/equipo", icon="users"),
+                    ui.NavLink("Inicio", href="/", icon=ui.icons.home, active=True),
+                    ui.NavLink("Proyectos", href="/proyectos", icon=ui.icons.folder, badge="3"),
+                    ui.NavLink("Equipo", href="/equipo", icon=ui.icons.users),
                     direction="row", gap=1,
                 ),
                 brand="interui",
@@ -483,13 +483,13 @@ def section_navigation() -> ui.Component:
             ui.Row(
                 ui.Col(span=12, md=4)(
                     ui.Sidebar(
-                        ui.SidebarItem("Panel", icon="grid", active=True),
-                        ui.SidebarItem("Informes", icon="chart", badge=2),
-                        ui.SidebarItem("Ajustes", icon="settings"),
+                        ui.SidebarItem("Panel", icon=ui.icons.grid, active=True),
+                        ui.SidebarItem("Informes", icon=ui.icons.chart, badge=2),
+                        ui.SidebarItem("Ajustes", icon=ui.icons.settings),
                         title="Navegación",
                     )
                 ),
-                ui.Col(span=12, md=8)(ui.EmptyState(title="Contenido", icon="layers")),
+                ui.Col(span=12, md=8)(ui.EmptyState(title="Contenido", icon=ui.icons.layers)),
             ),
         ),
     )
@@ -503,7 +503,7 @@ def section_overlays() -> ui.Component:
                     ui.Modal(
                         ui.Text("Este es el contenido del modal."),
                         ui.Stack(
-                            ui.Button("Cancelar", variant="outline", data={"iui-close": "demo-modal"}),
+                            ui.Button("Cancelar", variant=ui.variant.outline, data={"iui-close": "demo-modal"}),
                             ui.Button("Confirmar", data={"iui-close": "demo-modal"}),
                             direction="row", gap=2,
                         ),
@@ -600,13 +600,13 @@ def section_charts() -> ui.Component:
                 ui.Stack(
                     ui.Small("Ingresos"),
                     ui.Sparkline([4, 8, 6, 12, 9, 14, 11]),
-                    ui.Badge("+18 %", variant="success"),
+                    ui.Badge("+18 %", variant=ui.variant.success),
                     direction="row", align="center", gap=3,
                 ),
                 ui.Stack(
                     ui.Small("Errores"),
                     ui.Sparkline([9, 7, 8, 4, 5, 3, 2], color="#f43f5e"),
-                    ui.Badge("-12 %", variant="success"),
+                    ui.Badge("-12 %", variant=ui.variant.success),
                     direction="row", align="center", gap=3,
                 ),
                 ui.ScatterChart([[3, 7, 2, 9, 5]], labels=["a", "b", "c", "d", "e"]),
@@ -624,10 +624,10 @@ def section_media() -> ui.Component:
         ui.Col(span=12, lg=6)(
             ui.Card(title="Avatares")(
                 ui.Stack(
-                    ui.Avatar(name="Ana Ruiz", size="sm"),
-                    ui.Avatar(name="Luis Paz", size="md", status="online"),
-                    ui.Avatar(name="Marta Gil", size="lg", status="busy"),
-                    ui.Avatar(src="https://i.pravatar.cc/80?img=12", name="Foto", size="md"),
+                    ui.Avatar(name="Ana Ruiz", size=ui.size.sm),
+                    ui.Avatar(name="Luis Paz", size=ui.size.md, status="online"),
+                    ui.Avatar(name="Marta Gil", size=ui.size.lg, status="busy"),
+                    ui.Avatar(src="https://i.pravatar.cc/80?img=12", name="Foto", size=ui.size.md),
                     direction="row", gap=3, align="end",
                 ),
                 ui.AvatarGroup(
@@ -663,9 +663,9 @@ def section_media() -> ui.Component:
             ),
             ui.Card(title="Vídeo y audio")(
                 ui.AspectRatio(
-                    ui.Center(ui.Text("Aquí iría un <video>", tone="muted")),
+                    ui.Center(ui.Text("Aquí iría un <video>", tone=ui.tone.muted)),
                     ratio="video",
-                    class_="rounded-xl bg-slate-100 dark:bg-slate-800",
+                    rounded=ui.radius.xl, bg=ui.colors.slate_100, dark_bg=ui.colors.slate_800,
                 ),
                 ui.Audio(""),
             ),
@@ -743,9 +743,9 @@ def index() -> ui.Component:
     nav = ui.Sidebar(title="Controles", width="w-60")(
         *[
             ui.Stack(
-                ui.Icon(icon, size=4, class_="text-slate-400"),
-                ui.Text(label, size="sm"),
-                ui.Icon("chevron-right", size=3, class_="ml-auto text-slate-300"),
+                ui.Icon(icon, size=4, color=ui.colors.slate_400),
+                ui.Text(label, size=ui.size.sm),
+                ui.Icon("chevron-right", size=3, margin=ui.margin.ml_auto, color=ui.colors.slate_300),
                 direction="row",
                 align="center",
                 gap=2,
@@ -768,9 +768,9 @@ def index() -> ui.Component:
     return ui.Screen(
         ui.Navbar(
             ui.Stack(
-                ui.Badge("0.1.0", variant="primary"),
-                ui.Text("Python · HTML · Tailwind · JS", size="sm", tone="muted"),
-                ui.Button("Tema", variant="outline", size="sm", icon="moon", on_click=toggle_theme),
+                ui.Badge("0.1.0", variant=ui.variant.primary),
+                ui.Text("Python · HTML · Tailwind · JS", size=ui.size.sm, tone=ui.tone.muted),
+                ui.Button("Tema", variant=ui.variant.outline, size=ui.size.sm, icon=ui.icons.moon, on_click=toggle_theme),
                 direction="row",
                 align="center",
             ),
@@ -779,7 +779,7 @@ def index() -> ui.Component:
         ),
         ui.Stack(
             nav,
-            ui.Main(class_="min-w-0 flex-1 overflow-y-auto p-6 max-h-[calc(100vh-3.25rem)]")(
+            ui.Main(pad=ui.pad.p_6, class_="min-w-0 flex-1 overflow-y-auto max-h-[calc(100vh-3.25rem)]")(
                 ui.Container(size="full", padded=False)(
                     ui.Stack(current(), gap=6),
                 )

@@ -26,7 +26,7 @@ JavaScript que escribir.
 Si prefieres el control total, la API larga sigue disponible:
 
 ```python
-from interui import App, Button, Card, Container, Heading, Screen
+from interui import App, Button, Card, Container, Heading, Screen, icons, margin, pad
 
 app = App("Mi primera app")
 
@@ -35,12 +35,12 @@ app = App("Mi primera app")
 def index():
     clicks = app.state("clicks", 0)
     return Screen(
-        Container(size="prose", class_="py-16")(
+        Container(size="prose", pad=pad.py_16)(
             Heading("Hola, escritorio", level=1),
-            Card(class_="mt-6")(
+            Card(margin=margin.mt_6)(
                 Button(
                     f"Pulsaciones: {clicks.get()}",
-                    icon="plus",
+                    icon=icons.plus,
                     on_click=lambda: clicks.set(clicks.get() + 1),
                 )
             ),
@@ -117,7 +117,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 | Estilos por tokens (`bg=colors.red_500`, `pad=pad.py_6`) | ✅ estable |
 | `interui.json` + modelos y migraciones (SQLite, archivos, PG, MySQL, Mongo) | ✅ estable |
 | Catálogo de controles | ✅ ~230 exportaciones (`docs/controles.md`) |
-| Shell, menús, barras e iconos propios | ✅ 203 iconos (`docs/iconos.md`) |
+| Shell, menús, barras e iconos propios | ✅ 204 iconos (`docs/iconos.md`) |
 | Canal en vivo (WebSocket propio, sin dependencias) | ✅ estable |
 | Ventana nativa + puente al sistema operativo | ✅ estable |
 | CLI (`run`, `new`, `build`, `doctor`, `assets`) | ✅ estable |
@@ -279,14 +279,14 @@ python app.py               # abre la ventana nativa
 Contenido de `app.py`:
 
 ```python
-from interui import App, Button, Card, Container, Heading, Screen
+from interui import App, Button, Card, Container, Heading, Screen, pad
 
 app = App("mi_app")
 
 
 @app.page("/")
 def index():
-    return Screen(Container(size="prose", class_="py-10")(Heading("mi_app", level=1)))
+    return Screen(Container(size="prose", pad=pad.py_10)(Heading("mi_app", level=1)))
 
 
 if __name__ == "__main__":
@@ -414,11 +414,11 @@ window(
 Todos los controles tienen alias `snake_case`; el nombre indica qué son:
 
 ```python
-from interui import text, title, card, input, table, progress, icon, row
+from interui import text, title, card, input, table, progress, icon, row, icons
 
 title("Panel", subtitle="Resumen del día")
 card(title="Ventas")(progress(72, label="Objetivo"), icon("chart", size=6))
-input(label="Buscar", icon="search", placeholder="Escribe…")
+input(label="Buscar", icon=icons.search, placeholder="Escribe…")
 table(headers=["A", "B"], rows=[["1", "2"]])
 ```
 
@@ -594,7 +594,10 @@ ana.save()
 - **Migraciones** al estilo Django: se generan del diff entre modelos y esquema, y
   los cambios que borran datos exigen `--force`.
 
-👉 Guía completa: [`docs/datos.md`](docs/datos.md).
+👉 Guía completa: [`docs/datos.md`](docs/datos.md) — el `interui.json` clave por
+clave (también escrito a mano), los modelos campo por campo, el ORM, las
+migraciones paso a paso, un CRUD completo dentro de la interfaz y los errores
+frecuentes con su solución.
 
 ---
 
@@ -626,7 +629,7 @@ Categorías (referencia completa con firmas en [`docs/controles.md`](docs/contro
 Ejemplos de uso:
 
 ```python
-ui.Card(title="Equipo", description="3 personas", icon="users")(
+ui.Card(title="Equipo", description="3 personas", icon=ui.icons.users)(
     ui.DataTable(
         columns=[
             {"key": "name", "label": "Nombre", "sortable": True},
@@ -651,7 +654,7 @@ Cualquier control acepta `class_` para ajustar Tailwind; `tw()` resuelve los
 conflictos (gana la última clase), sin peleas de especificidad:
 
 ```python
-ui.Button("Guardar", class_="w-full bg-emerald-600 hover:bg-emerald-500")
+ui.Button("Guardar", w=ui.width.full, bg=ui.colors.emerald_600, hover_bg=ui.colors.emerald_500)
 ```
 
 ---
@@ -772,20 +775,20 @@ def nuevo() -> None:
 @app.page("/")
 def index():
     return ui.AppShell(
-        ui.Container(class_="py-6")(ui.heading("Panel", level=2)),
-        title_bar=ui.TitleBar("Mi app", icon="layers"),
+        ui.Container(pad=ui.pad.py_6)(ui.heading("Panel", level=2)),
+        title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
         header=ui.MenuBar(
             {
                 "Archivo": [
-                    ui.ContextItem("Nuevo…", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
+                    ui.ContextItem("Nuevo…", icon=ui.icons.plus, shortcut="Ctrl+N", on_click=nuevo),
                     "-",
-                    ui.ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+                    ui.ContextItem("Salir", icon=ui.icons.power, danger=True, on_click=app.quit),
                 ],
-                "Ver": [ui.ContextItem("Cambiar tema", icon="moon", on_click=app.toggle_theme)],
+                "Ver": [ui.ContextItem("Cambiar tema", icon=ui.icons.moon, on_click=app.toggle_theme)],
             },
             brand="Mi app",
         ),
-        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)),
+        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True)),
         status=ui.StatusBar(ui.text("Listo")),
     )
 
@@ -801,10 +804,10 @@ Menú contextual (botón derecho) sobre cualquier contenido:
 
 ```python
 CONTEXTO = ui.ContextMenu(
-    ui.ContextItem("Abrir", icon="folder", on_click=abrir),
-    ui.ContextItem("Renombrar", icon="edit", on_click=renombrar),
+    ui.ContextItem("Abrir", icon=ui.icons.folder, on_click=abrir),
+    ui.ContextItem("Renombrar", icon=ui.icons.edit, on_click=renombrar),
     "-",
-    ui.ContextItem("Eliminar", icon="trash", danger=True, on_click=eliminar),
+    ui.ContextItem("Eliminar", icon=ui.icons.trash, danger=True, on_click=eliminar),
 )
 
 pagina = CONTEXTO(ui.table(headers=["Nombre"], rows=[["Ana"], ["Luis"]]))
@@ -857,7 +860,7 @@ Detalle completo en [menús y armazón](docs/menus.md) y en el ejemplo
 
 ## Iconos
 
-El framework incluye su propio set de **203 iconos** vectoriales (trazo 24×24),
+El framework incluye su propio set de **204 iconos** vectoriales (trazo 24×24),
 sin dependencias externas ni acceso a red, así que también funciona dentro del
 ejecutable empaquetado:
 
@@ -880,7 +883,7 @@ Input(icon=icons.search, placeholder="Buscar…")
 ContextItem("Salir", icon=icons.power, on_click=app.exit)
 ```
 
-`len(ui.ICON_NAMES)` → 203 iconos, y
+`len(ui.ICON_NAMES)` → 204 iconos, y
 `ui.IconGrid(searchable=True)` dibuja la galería completa. La lista está en el
 [catálogo de iconos](docs/iconos.md).
 
@@ -924,10 +927,10 @@ Ventana sin marco con barra propia:
 ```python
 app = App("Mi app", frameless=True)
 ui.Screen(
-    ui.TitleBar("Mi app", icon="layers"),   # botones nativos + zona arrastrable
+    ui.TitleBar("Mi app", icon=ui.icons.layers),   # botones nativos + zona arrastrable
     ui.Container(...)(...),
     ui.StatusBar(ui.Text("Listo")),
-    class_="flex flex-col h-screen",
+    h=ui.height.screen, class_="flex flex-col",
 )
 ```
 
@@ -1167,11 +1170,12 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 - [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
 - [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
 - [Estilos con notación de punto](docs/estilos.md) — tokens, variantes, hex y degradados.
-- [Datos y migraciones](docs/datos.md) — `interui.json`, modelos y motores.
+- [Datos y migraciones](docs/datos.md) — `interui.json` a mano o con asistente,
+  modelos, ORM, migraciones, CRUD en la interfaz y errores frecuentes.
 - [Diálogos y ventanas modales](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
 - [Actualizar interUI](docs/actualizar.md) — comprobar versión, comandos y aviso en la app.
 - [Menús, barras y armazón de app](docs/menus.md) — `AppShell`, barra de menús, menú contextual, comandos y notificaciones.
-- [Catálogo de iconos](docs/iconos.md) — los 203 iconos incluidos y cómo usarlos.
+- [Catálogo de iconos](docs/iconos.md) — los 204 iconos incluidos y cómo usarlos.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
 - [Instalación y publicación](docs/publicar.md) — instalar desde GitHub y publicar en PyPI.
 - [Historial de cambios](CHANGELOG.md) — qué trae cada versión (actual: 0.5.0).

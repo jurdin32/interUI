@@ -76,7 +76,7 @@ dialog.alert("Revisa la configuración", level="warning")
 ## 3. Confirmar
 
 ```python
-from interui import dialog, toast
+from interui import dialog, toast, variant
 
 def borrar() -> None:
     toast("Proyecto eliminado", "warning")
@@ -89,7 +89,7 @@ def preguntar() -> None:
         on_accept=borrar,
     )
 
-button("Eliminar", variant="danger", on_click=preguntar)
+button("Eliminar", variant=variant.danger, on_click=preguntar)
 ```
 
 `on_cancel` se ejecuta al pulsar *Cancelar*, con `Escape` o al hacer clic fuera
@@ -162,11 +162,11 @@ dialog.form(
 ## 6. Diálogos a medida
 
 ```python
-from interui import dialog, card, text, progress, icon_badge, row, stat
+from interui import dialog, card, text, progress, icon_badge, row, stat, tone
 
 dialog.custom(
     row(
-        icon_badge("cloud", tone="primary"),
+        icon_badge("cloud", tone=tone.primary),
         text("Copia de seguridad completada", weight="semibold"),
     ),
     progress(100, label="Archivos", show_value=True),

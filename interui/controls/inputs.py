@@ -8,6 +8,7 @@ from ..base import Component, bind_many
 from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
+from ..state import value_of
 from ..style import tw
 from ..theme import utility
 from ..ui import INPUT_BASE, INPUT_SIZES, field_shell
@@ -98,11 +99,11 @@ class Input(Component):
             props["name"] = name
         if placeholder:
             props["placeholder"] = placeholder
-        if required:
+        if value_of(required, False):
             props["required"] = True
-        if disabled:
+        if value_of(disabled, False):
             props["disabled"] = True
-        if readonly:
+        if value_of(readonly, False):
             props["readonly"] = True
         if autofocus:
             props["data"] = {**(props.get("data") or {}), "iui-autofocus": "true"}
@@ -471,12 +472,10 @@ class Checkbox(Component):
     ) -> None:
         self.label = label
         self.help_text = help_text
+        self.source_checked = checked
+        self.source_disabled = disabled
+        self.source_value = value
         props.setdefault("type", "checkbox")
-        props["value"] = value
-        if checked:
-            props["checked"] = True
-        if disabled:
-            props["disabled"] = True
         if name:
             props["name"] = name
         if indeterminate:
@@ -488,6 +487,14 @@ class Checkbox(Component):
             props.get("base_class"),
         )
         super().__init__(**props)
+
+    def attr_map(self, ctx: RenderContext, uid: str) -> dict[str, Any]:
+        attrs: dict[str, Any] = {"value": value_of(self.source_value, "on")}
+        if value_of(self.source_checked, False):
+            attrs["checked"] = True
+        if value_of(self.source_disabled, False):
+            attrs["disabled"] = True
+        return attrs
 
     def wrap(self, html: str, ctx: RenderContext, uid: str) -> str:
         if self.label is None and not self.help_text:
@@ -691,27 +698,35 @@ class Switch(Component):
         self.label = label
         self.help_text = help_text
         self.switch_size = size
+        self.source_checked = checked
+        self.source_disabled = disabled
         props.setdefault("type", "checkbox")
         props["role"] = "switch"
-        if checked:
-            props["checked"] = True
-        if disabled:
-            props["disabled"] = True
         if name:
             props["name"] = name
         props["base_class"] = "peer sr-only"
         super().__init__(**props)
+
+    def attr_map(self, ctx: RenderContext, uid: str) -> dict[str, Any]:
+        attrs: dict[str, Any] = {}
+        if value_of(self.source_checked, False):
+            attrs["checked"] = True
+        if value_of(self.source_disabled, False):
+            attrs["disabled"] = True
+        return attrs
 
     def wrap(self, html: str, ctx: RenderContext, uid: str) -> str:
         dims = {"sm": ("h-5 w-9", "h-4 w-4", "peer-checked:[&>span]:translate-x-4"),
                 "md": ("h-6 w-11", "h-5 w-5", "peer-checked:[&>span]:translate-x-5"),
                 "lg": ("h-7 w-13", "h-6 w-6", "peer-checked:[&>span]:translate-x-6")}
         track, knob, shift = dims.get(self.switch_size, dims["md"])
+        # ``peer-checked:[&>span]:…`` tiene que ir en el track: es el hermano del
+        # input. En el knob (nieto) el selector `~ span > span` no aplica.
         body = (
             f'<span class="relative inline-flex {track} shrink-0 items-center rounded-full bg-slate-300 '
             f'transition peer-checked:bg-indigo-600 peer-focus-visible:ring-2 peer-focus-visible:ring-indigo-500/40 '
-            f'peer-disabled:opacity-50 dark:bg-slate-700">'
-            f'<span class="{knob} translate-x-0.5 rounded-full bg-white shadow transition {shift}"></span></span>'
+            f'peer-disabled:opacity-50 dark:bg-slate-700 {shift}">'
+            f'<span class="{knob} translate-x-0.5 rounded-full bg-white shadow transition"></span></span>'
         )
         text = ""
         if self.label is not None or self.help_text:
@@ -748,7 +763,7 @@ class Slider(Component):
         self.label = label
         self.show_value = show_value
         self.unit = unit
-        self.current = value
+        self.current = value_of(value, 50)
         props.setdefault("type", "range")
         props["value"] = value
         props["min"] = min

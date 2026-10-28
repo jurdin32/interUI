@@ -20,6 +20,7 @@ from interui import (
     Alert, App, Badge, Button, Card, Config, Container, Heading, IconButton, Input,
     Muted, Row, Screen, Section, Table, Text, colors, db, dialog, font, gap, icons,
     margin, pad, radius, variant,
+    size,
 )
 
 app = App("Clientes · datos", width=1080, height=740)
@@ -114,14 +115,14 @@ def index():
             Text(cliente.nombre, font=font.sm.medium),
             Text(cliente.email or "—", font=font.sm, color=colors.slate_500),
             Badge("activo" if cliente.activo else "inactivo",
-                  variant="success" if cliente.activo else "neutral"),
+                  variant=variant.success if cliente.activo else "neutral"),
             Text(cliente.alta.strftime("%d/%m/%Y") if cliente.alta else "—",
                  font=font.xs, color=colors.slate_500),
             IconButton(
                 "trash",
                 label="Borrar",
-                size="sm",
-                variant="ghost",
+                size=size.sm,
+                variant=variant.ghost,
                 on_click=lambda pk=cliente.pk: borrar(pk),
             ),
         ]
@@ -163,7 +164,7 @@ def index():
                 Alert(
                     "Modelo → migración → tabla. `interui db makemigrations` compara "
                     "models.py con la última migración y `interui db migrate` aplica el SQL.",
-                    variant="info",
+                    variant=variant.info,
                 ),
             ),
         )

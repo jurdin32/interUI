@@ -13,8 +13,7 @@ Muestra:
 from __future__ import annotations
 
 from interui import (
-    Alert, App, Badge, Button, Card, Col, Container, Divider, Heading, Hint, Input,
-    Muted, Row, Screen, Stack, StatusBar, Text, TitleBar,
+    Alert, App, Badge, Button, Card, Col, Container, Divider, Heading, Hint, Input, Muted, Row, Screen, Stack, StatusBar, Text, TitleBar, icons, size, tone, variant, height, margin, pad,
 )
 
 app = App("interui · escritorio", width=940, height=680)
@@ -62,8 +61,8 @@ def index():
         add("ventana siempre visible")
 
     return Screen(
-        TitleBar("interui · escritorio", icon="layers"),
-        Container(size="lg", class_="flex-1 overflow-y-auto py-6")(
+        TitleBar("interui · escritorio", icon=icons.layers),
+        Container(size=size.lg, pad=pad.py_6, class_="flex-1 overflow-y-auto")(
             Stack(
                 Heading("Ventana de escritorio nativa", level=1),
                 Muted(
@@ -91,10 +90,10 @@ def index():
                     Col(span=12, md=6)(
                         Card(title="Diálogos del sistema")(
                             Stack(
-                                Button("Abrir…", icon="folder", on_click=open_document, full_width=True),
-                                Button("Guardar…", icon="download", variant="outline",
+                                Button("Abrir…", icon=icons.folder, on_click=open_document, full_width=True),
+                                Button("Guardar…", icon=icons.download, variant=variant.outline,
                                        on_click=save_document, full_width=True),
-                                Button("Elegir carpeta…", icon="folder", variant="ghost",
+                                Button("Elegir carpeta…", icon=icons.folder, variant=variant.ghost,
                                        on_click=pick_folder, full_width=True),
                                 gap=2,
                             )
@@ -103,15 +102,15 @@ def index():
                 ),
                 Divider("sistema"),
                 Stack(
-                    Button("Copiar al portapapeles", icon="copy", variant="soft", on_click=clipboard),
-                    Button("Siempre visible", icon="pin", variant="outline", on_click=toggle_top),
+                    Button("Copiar al portapapeles", icon=icons.copy, variant=variant.soft, on_click=clipboard),
+                    Button("Siempre visible", icon=icons.pin, variant=variant.outline, on_click=toggle_top),
                     Button(
                         "Documentación",
-                        icon="external",
-                        variant="ghost",
+                        icon=icons.external,
+                        variant=variant.ghost,
                         on_click=lambda: app.native.open_external("https://tailwindcss.com/docs"),
                     ),
-                    Button("Cerrar ventana", icon="power", variant="danger",
+                    Button("Cerrar ventana", icon=icons.power, variant=variant.danger,
                            on_click=app.native.close),
                     direction="row",
                     wrap=True,
@@ -119,7 +118,7 @@ def index():
                 ),
                 Divider("registro"),
                 Card(title="Últimas acciones")(
-                    *[Text(f"• {entry}", size="sm", tone="muted") for entry in log.get([])]
+                    *[Text(f"• {entry}", size=size.sm, tone=tone.muted) for entry in log.get([])]
                     or [Muted("Todavía no hay acciones.")],
                 ),
                 gap=5,
@@ -127,17 +126,17 @@ def index():
         ),
         StatusBar(
             Badge("escritorio" if app.native.active else "navegador",
-                  variant="success" if app.native.active else "warning", size="sm"),
-            Text(status.get(), size="sm"),
+                  variant=variant.success if app.native.active else "warning", size=size.sm),
+            Text(status.get(), size=size.sm),
             Stack(
-                Button("minimizar", variant="ghost", size="xs", on_click=app.native.minimize),
-                Button("maximizar", variant="ghost", size="xs", on_click=app.native.toggle_maximize),
+                Button("minimizar", variant=variant.ghost, size=size.xs, on_click=app.native.minimize),
+                Button("maximizar", variant=variant.ghost, size=size.xs, on_click=app.native.toggle_maximize),
                 direction="row",
                 gap=1,
-                class_="ml-auto",
+                margin=margin.ml_auto,
             ),
         ),
-        class_="flex flex-col h-screen",
+        h=height.screen, class_="flex flex-col",
     )
 
 

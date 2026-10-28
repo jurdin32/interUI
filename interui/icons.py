@@ -158,6 +158,10 @@ ICONS: dict[str, str] = {
     "wrench": '<path d="M15.5 4a4.5 4.5 0 0 0-4 6.6L4 18.1 6 20l7.5-7.5A4.5 4.5 0 1 0 15.5 4z"/>',
     "cpu": '<rect x="7" y="7" width="10" height="10" rx="1.5"/>'
            '<path d="M4 10h3M4 14h3M17 10h3M17 14h3M10 4v3M14 4v3M10 17v3M14 17v3"/>',
+    "smile": '<circle cx="12" cy="12" r="9"/>'
+             '<path d="M8.5 14.2a4.6 4.6 0 0 0 7 0"/>'
+             '<circle cx="9.2" cy="9.6" r=".95" fill="currentColor" stroke="none"/>'
+             '<circle cx="14.8" cy="9.6" r=".95" fill="currentColor" stroke="none"/>',
     "car": '<path d="M3 15.5V13l2-4.3A2 2 0 0 1 6.8 7.4h10.4a2 2 0 0 1 1.8 1.3l2 4.3v2.5"/>'
            '<path d="M3 13h18"/><circle cx="7.2" cy="16.6" r="1.6"/>'
            '<circle cx="16.8" cy="16.6" r="1.6"/>',

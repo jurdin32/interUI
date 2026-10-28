@@ -13,9 +13,22 @@ import interui as ui
 
 ## Convenciones comunes
 
+El estilo se escribe con **notación de punto**, nunca con clases a mano:
+
+```python
+ui.Card(title="Hola", bg=ui.colors.white, rounded=ui.radius.xxl, shadow=ui.shadow.md)(
+    ui.Text("mundo", color=ui.colors.slate_700, font=ui.font.lg.semibold)
+)
+```
+
 | Propiedad | Tipo | Efecto |
 |---|---|---|
-| `class_` | `str` | Clases Tailwind extra; sustituyen a las del control cuando chocan. |
+| `bg`, `color`, `border_color` | token | `ui.colors.red_500`, `ui.colors.hex("#0f172a")`, `ui.gradient.br(a, b)`. |
+| `pad`, `margin`, `gap` | token | `ui.pad.py_6`, `ui.margin.mt_4`, `ui.gap.g_2`. |
+| `rounded`, `shadow`, `font` | token | `ui.radius.lg`, `ui.shadow.md`, `ui.font.sm.medium`. |
+| `variant`, `tone`, `size`, `layer`, `side` | token | `ui.variant.primary`, `ui.tone.danger`, `ui.size.lg`. |
+| `icon` | token | `ui.icons.check` (los 204 iconos, ver [iconos](iconos.md)). |
+| `class_` | `str` | Escape: clases Tailwind extra; sustituyen a las del control cuando chocan. |
 | `id` | `str` | Identificador estable (por defecto se genera por posición). |
 | `key` | `Any` | Sufijo estable del `id` dentro de listas. |
 | `visible` / `when` | `bool` / `callable` | No renderiza el control. |
@@ -93,7 +106,7 @@ Alias en minúsculas: `ui.container`
 Centra el contenido y limita el ancho máximo.
 
 ```text
-ui.Container(*children, size="xl", padded=True)
+ui.Container(*children, size=size.xl, padded=True)
 ```
 
 ```python
@@ -202,7 +215,7 @@ Alias en minúsculas: `ui.announcement`
 Franja de anuncio a todo el ancho.
 
 ```text
-ui.Announcement(*children, variant="primary")
+ui.Announcement(*children, variant=variant.primary)
 ```
 
 ```python
@@ -216,11 +229,11 @@ Alias en minúsculas: `ui.badge`
 Etiqueta compacta con variantes de color.
 
 ```text
-ui.Badge(label="", variant="neutral", size="md", dot=False, icon=None, pill=True)
+ui.Badge(label="", variant=variant.neutral, size=size.md, dot=False, icon=None, pill=True)
 ```
 
 ```python
-ui.Badge("nuevo", variant="success", dot=True)
+ui.Badge("nuevo", variant=ui.variant.success, dot=True)
 ```
 
 ### `ui.Blockquote`
@@ -244,11 +257,11 @@ Alias en minúsculas: `ui.chip`
 Etiqueta con botón de borrado.
 
 ```text
-ui.Chip(label="", on_remove=None, variant="neutral")
+ui.Chip(label="", on_remove=None, variant=variant.neutral)
 ```
 
 ```python
-ui.Chip("python", variant="primary")
+ui.Chip("python", variant=ui.variant.primary)
 ```
 
 ### `ui.Code`
@@ -300,7 +313,7 @@ Alias en minúsculas: `ui.heading`
 Encabezado `h1`–`h6`.
 
 ```text
-ui.Heading(*children, level=2, tone="default")
+ui.Heading(*children, level=2, tone=tone.default)
 ```
 
 ```python
@@ -398,7 +411,7 @@ Alias en minúsculas: `ui.paragraph`
 Párrafo con interlineado relajado.
 
 ```text
-ui.Paragraph(*children, tone="default", size="base")
+ui.Paragraph(*children, tone=tone.default, size=size.base)
 ```
 
 ```python
@@ -440,11 +453,11 @@ Alias en minúsculas: `ui.text`
 Texto con tamaño, tono y peso.
 
 ```text
-ui.Text(*children, size="base", tone="default", weight=None, leading=None, truncate=False)
+ui.Text(*children, size=size.base, tone=tone.default, weight=None, leading=None, truncate=False)
 ```
 
 ```python
-ui.Text("Texto normal", size="lg", tone="muted", weight="medium")
+ui.Text("Texto normal", size=ui.size.lg, tone=ui.tone.muted, weight="medium")
 ```
 
 ### `ui.Title`
@@ -469,11 +482,11 @@ Alias en minúsculas: `ui.button`
 Botón con variantes, tamaños, iconos y estado de carga.
 
 ```text
-ui.Button(*children, label=None, variant="primary", size="md", icon=None, icon_right=None, loading=False, disabled=False, submit=False, full_width=False, href=None, pill=False)
+ui.Button(*children, label=None, variant=variant.primary, size=size.md, icon=None, icon_right=None, loading=False, disabled=False, submit=False, full_width=False, href=None, pill=False)
 ```
 
 ```python
-ui.Button("Guardar", icon="check", variant="primary", on_click=lambda: None)
+ui.Button("Guardar", icon=ui.icons.check, variant=ui.variant.primary, on_click=lambda: None)
 ```
 
 ### `ui.ButtonGroup`
@@ -487,7 +500,7 @@ ui.ButtonGroup(*children, vertical=False)
 ```
 
 ```python
-ui.ButtonGroup(ui.Button("Día", variant="outline"), ui.Button("Semana", variant="outline"))
+ui.ButtonGroup(ui.Button("Día", variant=ui.variant.outline), ui.Button("Semana", variant=ui.variant.outline))
 ```
 
 ### `ui.CopyButton`
@@ -497,7 +510,7 @@ Alias en minúsculas: `ui.copy_button`
 Copia un texto al portapapeles sin ir al servidor.
 
 ```text
-ui.CopyButton(text, label="Copiar", icon="copy")
+ui.CopyButton(text, label="Copiar", icon=icons.copy)
 ```
 
 ```python
@@ -511,7 +524,7 @@ Alias en minúsculas: `ui.fab`
 Botón flotante de acción.
 
 ```text
-ui.Fab(icon="plus", label=None)
+ui.Fab(icon=icons.plus, label=None)
 ```
 
 ```python
@@ -525,11 +538,11 @@ Alias en minúsculas: `ui.icon_button`
 Botón cuadrado solo con icono.
 
 ```text
-ui.IconButton(icon="more-h", label=None, variant="ghost", size="md", loading=False, disabled=False, href=None)
+ui.IconButton(icon=icons.more_h, label=None, variant=variant.ghost, size=size.md, loading=False, disabled=False, href=None)
 ```
 
 ```python
-ui.IconButton("settings", label="Ajustes", variant="outline")
+ui.IconButton("settings", label="Ajustes", variant=ui.variant.outline)
 ```
 
 ### `ui.LinkButton`
@@ -539,11 +552,11 @@ Alias en minúsculas: `ui.link_button`
 Botón con apariencia de botón que navega a `href`.
 
 ```text
-ui.LinkButton(*children, label=None, variant="primary", size="md", icon=None, icon_right=None, loading=False, disabled=False, submit=False, full_width=False, href=None, pill=False)
+ui.LinkButton(*children, label=None, variant=variant.primary, size=size.md, icon=None, icon_right=None, loading=False, disabled=False, submit=False, full_width=False, href=None, pill=False)
 ```
 
 ```python
-ui.Button("Ir a ajustes", href="/ajustes", variant="outline")
+ui.Button("Ir a ajustes", href="/ajustes", variant=ui.variant.outline)
 ```
 
 ### `ui.Spinner`
@@ -780,11 +793,11 @@ Alias en minúsculas: `ui.input`
 Campo de texto con etiqueta, ayuda, error e iconos.
 
 ```text
-ui.Input(value="", name=None, placeholder=None, size="md", icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
+ui.Input(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
 ```
 
 ```python
-ui.Input("", label="Nombre", placeholder="Ana Ruiz", icon="user", required=True)
+ui.Input("", label="Nombre", placeholder="Ana Ruiz", icon=ui.icons.user, required=True)
 ```
 
 ### `ui.MonthInput`
@@ -836,7 +849,7 @@ Alias en minúsculas: `ui.otp_input`
 Código de un solo uso.
 
 ```text
-ui.OtpInput(length=6, value="", label=None, on_change=None, size="md")
+ui.OtpInput(length=6, value="", label=None, on_change=None, size=size.md)
 ```
 
 ```python
@@ -948,7 +961,7 @@ Alias en minúsculas: `ui.select`
 Lista desplegable.
 
 ```text
-ui.Select(options=None, value="", name=None, placeholder=None, size="md", label=None, help_text=None, error=None, required=False, disabled=False, multiple=False)
+ui.Select(options=None, value="", name=None, placeholder=None, size=size.md, label=None, help_text=None, error=None, required=False, disabled=False, multiple=False)
 ```
 
 ```python
@@ -990,7 +1003,7 @@ Alias en minúsculas: `ui.switch`
 Interruptor de encendido/apagado.
 
 ```text
-ui.Switch(label=None, checked=False, name=None, disabled=False, size="md", help_text=None)
+ui.Switch(label=None, checked=False, name=None, disabled=False, size=size.md, help_text=None)
 ```
 
 ```python
@@ -1018,7 +1031,7 @@ Alias en minúsculas: `ui.text_input`
 Alias de `Input` para texto.
 
 ```text
-ui.TextInput(value="", name=None, placeholder=None, size="md", icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
+ui.TextInput(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
 ```
 
 ```python
@@ -1147,11 +1160,11 @@ Alias en minúsculas: `ui.empty_state`
 Estado vacío con acción.
 
 ```text
-ui.EmptyState(*children, icon="inbox", title="Nada por aquí", description=None)
+ui.EmptyState(*children, icon=icons.inbox, title="Nada por aquí", description=None)
 ```
 
 ```python
-ui.EmptyState(title="Sin proyectos", description="Crea el primero para empezar.", icon="inbox")
+ui.EmptyState(title="Sin proyectos", description="Crea el primero para empezar.", icon=ui.icons.inbox)
 ```
 
 ### `ui.JsonView`
@@ -1193,7 +1206,7 @@ ui.ListGroup(*children, divided=True)
 ```
 
 ```python
-ui.ListGroup(ui.ListItem(title="Reunión", subtitle="10:00", icon="users", meta="3"))
+ui.ListGroup(ui.ListItem(title="Reunión", subtitle="10:00", icon=ui.icons.users, meta="3"))
 ```
 
 ### `ui.ListItem`
@@ -1207,7 +1220,7 @@ ui.ListItem(*children, title=None, subtitle=None, icon=None, meta=None, active=F
 ```
 
 ```python
-ui.ListItem(title="Informe", subtitle="Ayer", icon="file", meta="PDF")
+ui.ListItem(title="Informe", subtitle="Ayer", icon=ui.icons.file, meta="PDF")
 ```
 
 ### `ui.LogView`
@@ -1235,7 +1248,7 @@ ui.Stat(label, value, delta=None, positive=True, icon=None, hint=None)
 ```
 
 ```python
-ui.Stat("Ingresos", "24.980 €", delta="+12 %", icon="chart")
+ui.Stat("Ingresos", "24.980 €", delta="+12 %", icon=ui.icons.chart)
 ```
 
 ### `ui.StatGrid`
@@ -1277,7 +1290,7 @@ ui.Timeline(*children)
 ```
 
 ```python
-ui.Timeline(ui.TimelineItem("Pedido creado", time="09:12", icon="check"))
+ui.Timeline(ui.TimelineItem("Pedido creado", time="09:12", icon=ui.icons.check))
 ```
 
 ### `ui.TimelineItem`
@@ -1287,11 +1300,11 @@ Alias en minúsculas: `ui.timeline_item`
 Hito de la línea de tiempo.
 
 ```text
-ui.TimelineItem(title, description=None, time=None, icon=None, tone="primary", last=False)
+ui.TimelineItem(title, description=None, time=None, icon=None, tone=tone.primary, last=False)
 ```
 
 ```python
-ui.TimelineItem("Pago confirmado", time="09:15", tone="success", last=True)
+ui.TimelineItem("Pago confirmado", time="09:15", tone=ui.tone.success, last=True)
 ```
 
 ### `ui.Tree`
@@ -1305,7 +1318,7 @@ ui.Tree(*children)
 ```
 
 ```python
-ui.Tree(ui.TreeNode("src", icon="folder", expanded=True, children=[ui.TreeNode("app.py", icon="file")]))
+ui.Tree(ui.TreeNode("src", icon=ui.icons.folder, expanded=True, children=[ui.TreeNode("app.py", icon=ui.icons.file)]))
 ```
 
 ### `ui.TreeNode`
@@ -1319,7 +1332,7 @@ ui.TreeNode(label, icon=None, children=None, expanded=False, on_toggle=None, on_
 ```
 
 ```python
-ui.TreeNode("src", icon="folder", expanded=True)
+ui.TreeNode("src", icon=ui.icons.folder, expanded=True)
 ```
 
 
@@ -1444,7 +1457,7 @@ Alias en minúsculas: `ui.progress`
 Barra de progreso determinada o indeterminada.
 
 ```text
-ui.Progress(value=0, max_value=100, label=None, show_value=False, tone="primary", size="md", striped=False, indeterminate=False)
+ui.Progress(value=0, max_value=100, label=None, show_value=False, tone=tone.primary, size=size.md, striped=False, indeterminate=False)
 ```
 
 ```python
@@ -1458,7 +1471,7 @@ Alias en minúsculas: `ui.progress_ring`
 Anillo de progreso.
 
 ```text
-ui.ProgressRing(value=0, max_value=100, size=96, thickness=8, label=None, tone="primary")
+ui.ProgressRing(value=0, max_value=100, size=96, thickness=8, label=None, tone=tone.primary)
 ```
 
 ```python
@@ -1486,7 +1499,7 @@ Alias en minúsculas: `ui.snackbar`
 Aviso flotante con icono o imagen, acción y cierre opcional.
 
 ```text
-ui.Snackbar(message="", title=None, icon=None, image=None, variant="info", action=None, dismissible=True, position="bottom_right", duration=0)
+ui.Snackbar(message="", title=None, icon=None, image=None, variant=variant.info, action=None, dismissible=True, position="bottom_right", duration=0)
 ```
 
 ```python
@@ -1500,11 +1513,11 @@ Alias en minúsculas: `ui.status_dot`
 Punto de estado.
 
 ```text
-ui.StatusDot(label=None, tone="success", pulse=False)
+ui.StatusDot(label=None, tone=tone.success, pulse=False)
 ```
 
 ```python
-ui.StatusDot("Operativo", tone="success", pulse=True)
+ui.StatusDot("Operativo", tone=ui.tone.success, pulse=True)
 ```
 
 
@@ -1535,7 +1548,7 @@ ui.Card(*children, title=None, description=None, footer=None, icon=None, actions
 ```
 
 ```python
-ui.Card(title="Tarjeta", description="Con cabecera", icon="layers")(ui.Text("cuerpo"))
+ui.Card(title="Tarjeta", description="Con cabecera", icon=ui.icons.layers)(ui.Text("cuerpo"))
 ```
 
 ### `ui.Collapse`
@@ -1559,7 +1572,7 @@ Alias en minúsculas: `ui.drawer`
 Panel lateral deslizante.
 
 ```text
-ui.Drawer(*children, drawer_id="drawer", side="right", title=None, size="md", open=False)
+ui.Drawer(*children, drawer_id="drawer", side="right", title=None, size=size.md, open=False)
 ```
 
 ```python
@@ -1573,11 +1586,11 @@ Alias en minúsculas: `ui.dropdown`
 Botón con menú desplegable.
 
 ```text
-ui.Dropdown(*children, label="Opciones", icon=None, variant="outline", align="left")
+ui.Dropdown(*children, label="Opciones", icon=None, variant=variant.outline, align="left")
 ```
 
 ```python
-ui.Dropdown(ui.MenuItem("Editar", icon="edit"), ui.MenuItem("Borrar", danger=True), label="Acciones")
+ui.Dropdown(ui.MenuItem("Editar", icon=ui.icons.edit), ui.MenuItem("Borrar", danger=True), label="Acciones")
 ```
 
 ### `ui.Footer`
@@ -1619,7 +1632,7 @@ ui.Menu(*children)
 ```
 
 ```python
-ui.Menu(ui.MenuItem("Inicio", icon="home"), ui.MenuItem("Ajustes", icon="settings"))
+ui.Menu(ui.MenuItem("Inicio", icon=ui.icons.home), ui.MenuItem("Ajustes", icon=ui.icons.settings))
 ```
 
 ### `ui.MenuItem`
@@ -1633,7 +1646,7 @@ ui.MenuItem(label="", icon=None, shortcut=None, danger=False, disabled=False, hr
 ```
 
 ```python
-ui.MenuItem("Duplicar", icon="copy", shortcut="⌘D")
+ui.MenuItem("Duplicar", icon=ui.icons.copy, shortcut="⌘D")
 ```
 
 ### `ui.Modal`
@@ -1643,7 +1656,7 @@ Alias en minúsculas: `ui.modal`
 Diálogo modal; `.trigger()` crea el botón que lo abre.
 
 ```text
-ui.Modal(*children, dialog_id="modal", title=None, description=None, footer=None, size="md", open=False, closable=True)
+ui.Modal(*children, dialog_id="modal", title=None, description=None, footer=None, size=size.md, open=False, closable=True)
 ```
 
 ```python
@@ -1661,7 +1674,7 @@ ui.PageHeader(title, subtitle=None, actions=None, breadcrumb=None)
 ```
 
 ```python
-ui.PageHeader("Proyectos", subtitle="12 activos", actions=ui.Button("Nuevo", icon="plus"))
+ui.PageHeader("Proyectos", subtitle="12 activos", actions=ui.Button("Nuevo", icon=ui.icons.plus))
 ```
 
 ### `ui.Panel`
@@ -1671,11 +1684,11 @@ Alias en minúsculas: `ui.panel`
 Superficie con padding.
 
 ```text
-ui.Panel(*children, tone="muted", padding=4)
+ui.Panel(*children, tone=tone.muted, padding=4)
 ```
 
 ```python
-ui.Panel(ui.Text("contenido"), tone="muted")
+ui.Panel(ui.Text("contenido"), tone=ui.tone.muted)
 ```
 
 ### `ui.Paper`
@@ -1759,7 +1772,7 @@ ui.StatusBar(*children)
 ```
 
 ```python
-ui.StatusBar(ui.Text("Listo"), ui.Badge("local", variant="success"))
+ui.StatusBar(ui.Text("Listo"), ui.Badge("local", variant=ui.variant.success))
 ```
 
 ### `ui.TitleBar`
@@ -1773,7 +1786,7 @@ ui.TitleBar(*children, title=None, icon=None, controls=True)
 ```
 
 ```python
-ui.TitleBar("Mi app", icon="layers")
+ui.TitleBar("Mi app", icon=ui.icons.layers)
 ```
 
 ### `ui.Toolbar`
@@ -1787,7 +1800,7 @@ ui.Toolbar(*children, sticky=False)
 ```
 
 ```python
-ui.Toolbar(ui.Button("Nuevo", size="sm"), ui.Button("Filtrar", variant="outline", size="sm"))
+ui.Toolbar(ui.Button("Nuevo", size=ui.size.sm), ui.Button("Filtrar", variant=ui.variant.outline, size=ui.size.sm))
 ```
 
 ### `ui.Tooltip`
@@ -1801,7 +1814,7 @@ ui.Tooltip(*children, content="", placement="top")
 ```
 
 ```python
-ui.Tooltip(ui.Button("?", variant="outline"), content="Ayuda contextual")
+ui.Tooltip(ui.Button("?", variant=ui.variant.outline), content="Ayuda contextual")
 ```
 
 ### `ui.Well`
@@ -1828,11 +1841,11 @@ Alias en minúsculas: `ui.app_shell`
 Armazón completo: barra de título, cabecera/menús, barra lateral, contenido con scroll y barra de estado.
 
 ```text
-ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_position="left", sidebar_width="w-64")
+ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_position=side.left, sidebar_width="w-64")
 ```
 
 ```python
-ui.AppShell(ui.Container(class_="py-6")(ui.Text("contenido")), title_bar=ui.TitleBar("Mi app", icon="layers"), header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon="power")]}, brand="Mi app"), sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True)), status=ui.StatusBar(ui.Text("Listo")))
+ui.AppShell(ui.Container(pad=ui.pad.py_6)(ui.Text("contenido")), title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers), header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]}, brand="Mi app"), sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True)), status=ui.StatusBar(ui.Text("Listo")))
 ```
 
 ### `ui.CommandBar`
@@ -1846,7 +1859,7 @@ ui.CommandBar(*children, search="", search_placeholder="Buscar…", on_search=No
 ```
 
 ```python
-ui.CommandBar(ui.Button("Nuevo", icon="plus", variant="primary"), search_placeholder="Buscar…")
+ui.CommandBar(ui.Button("Nuevo", icon=ui.icons.plus, variant=ui.variant.primary), search_placeholder="Buscar…")
 ```
 
 ### `ui.ContextItem`
@@ -1860,7 +1873,7 @@ ui.ContextItem(label="", icon=None, shortcut=None, danger=False, disabled=False,
 ```
 
 ```python
-ui.ContextItem("Abrir", icon="folder", shortcut="Ctrl+O", on_click=lambda: None)
+ui.ContextItem("Abrir", icon=ui.icons.folder, shortcut="Ctrl+O", on_click=lambda: None)
 ```
 
 ### `ui.ContextMenu`
@@ -1874,7 +1887,7 @@ ui.ContextMenu(*children, min_width="12rem", hint=None)
 ```
 
 ```python
-ui.ContextMenu(ui.ContextItem("Abrir", icon="folder"), "-", ui.ContextItem("Borrar", icon="trash", danger=True))(ui.Text("Clic derecho aquí"))
+ui.ContextMenu(ui.ContextItem("Abrir", icon=ui.icons.folder), "-", ui.ContextItem("Borrar", icon=ui.icons.trash, danger=True))(ui.Text("Clic derecho aquí"))
 ```
 
 ### `ui.MenuBar`
@@ -1888,7 +1901,7 @@ ui.MenuBar(menus=None, brand=None, logo="layers", actions=None, sticky=True)
 ```
 
 ```python
-ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N"), "-", ui.ContextItem("Salir", icon="power", danger=True)], "Ver": [ui.ContextItem("Tema oscuro", icon="moon")]}, brand="Mi app")
+ui.MenuBar({"Archivo": [ui.ContextItem("Nuevo", icon=ui.icons.plus, shortcut="Ctrl+N"), "-", ui.ContextItem("Salir", icon=ui.icons.power, danger=True)], "Ver": [ui.ContextItem("Tema oscuro", icon=ui.icons.moon)]}, brand="Mi app")
 ```
 
 ### `ui.MenuButton`
@@ -1898,11 +1911,11 @@ Alias en minúsculas: `ui.menu_button`
 Botón que despliega un menú de acciones en cualquier punto de la interfaz.
 
 ```text
-ui.MenuButton(label="Menú", items=None, icon=None, variant="ghost", size="sm", align="left")
+ui.MenuButton(label="Menú", items=None, icon=None, variant=variant.ghost, size=size.sm, align="left")
 ```
 
 ```python
-ui.MenuButton("Acciones", icon="settings", items=[ui.ContextItem("Editar", icon="edit"), ui.ContextItem("Eliminar", icon="trash", danger=True)])
+ui.MenuButton("Acciones", icon=ui.icons.settings, items=[ui.ContextItem("Editar", icon=ui.icons.edit), ui.ContextItem("Eliminar", icon=ui.icons.trash, danger=True)])
 ```
 
 ### `ui.NotificationButton`
@@ -1916,7 +1929,7 @@ ui.NotificationButton(count=0, items=None)
 ```
 
 ```python
-ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon="check")])
+ui.NotificationButton(3, items=[ui.ContextItem("Nueva tarea asignada", icon=ui.icons.check)])
 ```
 
 
@@ -1943,11 +1956,11 @@ Alias en minúsculas: `ui.command_item`
 Acción de la paleta.
 
 ```text
-ui.CommandItem(label="", hint=None, icon="search", on_click=None)
+ui.CommandItem(label="", hint=None, icon=icons.search, on_click=None)
 ```
 
 ```python
-ui.CommandItem("Nuevo proyecto", hint="N", icon="plus")
+ui.CommandItem("Nuevo proyecto", hint="N", icon=ui.icons.plus)
 ```
 
 ### `ui.CommandPalette`
@@ -1961,7 +1974,7 @@ ui.CommandPalette(*children, placeholder="Buscar acciones…")
 ```
 
 ```python
-ui.CommandPalette(ui.CommandItem("Ir al inicio", hint="G H", icon="home"))
+ui.CommandPalette(ui.CommandItem("Ir al inicio", hint="G H", icon=ui.icons.home))
 ```
 
 ### `ui.NavLink`
@@ -1975,7 +1988,7 @@ ui.NavLink(label="", href="#", icon=None, active=False, badge=None, on_click=Non
 ```
 
 ```python
-ui.NavLink("Equipo", href="/equipo", icon="users")
+ui.NavLink("Equipo", href="/equipo", icon=ui.icons.users)
 ```
 
 ### `ui.Navbar`
@@ -2017,7 +2030,7 @@ ui.Sidebar(*children, title=None, width="w-64")
 ```
 
 ```python
-ui.Sidebar(ui.SidebarItem("Panel", icon="grid", active=True), title="Navegación")
+ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True), title="Navegación")
 ```
 
 ### `ui.SidebarItem`
@@ -2031,7 +2044,7 @@ ui.SidebarItem(label="", icon=None, active=False, badge=None, on_click=None, chi
 ```
 
 ```python
-ui.SidebarItem("Informes", icon="chart", badge=2)
+ui.SidebarItem("Informes", icon=ui.icons.chart, badge=2)
 ```
 
 ### `ui.Steps`
@@ -2055,11 +2068,11 @@ Alias en minúsculas: `ui.tab_bar`
 Alias de `Tabs`.
 
 ```text
-ui.TabBar(tabs=None, active=None, on_change=None, variant="line", size="md")
+ui.TabBar(tabs=None, active=None, on_change=None, variant=variant.line, size=size.md)
 ```
 
 ```python
-ui.Tabs([("a", "Uno", ui.Text("A"))], active="a", variant="pills")
+ui.Tabs([("a", "Uno", ui.Text("A"))], active="a", variant=ui.variant.pills)
 ```
 
 ### `ui.Tabs`
@@ -2069,7 +2082,7 @@ Alias en minúsculas: `ui.tabs`
 Pestañas; cambian en el cliente o en Python.
 
 ```text
-ui.Tabs(tabs=None, active=None, on_change=None, variant="line", size="md")
+ui.Tabs(tabs=None, active=None, on_change=None, variant=variant.line, size=size.md)
 ```
 
 ```python
@@ -2257,11 +2270,11 @@ Alias en minúsculas: `ui.avatar`
 Avatar con iniciales o foto.
 
 ```text
-ui.Avatar(src=None, name="", initials=None, size="md", status=None, ring=True)
+ui.Avatar(src=None, name="", initials=None, size=size.md, status=None, ring=True)
 ```
 
 ```python
-ui.Avatar(name="Ana Ruiz", size="lg", status="online")
+ui.Avatar(name="Ana Ruiz", size=ui.size.lg, status="online")
 ```
 
 ### `ui.AvatarGroup`
@@ -2327,11 +2340,11 @@ Alias en minúsculas: `ui.icon_badge`
 Icono en una caja de color.
 
 ```text
-ui.IconBadge(icon="check", tone="primary", size="md")
+ui.IconBadge(icon=icons.check, tone=tone.primary, size=size.md)
 ```
 
 ```python
-ui.IconBadge("zap", tone="primary")
+ui.IconBadge("zap", tone=ui.tone.primary)
 ```
 
 ### `ui.Image`
@@ -2505,7 +2518,7 @@ ui.Icon(name="check", size=5, stroke=None, class_=None)
 ```
 
 ```python
-ui.Icon("check", size=6, class_="text-emerald-600")
+ui.Icon(ui.icons.check, size=6, color=ui.colors.emerald_600)
 ```
 
 ### `ui.IconGrid`

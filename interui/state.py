@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-__all__ = ["Signal"]
+__all__ = ["Signal", "number_of", "value_of"]
 
 
 class Signal:
@@ -60,9 +60,39 @@ class Signal:
             return self.set(args[0])
         return self.get()
 
+    # ``value=nombre`` debe escribir el valor, no ``Signal('x'=...)``.
+    # (Para los booleanos se resuelve en el control con ``value_of``: definir
+    # ``__bool__`` haría que una señal vacía se confundiera con ``None`` en
+    # sitios como ``handler = handlers.get(x) or handlers.get("*")``.)
+    def __str__(self) -> str:
+        value = self.get()
+        return "" if value is None else str(value)
+
     def __iadd__(self, other: Any) -> "Signal":  # type: ignore[override]
         self.set(self.get(0) + other)
         return self
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"Signal({self.name!r}={self.value!r})"
+
+
+def value_of(value: Any, default: Any = None) -> Any:
+    """Resuelve una señal o una función; deja el resto igual.
+
+    Sirve para que ``Progress(valor)``, ``Switch(checked=activo)`` y compañía
+    acepten señales sin que el control sepa que lo son.
+    """
+    if isinstance(value, Signal):
+        return value.get()
+    if callable(value) and not isinstance(value, type):
+        return value()
+    return default if value is None else value
+
+
+def number_of(value: Any, default: float = 0.0) -> float:
+    """Igual que :func:`value_of`, pero garantiza un número."""
+    resolved = value_of(value, default)
+    try:
+        return float(resolved)
+    except (TypeError, ValueError):
+        return default

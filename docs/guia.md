@@ -158,7 +158,7 @@ window(
 Con la API larga, todo es un componente que se anida pasando hijos:
 
 ```python
-from interui import App, Card, Container, Heading, Muted, Screen, Text
+from interui import App, Card, Container, Heading, Muted, Screen, Text, pad
 
 app = App("Mi primera ventana")
 
@@ -166,7 +166,7 @@ app = App("Mi primera ventana")
 @app.page("/")
 def index():
     return Screen(
-        Container(size="prose", class_="py-10")(
+        Container(size="prose", pad=pad.py_10)(
             Heading("Hola, escritorio", level=1),
             Muted("Esto no es un navegador: es una ventana nativa."),
             Card(title="Primera tarjeta", description="Con cuerpo")(
@@ -198,7 +198,7 @@ Los hijos también se pueden añadir después: `card(ui.Text("más"))`.
 `Row` es una rejilla de 12; `Col` dice cuántas ocupa en cada breakpoint.
 
 ```python
-from interui import App, Card, Col, Container, Row, Screen, Text
+from interui import App, Card, Col, Container, Row, Screen, Text, height, pad
 
 app = App("Rejilla")
 
@@ -206,10 +206,10 @@ app = App("Rejilla")
 @app.page("/")
 def index():
     def tarjeta(titulo):
-        return Card(title=titulo, class_="h-full")(Text("Contenido de ejemplo"))
+        return Card(title=titulo, h=height.full)(Text("Contenido de ejemplo"))
 
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Row(
                 Col(span=12, md=6, lg=4)(tarjeta("Uno")),
                 Col(span=12, md=6, lg=4)(tarjeta("Dos")),
@@ -237,7 +237,7 @@ Los handlers son funciones Python. El cliente solo envía el evento; la lógica 
 ejecuta en tu proceso.
 
 ```python
-from interui import App, Button, Container, Screen, Stack
+from interui import App, Button, Container, Screen, Stack, icons, variant, pad
 
 app = App("Eventos")
 
@@ -251,11 +251,11 @@ def index():
         print("evento recibido:", evento)
 
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Stack(
-                Button("Saludar", icon="send", on_click=saludar),
-                Button("Despedir", variant="outline", on_click=despedir),
-                Button("Abrir documentación", variant="link",
+                Button("Saludar", icon=icons.send, on_click=saludar),
+                Button("Despedir", variant=variant.outline, on_click=despedir),
+                Button("Abrir documentación", variant=variant.link,
                        on_click=lambda: app.native.open_external("https://tailwindcss.com")),
             )
         )
@@ -301,7 +301,7 @@ window("Contador", text(lambda: f"doble = {count.get() * 2}"))
 La API larga, con `app.state()` y handlers propios:
 
 ```python
-from interui import App, Button, Card, Container, Screen, Text, Stack
+from interui import App, Button, Card, Container, Screen, Text, Stack, icons, size, variant, pad
 
 app = App("Contador")
 
@@ -311,13 +311,13 @@ def index():
     contador = app.state("contador", 0)
 
     return Screen(
-        Container(size="prose", class_="py-10")(
+        Container(size="prose", pad=pad.py_10)(
             Card(title="Contador")(
-                Text(f"Valor actual: {contador.get()}", size="lg", weight="semibold"),
+                Text(f"Valor actual: {contador.get()}", size=size.lg, weight="semibold"),
                 Stack(
-                    Button("−", variant="outline", on_click=lambda: contador.set(contador.get() - 1)),
-                    Button("+", icon="plus", on_click=lambda: contador.update(lambda n: n + 1)),
-                    Button("Reiniciar", variant="ghost", on_click=lambda: contador.set(0)),
+                    Button("−", variant=variant.outline, on_click=lambda: contador.set(contador.get() - 1)),
+                    Button("+", icon=icons.plus, on_click=lambda: contador.update(lambda n: n + 1)),
+                    Button("Reiniciar", variant=variant.ghost, on_click=lambda: contador.set(0)),
                     direction="row",
                     gap=2,
                 ),
@@ -371,6 +371,9 @@ La versión completa, con resumen de errores y validación por campo:
 ```python
 from interui import (
     App, Button, Card, Container, Input, Screen, Stack, Switch, Text, ValidationSummary,
+    icons,
+    size, tone,
+    pad,
 )
 
 app = App("Formulario")
@@ -395,18 +398,18 @@ def index():
             app.notify("Guardado", "success")
 
     return Screen(
-        Container(size="prose", class_="py-10")(
+        Container(size="prose", pad=pad.py_10)(
             Card(title="Datos de contacto")(
                 ValidationSummary(errores.get()) if errores.get() else None,
-                Input(nombre.get(), label="Nombre", required=True, icon="user",
+                Input(nombre.get(), label="Nombre", required=True, icon=icons.user,
                       on_input=lambda e: nombre.set(e.text)),
-                Input(correo.get(), label="Correo", required=True, icon="mail",
+                Input(correo.get(), label="Correo", required=True, icon=icons.mail,
                       error=errores.get()[1] if len(errores.get()) > 1 else None,
                       on_input=lambda e: correo.set(e.text)),
                 Switch("Activo", checked=activo.get(),
                        on_change=lambda e: activo.set(bool(e.checked))),
-                Button("Guardar", icon="check", on_click=guardar),
-                Text(f"Guardado: {guardado.get()}" if guardado.get() else "", size="sm", tone="muted"),
+                Button("Guardar", icon=icons.check, on_click=guardar),
+                Text(f"Guardado: {guardado.get()}" if guardado.get() else "", size=size.sm, tone=tone.muted),
             )
         )
     )
@@ -426,7 +429,7 @@ todos los campos en `evento.data["form"]`.
 ## 8. Mostrar datos: tabla y búsqueda
 
 ```python
-from interui import App, Badge, Container, DataTable, Input, Screen, Stack, Text
+from interui import App, Badge, Container, DataTable, Input, Screen, Stack, Text, icons, size, tone, variant, pad
 
 app = App("Tabla")
 filtro = app.state("filtro", "")
@@ -443,9 +446,9 @@ def index():
     filas = [d for d in DATOS if termino in d["nombre"].lower() or termino in d["correo"].lower()]
 
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Stack(
-                Input(filtro.get(), placeholder="Buscar…", icon="search", live=True,
+                Input(filtro.get(), placeholder="Buscar…", icon=icons.search, live=True,
                       on_input=lambda e: filtro.set(e.text)),
                 DataTable(
                     columns=[
@@ -456,8 +459,8 @@ def index():
                             "label": "Estado",
                             "render": lambda fila: Badge(
                                 "activo" if fila["activo"] else "inactivo",
-                                variant="success" if fila["activo"] else "neutral",
-                                size="sm",
+                                variant=variant.success if fila["activo"] else "neutral",
+                                size=size.sm,
                             ),
                         },
                     ],
@@ -466,7 +469,7 @@ def index():
                     page=1,
                     page_size=max(1, len(filas)),
                 ),
-                Text(f"{len(filas)} resultados", size="sm", tone="muted"),
+                Text(f"{len(filas)} resultados", size=size.sm, tone=tone.muted),
                 gap=3,
             )
         )
@@ -486,7 +489,7 @@ app.run()
 ## 9. Varias vistas y navegación
 
 ```python
-from interui import App, Button, Container, Heading, NavLink, Navbar, Screen, Text
+from interui import App, Button, Container, Heading, NavLink, Navbar, Screen, Text, variant, pad
 
 app = App("Navegación")
 
@@ -496,7 +499,7 @@ def inicio():
     return Screen(
         Navbar(NavLink("Inicio", href="/", active=True), NavLink("Ajustes", href="/ajustes"),
                brand="Mi app"),
-        Container(class_="py-8")(Heading("Inicio", level=1)),
+        Container(pad=pad.py_8)(Heading("Inicio", level=1)),
     )
 
 
@@ -505,16 +508,16 @@ def ajustes():
     return Screen(
         Navbar(NavLink("Inicio", href="/"), NavLink("Ajustes", href="/ajustes", active=True),
                brand="Mi app"),
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Heading("Ajustes", level=1),
-            Button("Volver", variant="outline", on_click=lambda: app.navigate("/")),
+            Button("Volver", variant=variant.outline, on_click=lambda: app.navigate("/")),
         ),
     )
 
 
 @app.page("/cliente/<int:cliente_id>")
 def cliente(cliente_id: int):
-    return Screen(Container(class_="py-8")(Heading(f"Cliente #{cliente_id}", level=1)))
+    return Screen(Container(pad=pad.py_8)(Heading(f"Cliente #{cliente_id}", level=1)))
 
 
 app.run()
@@ -532,7 +535,7 @@ app.run()
 ### Diálogos dentro de la app
 
 ```python
-from interui import dialog, window, text, button, state, toast
+from interui import dialog, window, text, button, state, toast, icons, variant
 
 nombre = state("")
 
@@ -558,8 +561,8 @@ def borrar() -> None:
 window(
     "Diálogos",
     text("Panel"),
-    button("Nuevo", icon="plus", on_click=pedir_nombre),
-    button("Eliminar", variant="danger", on_click=borrar),
+    button("Nuevo", icon=icons.plus, on_click=pedir_nombre),
+    button("Eliminar", variant=variant.danger, on_click=borrar),
 ).run()
 ```
 
@@ -569,7 +572,7 @@ Tipos: `show`, `info`, `success`, `warning`, `error`, `critical`, `confirm`,
 ### Diálogos del sistema operativo
 
 ```python
-from interui import App, Button, Card, Container, Modal, Screen, Stack, Text
+from interui import App, Button, Card, Container, Modal, Screen, Stack, Text, icons, size, variant, pad
 
 app = App("Nativo")
 
@@ -591,15 +594,15 @@ def index():
         app.eval_js("interui.openDialog('borrar')")
 
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Card(title="Sistema")(
                 Stack(
-                    Button("Abrir archivo…", icon="folder", on_click=abrir_archivo),
-                    Button("Guardar como…", icon="download", variant="outline",
+                    Button("Abrir archivo…", icon=icons.folder, on_click=abrir_archivo),
+                    Button("Guardar como…", icon=icons.download, variant=variant.outline,
                            on_click=guardar_archivo),
-                    Button("Copiar al portapapeles", variant="soft",
+                    Button("Copiar al portapapeles", variant=variant.soft,
                            on_click=lambda: app.native.clipboard_write("texto")),
-                    Button("Eliminar…", variant="danger", on_click=confirmar),
+                    Button("Eliminar…", variant=variant.danger, on_click=confirmar),
                     direction="row", wrap=True, gap=2,
                 )
             )
@@ -608,9 +611,9 @@ def index():
             Stack(
                 Text("Esta acción no se puede deshacer."),
                 Stack(
-                    Button("Cancelar", variant="outline",
+                    Button("Cancelar", variant=variant.outline,
                            on_click=lambda: app.eval_js("interui.closeDialog('borrar')")),
-                    Button("Eliminar", variant="danger",
+                    Button("Eliminar", variant=variant.danger,
                            on_click=lambda: app.notify("Eliminado", "warning")),
                     direction="row", gap=2, justify="end",
                 ),
@@ -618,7 +621,7 @@ def index():
             ),
             dialog_id="borrar",
             title="¿Eliminar elemento?",
-            size="sm",
+            size=size.sm,
         ),
     )
 
@@ -642,7 +645,7 @@ El tema es una propiedad de la app: cámbiala y todo se re-renderiza con las
 variantes `dark:`.
 
 ```python
-from interui import App, Button, Container, Screen, Text
+from interui import App, Button, Container, Screen, Text, icons, pad
 
 app = App("Tema")
 
@@ -650,9 +653,9 @@ app = App("Tema")
 @app.page("/")
 def index():
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Text(f"Tema actual: {app.theme}"),
-            Button("Cambiar tema", icon="moon", on_click=app.toggle_theme),
+            Button("Cambiar tema", icon=icons.moon, on_click=app.toggle_theme),
         )
     )
 
@@ -677,6 +680,8 @@ Una app de escritorio se reconoce por sus menús. `AppShell` coloca el armazón 
 from interui import (
     App, AppShell, Container, ContextItem, ContextMenu, Heading, MenuBar, Sidebar,
     SidebarItem, StatusBar, Text, TitleBar, toast,
+    icons,
+    pad,
 )
 
 app = App("Mi app")
@@ -689,24 +694,24 @@ def nuevo() -> None:
 @app.page("/")
 def index():
     contexto = ContextMenu(
-        ContextItem("Abrir", icon="folder", on_click=lambda: toast("Abrir")),
-        ContextItem("Eliminar", icon="trash", danger=True, on_click=lambda: toast("Eliminar", level="warning")),
+        ContextItem("Abrir", icon=icons.folder, on_click=lambda: toast("Abrir")),
+        ContextItem("Eliminar", icon=icons.trash, danger=True, on_click=lambda: toast("Eliminar", level="warning")),
     )
     return AppShell(
-        Container(class_="py-6")(contexto(Heading("Panel", level=2))),
-        title_bar=TitleBar("Mi app", icon="layers"),
+        Container(pad=pad.py_6)(contexto(Heading("Panel", level=2))),
+        title_bar=TitleBar("Mi app", icon=icons.layers),
         header=MenuBar(
             {
                 "Archivo": [
-                    ContextItem("Nuevo", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
+                    ContextItem("Nuevo", icon=icons.plus, shortcut="Ctrl+N", on_click=nuevo),
                     "-",
-                    ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+                    ContextItem("Salir", icon=icons.power, danger=True, on_click=app.quit),
                 ],
-                "Ver": [ContextItem("Cambiar tema", icon="moon", on_click=app.toggle_theme)],
+                "Ver": [ContextItem("Cambiar tema", icon=icons.moon, on_click=app.toggle_theme)],
             },
             brand="Mi app",
         ),
-        sidebar=Sidebar(SidebarItem("Panel", icon="grid", active=True)),
+        sidebar=Sidebar(SidebarItem("Panel", icon=icons.grid, active=True)),
         status=StatusBar(Text("Listo")),
     )
 
@@ -729,9 +734,9 @@ con contador. Todo el detalle está en [menús y armazón](menus.md).
 El set propio trae 202 iconos; no hace falta instalar nada ni tener conexión:
 
 ```python
-from interui import ICON_NAMES, Icon, IconGrid
+from interui import ICON_NAMES, Icon, IconGrid, icons, colors
 
-Icon("check", size=6, class_="text-emerald-600")
+Icon(icons.check, size=6, color=colors.emerald_600)
 len(ICON_NAMES)                                   # 202
 IconGrid(columns=10, searchable=True, on_pick=lambda nombre: print(nombre))
 ```
@@ -750,7 +755,7 @@ Guarda ahí tus archivos (JSON, SQLite, ajustes):
 import json
 from pathlib import Path
 
-from interui import App, Button, Container, Screen, Text
+from interui import App, Button, Container, Screen, Text, icons, pad
 
 app = App("Persistencia")
 STORE = Path(app.data_dir) / "ajustes.json"
@@ -774,9 +779,9 @@ def index():
         STORE.write_text(json.dumps(datos), encoding="utf-8")
 
     return Screen(
-        Container(class_="py-8")(
+        Container(pad=pad.py_8)(
             Text(f"Veces abierto: {ajustes.get()['visitas']}"),
-            Button("Guardar visita", icon="check", on_click=guardar),
+            Button("Guardar visita", icon=icons.check, on_click=guardar),
         )
     )
 
@@ -873,15 +878,15 @@ interui update --run  # y la ejecuta
 Si quieres reaccionar en tu interfaz:
 
 ```python
-from interui import App, Badge, Container, Screen, heading
+from interui import App, Badge, Container, Screen, heading, variant, pad
 
 app = App("Mi app")
 
 
 @app.page("/")
 def index():
-    aviso = Badge(f"Nueva versión {app.update.latest}", variant="warning") if app.update_available else None
-    return Screen(Container(class_="py-6")(heading("Hola"), aviso))
+    aviso = Badge(f"Nueva versión {app.update.latest}", variant=variant.warning) if app.update_available else None
+    return Screen(Container(pad=pad.py_6)(heading("Hola"), aviso))
 
 
 app.run()

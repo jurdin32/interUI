@@ -317,7 +317,9 @@ class App:
         uid = str(message.get("id") or "")
         event_name = str(message.get("e") or "click")
         handlers = self._bindings.get(ws.id, {}).get(uid, {})
-        handler = handlers.get(event_name) or handlers.get("*")
+        handler = handlers.get(event_name)
+        if handler is None:
+            handler = handlers.get("*")
         files = [
             Attachment(
                 name=str(item.get("name")),

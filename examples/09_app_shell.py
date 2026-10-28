@@ -12,7 +12,9 @@
 from interui import (
     App, AppShell, Button, Container, Dialog, Heading, MenuBar, Muted, Row, Screen,
     Section, Sidebar, SidebarItem, StatusBar, Text, TitleBar,
-    colors, dialog, font, gap, icons, layer, pad, side, variant,
+    colors, dialog, font, gap, layer, pad, side, variant,
+
+    icons,
 )
 
 app = App("Armazón", width=1180, height=760)
@@ -83,7 +85,7 @@ def index():
                     ),
                 ),
             ),
-            title_bar=TitleBar("Armazón", icon="layers"),
+            title_bar=TitleBar("Armazón", icon=icons.layers),
             header=MenuBar(
                 {
                     "Archivo": [

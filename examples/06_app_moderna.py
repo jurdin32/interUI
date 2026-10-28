@@ -18,9 +18,7 @@ Reúne todas las piezas de escritorio que ofrece interUI:
 from __future__ import annotations
 
 from interui import (
-    App, Badge, Button, Card, CommandBar, Container, ContextItem, ContextMenu, DataTable,
-    Divider, Heading, IconGrid, ListItem, MenuBar, NotificationButton, Stack,
-    StatusBar, Text, TitleBar, AppShell, Sidebar, SidebarItem, dialog, toast,
+    App, Badge, Button, Card, CommandBar, Container, ContextItem, ContextMenu, DataTable, Divider, Heading, IconGrid, ListItem, MenuBar, NotificationButton, Stack, StatusBar, Text, TitleBar, AppShell, Sidebar, SidebarItem, dialog, toast, icons, tone, variant, colors, pad, border,
 )
 
 app = App("interUI · app moderna", width=1180, height=780)
@@ -74,20 +72,20 @@ def eliminar_fila(nombre: str) -> None:
 
 
 def abrir_fila(nombre: str) -> None:
-    dialog.show(f"Ficha de {nombre}", title=nombre, icon="user")
+    dialog.show(f"Ficha de {nombre}", title=nombre, icon=icons.user)
 
 
 # ---------------------------------------------------------------------------
 # Vistas
 # ---------------------------------------------------------------------------
 def vista_panel() -> object:
-    return Container(class_="py-6")(
+    return Container(pad=pad.py_6)(
         Heading("Panel", level=2),
-        Text("Todo lo que necesitas para construir apps de escritorio.", tone="muted"),
+        Text("Todo lo que necesitas para construir apps de escritorio.", tone=tone.muted),
         Divider(),
         DataTable(
             headers=["Nombre", "Rol", "Estado"],
-            rows=[[f["nombre"], f["rol"], Badge(f["estado"], variant="success")] for f in FILAS],
+            rows=[[f["nombre"], f["rol"], Badge(f["estado"], variant=variant.success)] for f in FILAS],
             striped=True,
             hover=True,
         ),
@@ -95,9 +93,9 @@ def vista_panel() -> object:
 
 
 def vista_iconos() -> object:
-    return Container(class_="py-6")(
+    return Container(pad=pad.py_6)(
         Heading("Iconos", level=2),
-        Text("Haz clic en un icono para copiar su nombre al portapapeles.", tone="muted"),
+        Text("Haz clic en un icono para copiar su nombre al portapapeles.", tone=tone.muted),
         Divider(),
         Card(
             IconGrid(
@@ -115,10 +113,10 @@ VISTAS = {"Panel": vista_panel, "Iconos": vista_iconos}
 def contenido() -> object:
     vista = VISTAS.get(seccion.get(), vista_panel)
     return ContextMenu(
-        ContextItem("Abrir", icon="folder", on_click=lambda: abrir_fila("Ana Torres")),
-        ContextItem("Editar", icon="edit"),
+        ContextItem("Abrir", icon=icons.folder, on_click=lambda: abrir_fila("Ana Torres")),
+        ContextItem("Editar", icon=icons.edit),
         "-",
-        ContextItem("Eliminar", icon="trash", danger=True, on_click=lambda: eliminar_fila("Ana Torres")),
+        ContextItem("Eliminar", icon=icons.trash, danger=True, on_click=lambda: eliminar_fila("Ana Torres")),
         hint="Clic derecho para opciones",
     )(vista())
 
@@ -128,7 +126,7 @@ def navegacion() -> object:
         *[
             SidebarItem(
                 nombre,
-                icon="layout-dashboard" if nombre == "Panel" else "smile",
+                icon=icons.grid if nombre == "Panel" else icons.smile,
                 active=seccion.get() == nombre,
                 on_click=lambda nombre=nombre: seccion.set(nombre),
             )
@@ -142,33 +140,35 @@ def barra_de_menus() -> object:
     return MenuBar(
         {
             "Archivo": [
-                ContextItem("Nuevo proyecto…", icon="plus", shortcut="Ctrl+N", on_click=nuevo),
-                ContextItem("Abrir carpeta…", icon="folder", shortcut="Ctrl+O"),
+                ContextItem("Nuevo proyecto…", icon=icons.plus, shortcut="Ctrl+N", on_click=nuevo),
+                ContextItem("Abrir carpeta…", icon=icons.folder, shortcut="Ctrl+O"),
                 "-",
-                ContextItem("Salir", icon="power", danger=True, on_click=app.quit),
+                ContextItem("Salir", icon=icons.power, danger=True, on_click=app.quit),
             ],
             "Ver": [
-                ContextItem("Cambiar tema", icon="moon", shortcut="Ctrl+T", on_click=alternar_tema),
-                ContextItem("Iconos", icon="smile", on_click=lambda: seccion.set("Iconos")),
+                ContextItem("Cambiar tema", icon=icons.moon, shortcut="Ctrl+T", on_click=alternar_tema),
+                ContextItem("Iconos", icon=icons.smile, on_click=lambda: seccion.set("Iconos")),
             ],
             "Ayuda": [
-                ContextItem("Acerca de interUI", icon="info", on_click=acerca_de),
+                ContextItem("Acerca de interUI", icon=icons.info, on_click=acerca_de),
             ],
         },
         brand="interUI",
         actions=Stack(
             CommandBar(
-                Button("Nuevo", icon="plus", variant="primary", on_click=nuevo),
+                Button("Nuevo", icon=icons.plus, variant=variant.primary, on_click=nuevo),
                 search=filtro.get(),
                 search_placeholder="Buscar…",
                 on_search=lambda: None,
-                class_="border-0 bg-transparent px-0 py-0",
+                border=border.none,
+                bg=colors.transparent,
+                pad=pad.p_0,
             ),
             NotificationButton(
                 notificaciones.get(),
                 items=[
-                    ListItem("Nueva tarea asignada", icon="check"),
-                    ListItem("Comentario en tu informe", icon="mail"),
+                    ListItem("Nueva tarea asignada", icon=icons.check),
+                    ListItem("Comentario en tu informe", icon=icons.mail),
                 ],
             ),
             direction="row",
@@ -182,16 +182,16 @@ def barra_de_menus() -> object:
 def index() -> object:
     return AppShell(
         contenido(),
-        title_bar=TitleBar("interUI · app moderna", icon="layers"),
+        title_bar=TitleBar("interUI · app moderna", icon=icons.layers),
         header=barra_de_menus(),
         sidebar=navegacion(),
         status=StatusBar(
             Text(seccion.get(), weight="semibold"),
             Text("·"),
-            Text("Todo guardado", tone="muted"),
+            Text("Todo guardado", tone=tone.muted),
             # Si al arrancar se detectó una versión nueva, se muestra en la barra.
             (
-                Badge(f"interUI {app.update.latest} disponible", variant="warning")
+                Badge(f"interUI {app.update.latest} disponible", variant=variant.warning)
                 if app.update_available
                 else None
             ),

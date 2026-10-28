@@ -503,7 +503,13 @@ class SQLiteBackend(SQLBackend):
     quote_char = '"'
 
     def open(self) -> None:
-        path = self.settings.get("name", "data/app.db")
+        path = str(self.settings.get("name", "data/app.db"))
+        # Bases efímeras (tests, demos): no tocan el disco ni resuelven rutas.
+        if path.startswith(":memory:") or path.startswith("file::memory:"):
+            self._conn = sqlite3.connect(path, check_same_thread=False, timeout=10)
+            self._conn.execute("PRAGMA foreign_keys = ON")
+            self.path = Path(path)
+            return
         target = Path(path)
         if not target.is_absolute():
             base = getattr(self.settings, "root", None)

@@ -82,11 +82,11 @@ app = ui.App("Mi app")
 @app.page("/")
 def index():
     extra = (
-        ui.Badge(f"Nueva versión {app.update.latest}", variant="warning")
+        ui.Badge(f"Nueva versión {app.update.latest}", variant=ui.variant.warning)
         if app.update_available
         else None
     )
-    return ui.Screen(ui.Container(class_="py-6")(ui.heading("Hola"), extra))
+    return ui.Screen(ui.Container(pad=ui.pad.py_6)(ui.heading("Hola"), extra))
 
 
 app.run()

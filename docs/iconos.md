@@ -28,7 +28,7 @@ un icono de ayuda.
 > Este archivo se genera desde el código con `python scripts/gen_docs.py`.
 
 
-203 iconos disponibles.
+204 iconos disponibles.
 
 
 ## Lista de nombres
@@ -45,44 +45,44 @@ un icono de ayuda.
 | `anchor` | `credit-card` | `lock` | `sidebar` |
 | `archive` | `crosshair` | `log-in` | `sliders` |
 | `arrow-down` | `database` | `log-out` | `smartphone` |
-| `arrow-down-left` | `download` | `mail` | `snowflake` |
-| `arrow-down-right` | `droplet` | `map` | `sort` |
-| `arrow-left` | `edit` | `map-pin` | `sparkles` |
-| `arrow-right` | `expand` | `maximize` | `square` |
-| `arrow-up` | `external` | `menu` | `square-check` |
-| `arrow-up-left` | `eye` | `message-circle` | `star` |
-| `arrow-up-right` | `eye-off` | `message-square` | `store` |
-| `at-sign` | `fan` | `mic` | `strikethrough` |
-| `award` | `file` | `mic-off` | `sun` |
-| `badge-check` | `file-plus` | `minimize` | `sunrise` |
-| `banknote` | `file-text` | `minus` | `sunset` |
-| `battery` | `filter` | `monitor` | `table` |
-| `bell` | `flag` | `moon` | `tablet` |
-| `bold` | `flame` | `more-h` | `tag` |
-| `bookmark` | `flask` | `more-v` | `target` |
-| `bookmark-plus` | `folder` | `mouse-pointer` | `terminal` |
-| `box` | `folder-open` | `move` | `terminal-2` |
-| `boxes` | `folder-plus` | `music` | `thermometer` |
-| `braces` | `gauge` | `navigation` | `thumbs-down` |
-| `bug` | `gift` | `outdent` | `thumbs-up` |
-| `calendar` | `git-branch` | `package` | `ticket` |
-| `camera` | `git-commit` | `panel-left` | `timer` |
-| `car` | `git-merge` | `panel-right` | `trash` |
-| `cart` | `globe` | `paperclip` | `trophy` |
-| `cast` | `grid` | `paste` | `underline` |
-| `chart` | `hand` | `pause` | `undo` |
-| `check` | `hard-drive` | `phone` | `unlock` |
-| `check-circle` | `hash` | `pie` | `upload` |
-| `chevron-down` | `headphones` | `pin` | `user` |
-| `chevron-left` | `heart` | `play` | `users` |
-| `chevron-right` | `help` | `plug` | `video` |
-| `chevron-up` | `home` | `plus` | `video-off` |
-| `chevron-up-down` | `image` | `power` | `volume` |
-| `chevrons-left` | `inbox` | `printer` | `volume-x` |
-| `chevrons-right` | `indent` | `receipt` | `wallet` |
-| `chevrons-up` | `info` | `redo` | `wifi` |
-| `circle` | `italic` | `refresh` | `wrench` |
-| `circle-dot` | `key` | `regex` | `x` |
-| `clipboard` | `keyboard` | `save` | `x-circle` |
-| `clock` | `layers` | `scissors` | `zap` |
-| `cloud` | `layout` | `search` |  |
+| `arrow-down-left` | `download` | `mail` | `smile` |
+| `arrow-down-right` | `droplet` | `map` | `snowflake` |
+| `arrow-left` | `edit` | `map-pin` | `sort` |
+| `arrow-right` | `expand` | `maximize` | `sparkles` |
+| `arrow-up` | `external` | `menu` | `square` |
+| `arrow-up-left` | `eye` | `message-circle` | `square-check` |
+| `arrow-up-right` | `eye-off` | `message-square` | `star` |
+| `at-sign` | `fan` | `mic` | `store` |
+| `award` | `file` | `mic-off` | `strikethrough` |
+| `badge-check` | `file-plus` | `minimize` | `sun` |
+| `banknote` | `file-text` | `minus` | `sunrise` |
+| `battery` | `filter` | `monitor` | `sunset` |
+| `bell` | `flag` | `moon` | `table` |
+| `bold` | `flame` | `more-h` | `tablet` |
+| `bookmark` | `flask` | `more-v` | `tag` |
+| `bookmark-plus` | `folder` | `mouse-pointer` | `target` |
+| `box` | `folder-open` | `move` | `terminal` |
+| `boxes` | `folder-plus` | `music` | `terminal-2` |
+| `braces` | `gauge` | `navigation` | `thermometer` |
+| `bug` | `gift` | `outdent` | `thumbs-down` |
+| `calendar` | `git-branch` | `package` | `thumbs-up` |
+| `camera` | `git-commit` | `panel-left` | `ticket` |
+| `car` | `git-merge` | `panel-right` | `timer` |
+| `cart` | `globe` | `paperclip` | `trash` |
+| `cast` | `grid` | `paste` | `trophy` |
+| `chart` | `hand` | `pause` | `underline` |
+| `check` | `hard-drive` | `phone` | `undo` |
+| `check-circle` | `hash` | `pie` | `unlock` |
+| `chevron-down` | `headphones` | `pin` | `upload` |
+| `chevron-left` | `heart` | `play` | `user` |
+| `chevron-right` | `help` | `plug` | `users` |
+| `chevron-up` | `home` | `plus` | `video` |
+| `chevron-up-down` | `image` | `power` | `video-off` |
+| `chevrons-left` | `inbox` | `printer` | `volume` |
+| `chevrons-right` | `indent` | `receipt` | `volume-x` |
+| `chevrons-up` | `info` | `redo` | `wallet` |
+| `circle` | `italic` | `refresh` | `wifi` |
+| `circle-dot` | `key` | `regex` | `wrench` |
+| `clipboard` | `keyboard` | `save` | `x` |
+| `clock` | `layers` | `scissors` | `x-circle` |
+| `cloud` | `layout` | `search` | `zap` |

@@ -8,6 +8,7 @@ from typing import Any, Sequence
 from ..base import Component
 from ..context import RenderContext
 from ..html import escape
+from ..state import number_of
 from ..style import tw
 from ..theme import css_value
 
@@ -392,8 +393,8 @@ class Gauge(Component):
 
     def __init__(self, value: float = 0, *, max_value: float = 100, label: Any = None,
                  color: str = "#4f46e5", size: int = 180, **props: Any) -> None:
-        self.value = value
-        self.max_value = max_value or 100
+        self.value = number_of(value)
+        self.max_value = number_of(max_value, 100) or 100
         self.gauge_label = label
         self.color = css_value(color)
         self.gauge_size = size

@@ -415,9 +415,9 @@ _MARGIN = {
     "x": ("margin-inline", "mx"), "mx": ("margin-inline", "mx"),
     "y": ("margin-block", "my"), "my": ("margin-block", "my"),
     "t": ("margin-top", "mt"), "mt": ("margin-top", "mt"),
-    "r": ("margin-right", "mr"), "pr": ("margin-right", "pr"),
-    "b": ("margin-bottom", "mb"), "pb": ("margin-bottom", "pb"),
-    "l": ("margin-left", "ml"), "pl": ("margin-left", "pl"),
+    "r": ("margin-right", "mr"), "mr": ("margin-right", "mr"),
+    "b": ("margin-bottom", "mb"), "mb": ("margin-bottom", "mb"),
+    "l": ("margin-left", "ml"), "ml": ("margin-left", "ml"),
     "s": ("margin-inline-start", "ms"), "ms": ("margin-inline-start", "ms"),
     "e": ("margin-inline-end", "me"), "me": ("margin-inline-end", "me"),
 }
@@ -656,7 +656,7 @@ variant = _words(
     "variant",
     (
         "primary", "secondary", "outline", "ghost", "soft", "link",
-        "danger", "success", "warning", "info", "neutral", "line", "dark",
+        "danger", "success", "warning", "info", "neutral", "line", "dark", "pills",
     ),
 )
 
@@ -668,7 +668,7 @@ tone = _words(
     ),
 )
 
-size = _words("size", ("xs", "sm", "md", "lg", "xl"))
+size = _words("size", ("xs", "sm", "base", "md", "lg", "xl"))
 
 side = _words("side", ("left", "right", "start", "end", "top", "bottom"))
 

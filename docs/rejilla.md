@@ -78,7 +78,7 @@ ui.Row(
 tarjetas de una fila igualan altura sin trucos:
 
 ```python
-ui.Row(*[ui.Col(span=12, lg=4)(ui.Card(class_="h-full")(ui.Text("…"))) for _ in range(3)])
+ui.Row(*[ui.Col(span=12, lg=4)(ui.Card(h=ui.height.full)(ui.Text("…"))) for _ in range(3)])
 ```
 
 ### Rejilla nativa (sin columnas de 12)

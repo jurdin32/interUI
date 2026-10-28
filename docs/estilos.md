@@ -172,7 +172,7 @@ flex.row, flex.col, flex.center, flex.between, flex.wrap, flex.grow
 
 ### Iconos — `icons`
 
-Los 203 iconos tienen nombre con puntos, y los guiones se escriben con `_`:
+Los 204 iconos tienen nombre con puntos, y los guiones se escriben con `_`:
 
 ```python
 icons.car, icons.edit, icons.chevron_down, icons.more_h

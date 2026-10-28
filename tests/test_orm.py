@@ -197,3 +197,16 @@ def test_motor_desconocido():
 
     with pytest.raises(DatabaseError):
         db.connect(DatabaseSettings({"engine": "oracle", "name": "x"}))
+
+
+def test_sqlite_en_memoria_no_toca_el_disco(tmp_path, monkeypatch):
+    """`name: ":memory:"` crea una base efímera, sin archivo ni carpeta."""
+    monkeypatch.chdir(tmp_path)
+    settings = Config({"databases": {"default": {"engine": "sqlite", "name": ":memory:"}}})
+    db.configure(settings)
+    backend = db.backend("default")
+    backend.create_table("clientes", Cliente.columns())
+    Cliente.objects.create(nombre="Ana")
+
+    assert Cliente.objects.count() == 1
+    assert list(tmp_path.iterdir()) == []

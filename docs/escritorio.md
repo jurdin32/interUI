@@ -109,10 +109,10 @@ Parámetros útiles de `App`:
 app = App("Mi app", frameless=True)
 
 ui.Screen(
-    ui.TitleBar("Mi app", icon="layers"),   # arrastrar + minimizar/maximizar/cerrar
+    ui.TitleBar("Mi app", icon=ui.icons.layers),   # arrastrar + minimizar/maximizar/cerrar
     ui.Main(class_="flex-1 overflow-y-auto")(...),
     ui.StatusBar(ui.Text("Listo")),
-    class_="flex flex-col h-screen",
+    h=ui.height.screen, class_="flex flex-col",
 )
 ```
 

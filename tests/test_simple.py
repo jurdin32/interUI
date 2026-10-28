@@ -164,3 +164,80 @@ def test_current_app_is_stable(monkeypatch, tmp_path) -> None:
     assert current_app() is app
     assert current_app("Otro título") is app
     assert app.title == "Otro título"
+
+
+# --- señales dentro de los controles ---------------------------------------
+
+
+def _checked(html: str) -> bool:
+    import re
+
+    return bool(re.search(r"<input[^>]* checked", html))
+
+
+def test_switch_refleja_el_valor_de_la_senal(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    activo = state(False)
+    app = window("Switch", ui.switch("Activo", checked=activo, on_change=activo))
+    monkeypatch.setattr(app, "schedule_refresh", lambda: None)
+    client = _bind(app)
+    assert not _checked(client.last_html)
+
+    activo.set(True)
+    app._push_render(client)
+    assert _checked(client.last_html)
+
+    activo.set(False)
+    app._push_render(client)
+    assert not _checked(client.last_html)
+
+
+def test_checkbox_refleja_el_valor_de_la_senal(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    activo = state(True)
+    app = window("Check", ui.checkbox("Acepto", checked=activo))
+    monkeypatch.setattr(app, "schedule_refresh", lambda: None)
+    client = _bind(app)
+    assert _checked(client.last_html)
+    activo.set(False)
+    app._push_render(client)
+    assert not _checked(client.last_html)
+
+
+def test_el_knob_del_switch_se_mueve(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    app = window("Switch", ui.switch("Activo", checked=True))
+    _title, html, _b = app.render_page("/")
+    # El desplazamiento tiene que ir en el track (hermano del input)…
+    assert "peer-checked:[&>span]:translate-x-5" in html
+    # …y no en el propio knob, donde el selector no aplicaría.
+    assert html.count("peer-checked:[&>span]:translate-x-5") == 1
+
+
+def test_input_escribe_el_valor_de_la_senal(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    nombre = state("Ana")
+    app = window("Form", ui.input(value=nombre))
+    monkeypatch.setattr(app, "schedule_refresh", lambda: None)
+    client = _bind(app)
+    assert 'value="Ana"' in client.last_html
+    assert "Signal(" not in client.last_html
+
+    nombre.set("Luis")
+    app._push_render(client)
+    assert 'value="Luis"' in client.last_html
+
+
+def test_progress_y_compania_aceptan_senales(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    valor = state(40)
+    app = window(
+        "Progreso",
+        ui.progress(valor),
+        ui.progress_ring(valor),
+        ui.meter(valor),
+        ui.gauge(valor),
+    )
+    _title, html, _b = app.render_page("/")
+    assert "Signal(" not in html
+    assert "40" in html

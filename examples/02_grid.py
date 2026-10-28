@@ -4,7 +4,7 @@
 """
 
 from interui import (
-    App, Badge, Card, Col, Container, Heading, Muted, Row, Screen, Section, Text,
+    App, Badge, Card, Col, Container, Heading, Muted, Row, Screen, Section, Text, size, tone, variant, height, pad,
 )
 
 app = App("Rejilla")
@@ -16,11 +16,11 @@ def index():
         return Card(
             title=f"span={span}",
             description="móvil · tablet · escritorio",
-            class_="h-full",
-        )(Badge(f"{span}/12", variant="primary"), Text(str(extra), size="sm", tone="muted"))
+            h=height.full,
+        )(Badge(f"{span}/12", variant=variant.primary), Text(str(extra), size=size.sm, tone=tone.muted))
 
     return Screen(
-        Container(class_="py-10")(
+        Container(pad=pad.py_10)(
             Heading("Sistema de rejilla", level=1),
             Muted("12 columnas responsive con breakpoints sm · md · lg · xl · 2xl."),
             Section(title="Columnas iguales")(

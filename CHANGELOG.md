@@ -15,7 +15,7 @@ etiqueta como `vX.Y.Z`.
   controles, con variantes (`hover_bg`, `dark_bg`, `md_pad`, `md_hover_bg`) y
   valores literales (`colors.hex("#0f172a")`, `gradient.br(a, b)`,
   `pad.py("18px")`).
-- **Iconos con notación de punto** (`ui.icons`): los 203 iconos como atributo
+- **Iconos con notación de punto** (`ui.icons`): los 204 iconos como atributo
   (`icons.car`, `icons.chevron_down`), alias (`icons.close`, `icons.exit`),
   dibujables como hijo y llamables con opciones (`icons.car(size=6)`). Nuevo
   icono `car`.
@@ -48,11 +48,31 @@ etiqueta como `vX.Y.Z`.
 - `App.run(window="browser"|"none")` termina con `app.exit()` en lugar de quedar
   bloqueado.
 
+### Documentación
+
+- `docs/datos.md` reescrita de cero: `interui.json` creado a mano (con todas las
+  claves y sus valores por defecto), modelos campo por campo, el ORM con tablas de
+  métodos y operadores, migraciones explicadas, un CRUD completo dentro de la
+  interfaz y una tabla de errores frecuentes con su solución.
+- `docs/datos.md` y `docs/estilos.md` se validan en las pruebas: cada bloque
+  `python` se compila y la app de ejemplo se renderiza.
+
 ### Corregido
 
 - `AppShell(sidebar_width=…)` no hacía nada.
 - Carrera al cerrar la app justo después de arrancar el servidor.
 - `Icon` ignoraba el color y el estilo en línea.
+- Los `Switch` no se veían marcados: el desplazamiento del pulsador estaba en el
+  elemento equivocado y los valores de las señales se convertían a texto
+  (`Signal('x'=True)`) en lugar de leerse. Ahora `Signal` se imprime con su
+  valor y `Switch`/`Checkbox`/`Input`/`Slider` aceptan señales.
+- Los controles de la API corta (`window(...)`) no se actualizaban al cambiar una
+  señal: ahora `Switch`, `Checkbox`, `Input` y `Slider` resuelven su valor en
+  cada render.
+- `Progress`, `ProgressRing`, `Meter` y `Gauge` fallaban con señales.
+- `margin.mr`, `margin.mb` y `margin.ml` generaban el padding equivocado.
+- `"name": ":memory:"` en SQLite creaba un archivo llamado `:memory:`; ahora es
+  una base efímera, útil para tests y demos.
 
 ## [0.4.0]
 
