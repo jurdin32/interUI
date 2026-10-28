@@ -439,6 +439,7 @@ function runBehaviors(element, domType, event) {
   if (domType === "click") {
     if (dataset.iuiModal) openDialog(dataset.iuiModal);
     if (dataset.iuiToggle) toggleTarget(dataset.iuiToggle, element);
+    if (dataset.iuiDrawer) toggleDrawer(element, dataset.iuiDrawer);
     if (dataset.iuiClose !== undefined) closeDialog(dataset.iuiClose);
     if (dataset.iuiTab) activateTab(dataset.iuiTab, element);
     if (dataset.iuiCollapse) toggleCollapse(dataset.iuiCollapse);
@@ -540,6 +541,36 @@ function toggleTarget(id) {
   if (!element) return;
   element.classList.toggle("hidden");
 }
+
+/* Sidebar de AppShell en ventanas estrechas: el estado se guarda aquí porque
+   cada render reconstruye el HTML y perdería los atributos puestos a mano. */
+const drawerState = new Map();
+
+function toggleDrawer(element, mode) {
+  const shell = element.closest ? element.closest(".iui-shell") : null;
+  if (!shell) return;
+  const open = mode === "close" ? false : !drawerState.get(shell.id);
+  drawerState.set(shell.id, open);
+  applyDrawerState();
+}
+
+function applyDrawerState() {
+  document.querySelectorAll(".iui-shell").forEach((shell) => {
+    shell.dataset.sidebar = drawerState.get(shell.id) ? "open" : "closed";
+  });
+}
+
+/* Al elegir algo del menú lateral, el panel se cierra solo. */
+document.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!target || !target.closest) return;
+  const shell = target.closest(".iui-shell");
+  if (!shell || !drawerState.get(shell.id)) return;
+  if (target.closest(".iui-shell-side, .iui-shell-row > aside")) {
+    drawerState.set(shell.id, false);
+    applyDrawerState();
+  }
+});
 
 function toggleCollapse(id) {
   const element = document.getElementById(id);
@@ -1006,6 +1037,7 @@ function escapeHtml(text) {
 /* ------------------------------------------------------------------ */
 function afterRender() {
   closeMenus();
+  applyDrawerState();
   applyTheme(document.documentElement.dataset.theme || CONFIG.theme || "light");
   document.querySelectorAll("[data-iui-autofocus]").forEach((element) => {
     if (document.activeElement === document.body) element.focus({ preventScroll: true });

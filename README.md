@@ -309,6 +309,7 @@ Ejemplos completos en [`examples/`](examples):
 | [`09_app_shell.py`](examples/09_app_shell.py) | Sidebar a izquierda/derecha, modales por niveles y cierre. |
 | [`10_multiventana.py`](examples/10_multiventana.py) | Varias ventanas, rutas independientes y cierre por ventana. |
 | [`11_datos.py`](examples/11_datos.py) | Modelos, SQLite y una pantalla CRUD completa. |
+| [`12_responsive.py`](examples/12_responsive.py) | Armazón por partes y todo adaptándose al tamaño de la ventana. |
 
 ---
 
@@ -816,6 +817,33 @@ pagina = CONTEXTO(ui.table(headers=["Nombre"], rows=[["Ana"], ["Luis"]]))
 Extras listos para usar: `ui.MenuButton(...)` (despliegue suelto),
 `ui.CommandBar(...)` (buscador + acciones), `ui.NotificationButton(3, items=[...])`
 (campana con contador) y `app.toggle_theme()` desde Python.
+
+### Armarlo por partes
+
+Cuando la ventana crece, en vez de un constructor con diez argumentos puedes
+asignar cada zona, y añadir contenido con `add` (llamada, asignación o `+=`):
+
+```python
+shell = ui.AppShell()
+shell.title_bar = ui.TitleBar("Mi app", icon=ui.icons.layers)
+shell.header = ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]})
+shell.sidebar = ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True))
+shell.status = ui.StatusBar(ui.text("Listo"))
+shell.add = ui.Container(pad=ui.pad.py_6)(ui.text("Contenido"))
+```
+
+Vale para todos los controles: `card.add = ui.text("Hola")`, `card += ui.text("…")`,
+`bar["Archivo"] = [ui.ContextItem("Salir", icon=ui.icons.power)]`.
+
+### Ventanas estrechas
+
+El armazón se adapta solo: por debajo de 768 px el sidebar se esconde y aparece
+un botón (☰) que lo desliza sobre el contenido, con fondo para cerrarlo al tocar
+fuera. Además, el contenido principal nunca desborda en horizontal, las tablas y
+el código se desplazan dentro de su caja, los diálogos se limitan a la altura de
+la ventana con el cuerpo con scroll y las imágenes se ajustan al ancho. Para
+espaciados que cambian con el tamaño, usa los prefijos de punto: `pad=pad.p_4,
+md_pad=pad.p_8, lg_pad=pad.p_10`.
 
 ### Posición del sidebar
 

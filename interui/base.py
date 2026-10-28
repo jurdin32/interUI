@@ -46,6 +46,31 @@ EVENT_PROPS = {
     "on_load": "load",
 }
 
+class _ChildrenProxy:
+    """Permite las dos formas de añadir hijos.
+
+    ``card.add(ui.text("Hola"))`` y ``card.add = ui.text("Hola")`` hacen lo mismo,
+    para que la construcción incremental se lea con puntos.
+    """
+
+    __slots__ = ("owner",)
+
+    def __init__(self, owner: "Component") -> None:
+        self.owner = owner
+
+    def __call__(self, *children: Any) -> "Component":
+        return self.owner._accept_child(children)
+
+    def __iter__(self):
+        return iter(self.owner.children)
+
+    def __len__(self) -> int:
+        return len(self.owner.children)
+
+    def __repr__(self) -> str:  # pragma: no cover - ayuda al depurar
+        return f"<add de {type(self.owner).__name__}>"
+
+
 class Component:
     """Nodo del árbol de interfaz.
 
@@ -102,11 +127,23 @@ class Component:
                 f"{type(self).__name__}(...)(...) no acepta opciones con nombre ({names}). "
                 "Pásalas al constructor del componente."
             )
-        self.children.extend(flatten(children))
+        return self._accept_child(children)
+
+    def _accept_child(self, value: Any) -> "Component":
+        """Incorpora hijos al componente (los controles pueden especializarlo)."""
+        self.children.extend(flatten((value,)))
         return self
 
-    def add(self, *children: Any) -> "Component":
-        return self.__call__(*children)
+    def _get_add(self) -> _ChildrenProxy:
+        return _ChildrenProxy(self)
+
+    def _set_add(self, value: Any) -> None:
+        self._accept_child(value)
+
+    add = property(_get_add, _set_add, doc="Hijos: `c.add(hijo)` o `c.add = hijo`.")
+
+    def __iadd__(self, value: Any) -> "Component":
+        return self._accept_child(value)
 
     def clone(self, **overrides: Any) -> "Component":
         import copy as _copy

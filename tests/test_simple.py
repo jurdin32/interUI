@@ -241,3 +241,42 @@ def test_progress_y_compania_aceptan_senales(monkeypatch, tmp_path) -> None:
     _title, html, _b = app.render_page("/")
     assert "Signal(" not in html
     assert "40" in html
+
+
+# --- API imperativa: armar por partes con puntos -----------------------------
+
+
+def test_add_admite_llamada_asignacion_y_suma() -> None:
+    card = ui.Card()
+    card.add(ui.text("uno"))
+    card.add = ui.text("dos")
+    card += ui.text("tres")
+    card.add = [ui.text("cuatro"), ui.text("cinco")]
+
+    assert len(card.children) == 5
+    html = ui.render(card)
+    for palabra in ("uno", "dos", "tres", "cuatro", "cinco"):
+        assert palabra in html
+
+
+def test_appshell_se_arma_por_partes() -> None:
+    shell = ui.AppShell()
+    shell.title_bar = ui.TitleBar("Mi app", icon=ui.icons.layers)
+    shell.header = ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]})
+    shell.sidebar = ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True))
+    shell.status = ui.StatusBar(ui.text("Listo"))
+    shell.add = ui.Container(pad=ui.pad.py_6)(ui.text("Contenido"))
+
+    html = ui.render(shell)
+    assert "Contenido" in html and "Panel" in html and "Listo" in html
+    assert "iui-shell-drawer" in html, "el sidebar trae su botón en ventanas estrechas"
+
+
+def test_menubar_admite_menus_por_corchetes() -> None:
+    bar = ui.MenuBar(brand="App")
+    bar["Archivo"] = [ui.ContextItem("Salir", icon=ui.icons.power)]
+    bar["Archivo"] = [ui.ContextItem("Cerrar", icon=ui.icons.x)]
+
+    assert [title for title, _items in bar.menus] == ["Archivo"]
+    assert bar["Archivo"][0].label == "Cerrar"
+    assert "Cerrar" in ui.render(bar)

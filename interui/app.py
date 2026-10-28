@@ -11,6 +11,7 @@ import threading
 import time
 import traceback
 import webbrowser
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Any, Callable
 
@@ -35,6 +36,16 @@ _TYPES: dict[str, Callable[[str], Any]] = {
     "str": str,
     "path": str,
 }
+
+
+#: App que está ejecutando un handler en este momento. La usan los diálogos
+#: (`ui.dialog.info` y compañía) para saber sobre qué ventana abrirse.
+_ACTIVE_APP: ContextVar[Any] = ContextVar("interui_active_app", default=None)
+
+
+def active_app() -> Any:
+    """La app que está despachando un evento, o ``None`` fuera de un handler."""
+    return _ACTIVE_APP.get()
 
 
 class App:
@@ -343,6 +354,7 @@ class App:
         )
         if handler is not None:
             self._in_handler = True
+            token = _ACTIVE_APP.set(self)
             try:
                 invoke(handler, event)
             except Exception as exc:  # noqa: BLE001
@@ -351,6 +363,7 @@ class App:
                     log(detail, error=True)
                 ws.send_json({"t": "toast", "level": "error", "message": f"{type(exc).__name__}: {exc}"})
             finally:
+                _ACTIVE_APP.reset(token)
                 self._in_handler = False
         self._push_render(ws)
 

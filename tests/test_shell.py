@@ -157,7 +157,7 @@ def test_app_shell_coloca_todas_las_zonas() -> None:
             footer=ui.Text("pie"),
         )
     )
-    assert "h-screen" in html
+    assert "h-dvh" in html
     assert "contenido" in html and "Listo" in html and "pie" in html
     assert html.count("<main") == 1
     assert "overflow-y-auto" in html
@@ -171,7 +171,7 @@ def test_app_shell_sin_barra_lateral_no_envuelve_en_fila() -> None:
 
 def test_app_shell_clases_personalizadas() -> None:
     html = render(ui.AppShell(ui.Text("x"), class_="bg-white"))
-    assert "bg-white" in html and "h-screen" in html
+    assert "bg-white" in html and "h-dvh" in html
     assert "bg-slate-50" not in html, "class_ debe ganar al valor por defecto"
 
 

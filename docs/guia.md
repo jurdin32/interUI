@@ -723,6 +723,19 @@ Sin escribir JavaScript ya funciona: abrir/cerrar el menú con clic, cambiar de
 menú al pasar el ratón, cerrar con `Escape` o clic fuera, y el menú contextual
 con el botón derecho (se coloca en el puntero y no se sale de la ventana).
 
+Si prefieres no pasar tantos argumentos, arma el armazón por partes:
+
+```python
+shell = AppShell()
+shell.title_bar = TitleBar("Mi app", icon=icons.layers)
+shell.sidebar = Sidebar(SidebarItem("Panel", icon=icons.grid, active=True))
+shell.status = StatusBar(Text("Listo"))
+shell.add = Container(pad=pad.py_6)(Text("Contenido"))
+```
+
+Y en ventanas estrechas el sidebar se convierte en un panel deslizante con su
+propio botón: el contenido no se aplasta aunque la ventana baje a 400 px.
+
 También hay `MenuButton(...)` para un desplegable suelto, `CommandBar(...)` para
 un buscador con acciones y `NotificationButton(3, items=[...])` para la campana
 con contador. Todo el detalle está en [menús y armazón](menus.md).

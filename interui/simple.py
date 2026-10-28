@@ -103,6 +103,13 @@ def window(
     return application
 
 
+def recipient_app() -> App:
+    """La app que ejecuta el handler actual, o la implícita fuera de uno."""
+    from .app import active_app
+
+    return active_app() or current_app()
+
+
 def view(
     path: str = "/",
     *,
@@ -146,7 +153,7 @@ def wrap(
 # ---------------------------------------------------------------------------
 def state(initial: Any = None, *, name: str | None = None) -> Signal:
     """Crea una señal ligada a la ventana implícita: ``count = state(0)``."""
-    application = current_app()
+    application = recipient_app()
     key = name or f"s{len(application._signals) + 1}"
     signal = application.state(key, initial)
     if initial is not None:
@@ -188,11 +195,13 @@ def subtitle(text: Any, **props: Any) -> Component:
 def toast(message: str, level: str = "info", **options: Any) -> None:
     """Snackbar flotante (equivale a ``app.notify``).
 
-    Acepta ``title``, ``icon``, ``image``, ``duration`` y ``action``::
+    Si se llama dentro de un handler, el aviso sale en **esa** ventana, aunque la
+    app se haya creado con `ui.App(...)`. Acepta ``title``, ``icon``, ``image``,
+    ``duration`` y ``action``::
 
         toast("Guardado", "success", icon=icons.check, title="Hecho")
     """
-    current_app().notify(message, level, **options)
+    recipient_app().notify(message, level, **options)
 
 
 # ---------------------------------------------------------------------------

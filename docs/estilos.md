@@ -259,6 +259,37 @@ Cruzar las dos familias (`md_hover_bg`, por ejemplo) genera la clase correcta,
 pero esa regla tiene que existir en tu hoja: usa `class_=` o recompila con
 `interui assets` si vas a abusar de esas combinaciones.
 
+### Adaptarse al tamaño de la ventana
+
+Un patrón típico: poco aire en ventanas pequeñas y más en las grandes.
+
+```python
+Container(
+    pad=pad.p_4,
+    sm_pad=pad.p_6,
+    lg_pad=pad.p_10,
+)(
+    Heading("Panel", font=font.xxl.bold, md_font=font.xxxl.bold),
+)
+```
+
+Además de los prefijos, estos controles ya son fluidos por sí solos, sin que
+escribas nada:
+
+| Control | Qué hace al encoger la ventana |
+|---|---|
+| `AppShell` | el sidebar se vuelve un panel deslizante con botón (☰); el contenido nunca se aplasta |
+| `<main>` del armazón | scroll vertical propio y `overflow-x` oculto |
+| `Container` | padding `px-4 → sm:px-6 → lg:px-8` |
+| `Row` / `Col` | `span`, `sm`, `md`, `lg`, `xl` por columna |
+| `Table`, `DataTable`, `CodeBlock` | se desplazan dentro de su caja, no estiran la página |
+| `Dialog`, `ConfirmDialog` | ancho `w-full` con tope y scroll interno si no cabe a lo alto |
+| `Image` | `max-w-full` y alto automático si no fijas proporción |
+| `Chart` / `Sparkline` | `viewBox` con `w-full` |
+| `StatusBar` | los elementos bajan de línea en vez de salirse |
+| `Drawer` | anchos relativos (`min(90vw, 18rem)` y compañía) |
+| `MenuBar` | desplazamiento horizontal cuando no caben los menús |
+
 ---
 
 ## 5. Colores personalizados, degradados y medidas exactas

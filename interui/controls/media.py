@@ -41,11 +41,11 @@ class Image(Component):
         )
         ratios = {"square": "aspect-square", "video": "aspect-video", "wide": "aspect-[21/9]"}
         props["base_class"] = tw(
-            "block",
+            "block max-w-full",
             fit_cls,
             utility("rounded", rounded),
             ratios.get(ratio or "", f"{ratios[ratio]}" if ratio in ratios else ""),
-            "w-full h-full object-center" if ratio else "",
+            "h-full w-full object-center" if ratio else "h-auto",
             props.get("base_class"),
         )
         super().__init__(**props)

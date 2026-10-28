@@ -188,12 +188,27 @@ class MenuBar(Component):
         self.actions = actions
         props["role"] = "menubar"
         props["base_class"] = tw(
-            "flex h-10 w-full items-center gap-1 border-b border-slate-200 bg-white px-2 "
-            "dark:border-slate-800 dark:bg-slate-950",
+            "flex h-10 w-full min-w-0 items-center gap-1 overflow-x-auto border-b "
+            "border-slate-200 bg-white px-2 dark:border-slate-800 dark:bg-slate-950",
             "sticky top-0 z-40" if sticky else "",
             props.get("base_class"),
         )
         super().__init__(**props)
+
+    def __setitem__(self, title: str, items: Any) -> None:
+        """``bar["Archivo"] = [ui.ContextItem("Salir", on_click=salir)]``."""
+        nuevos = list(items)
+        for index, (name, _existing) in enumerate(self.menus):
+            if name == title:
+                self.menus[index] = (title, nuevos)
+                return
+        self.menus.append((title, nuevos))
+
+    def __getitem__(self, title: str) -> Any:
+        for name, items in self.menus:
+            if name == title:
+                return items
+        raise KeyError(title)
 
     def content(self, ctx: RenderContext, path: str) -> str:
         uid = ctx.uid(path, self.key, self.explicit_id)
@@ -308,20 +323,33 @@ def _sidebar_side(value: Any) -> str:
 
 
 class AppShell(Component):
-    """Armazón de una aplicación de escritorio.
+    """Armazón de una aplicación de escritorio, en dos estilos.
 
-    Coloca en su sitio la barra de título, la barra de menús o cabecera, la barra
-    lateral, el contenido con scroll y la barra de estado:
+    Todo de una vez (constructor):
 
     ```python
     ui.AppShell(
-        title_bar=ui.TitleBar("Mi app", icon="layers"),
-        header=ui.MenuBar({"Archivo": [...]}, brand="Mi app"),
-        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon="grid"), title="Navegación"),
-        status=ui.StatusBar(ui.Text("Listo")),
-        ui.Container(class_="py-6")(ui.text("Contenido")),
+        ui.Container(pad=ui.pad.py_6)(ui.text("Contenido")),
+        title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
+        header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]}),
+        sidebar=ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True)),
+        status=ui.StatusBar(ui.text("Listo")),
     )
     ```
+
+    O por partes, asignando cada zona (más fácil de leer cuando crece):
+
+    ```python
+    shell = ui.AppShell()
+    shell.title_bar = ui.TitleBar("Mi app", icon=ui.icons.layers)
+    shell.header = ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]})
+    shell.sidebar = ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True))
+    shell.status = ui.StatusBar(ui.text("Listo"))
+    shell.add = ui.Container(pad=ui.pad.py_6)(ui.text("Contenido"))
+    ```
+
+    En ventanas estrechas el sidebar se convierte en un panel deslizante con su
+    propio botón, así el contenido nunca queda aplastado.
     """
 
     tag = "div"
@@ -336,6 +364,7 @@ class AppShell(Component):
         footer: Any = None,
         sidebar_position: str = "left",
         sidebar_width: str = "w-64",
+        menu_label: Any = "Menú",
         **props: Any,
     ) -> None:
         self.title_bar = title_bar
@@ -345,15 +374,19 @@ class AppShell(Component):
         self.footer = footer
         self.sidebar_position = _sidebar_side(sidebar_position)
         self.sidebar_width = sidebar_width
+        self.menu_label = menu_label
         props["base_class"] = tw(
-            "flex h-screen w-full flex-col overflow-hidden bg-slate-50 text-slate-900 "
+            "iui-shell flex h-dvh w-full flex-col overflow-hidden bg-slate-50 text-slate-900 "
             "dark:bg-slate-950 dark:text-slate-100",
             props.get("base_class"),
         )
         super().__init__(*content, **props)
 
+    # -- zonas -----------------------------------------------------------
     def content(self, ctx: RenderContext, path: str) -> str:
         parts: list[str] = []
+        if self.sidebar is not None:
+            parts.append(self._drawer_bar(ctx, f"{path}-bar"))
         for index, slot in enumerate((self.title_bar, self.header)):
             if slot is None:
                 continue
@@ -363,26 +396,24 @@ class AppShell(Component):
                 parts.append(render_children([slot], ctx, f"{path}-h{index}"))
 
         inner = render_children(self.children, ctx, f"{path}-main")
-        main = f'<main class="min-w-0 flex-1 overflow-y-auto">{inner}</main>'
-        if self.sidebar is not None:
-            side = (
-                self.sidebar.render(ctx, f"{path}-side")
-                if isinstance(self.sidebar, Component)
-                else render_children([self.sidebar], ctx, f"{path}-side")
-            )
-            if not isinstance(self.sidebar, Component):
-                side = f'<div class="{self.sidebar_width} shrink-0">{side}</div>'
-            side_first = self.sidebar_position != "right"
-            parts.append(
-                f'<div class="iui-shell-row flex min-h-0 flex-1 overflow-hidden" '
-                f'data-side="{self.sidebar_position}">'
-                f'{side}{main}</div>'
-                if side_first
-                else f'<div class="iui-shell-row flex min-h-0 flex-1 overflow-hidden" '
-                f'data-side="{self.sidebar_position}">{main}{side}</div>'
-            )
-        else:
+        main = (
+            '<main class="min-w-0 flex-1 overflow-y-auto overflow-x-hidden">'
+            f"{inner}</main>"
+        )
+        if self.sidebar is None:
             parts.append(main)
+        else:
+            if isinstance(self.sidebar, Component):
+                side = self.sidebar.render(ctx, f"{path}-side")
+            else:
+                body = render_children([self.sidebar], ctx, f"{path}-side")
+                side = f'<div class="iui-shell-side {self.sidebar_width} shrink-0">{body}</div>'
+            backdrop = '<div class="iui-shell-backdrop" data-iui-drawer="close" aria-hidden="true"></div>'
+            row = f"{side}{main}" if self.sidebar_position != "right" else f"{main}{side}"
+            parts.append(
+                f'<div class="iui-shell-row relative flex min-h-0 flex-1 overflow-hidden" '
+                f'data-side="{self.sidebar_position}">{row}{backdrop}</div>'
+            )
 
         if self.footer is not None:
             parts.append(
@@ -397,6 +428,25 @@ class AppShell(Component):
                 else render_children([self.status], ctx, f"{path}-status")
             )
         return "".join(parts)
+
+    def _drawer_bar(self, ctx: RenderContext, path: str) -> str:
+        """Barra fina con el botón del menú: solo se ve en ventanas estrechas."""
+        toggle = (
+            '<button type="button" data-iui-drawer="toggle" '
+            'aria-label="Mostrar u ocultar el menú" '
+            'class="iui-shell-drawer inline-flex h-9 w-9 items-center justify-center rounded-lg '
+            'text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800">'
+            + Icon("menu", size=4).render(ctx, f"{path}-menu")
+            + "</button>"
+        )
+        return (
+            '<div class="iui-shell-bar shrink-0 items-center gap-1 border-b '
+            'border-slate-200 bg-white px-2 py-1.5 dark:border-slate-800 dark:bg-slate-950">'
+            + toggle
+            + '<span class="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">'
+            + escape(self.menu_label)
+            + "</span></div>"
+        )
 
 
 class CommandBar(Component):

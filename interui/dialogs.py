@@ -187,11 +187,10 @@ class Dialog(Component):
         )
         panel = Div(
             base_class=tw(
-                "relative z-10 flex w-full flex-col overflow-hidden rounded-2xl bg-white "
-                "shadow-2xl ring-1 ring-slate-900/5 dark:bg-slate-900 dark:ring-slate-700/40 "
-                "iui-dialog-panel",
+                "iui-dialog-panel relative z-10 flex max-h-[calc(100dvh-2rem)] w-full "
+                "flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 "
+                "ring-slate-900/5 dark:bg-slate-900 dark:ring-slate-700/40",
                 WIDTHS.get(self.width, WIDTHS["md"]),
-                "max-h-[85vh]" if self.scrollable else "",
             ),
             **({"aria": {"labelledby": f"{uid}-title"}} if self.dialog_title else {}),
         )
@@ -199,10 +198,7 @@ class Dialog(Component):
             panel(self._header(ctx, uid))
 
         body = Div(
-            base_class=tw(
-                "flex flex-col gap-3 px-5 py-4",
-                "overflow-y-auto" if self.scrollable else "",
-            )
+            base_class="flex min-h-0 flex-col gap-3 overflow-y-auto px-5 py-4"
         )
         body(*self._body(ctx, path))
         footer = Div(
@@ -521,6 +517,17 @@ class DialogAPI:
 
 
 def _current_app() -> Any:
+    """App sobre la que abrir el diálogo.
+
+    Primero la que está ejecutando el handler (``ui.App`` explícito); si no hay
+    ninguna, la de la API compacta. Así `ui.dialog.info(...)` funciona igual en
+    `ui.window(...)` que en una app con `@app.page`.
+    """
+    from .app import active_app
+
+    application = active_app()
+    if application is not None:
+        return application
     from .simple import current_app
 
     return current_app()

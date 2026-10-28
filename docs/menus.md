@@ -51,6 +51,39 @@ def index():
 | `status` | `ui.StatusBar(...)` fija al pie. |
 | `sidebar_position` | `ui.side.left` (por defecto) o `ui.side.right`; también `start`/`end`. |
 | `sidebar_width` | Clase de ancho del hueco cuando `sidebar` no es un `ui.Sidebar`. |
+| `menu_label` | Texto que acompaña al botón del menú en ventanas estrechas. |
+
+### Armarlo por partes
+
+El constructor con todas las zonas está bien para ejemplos, pero cuando la app
+crece se lee mejor ir asignando cada parte. Todas las zonas son atributos, y el
+contenido se añade con `add`:
+
+```python
+shell = ui.AppShell()
+shell.title_bar = ui.TitleBar("Mi app", icon=ui.icons.layers)
+shell.header = ui.MenuBar({"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power)]})
+shell.sidebar = ui.Sidebar(ui.SidebarItem("Panel", icon=ui.icons.grid, active=True))
+shell.status = ui.StatusBar(ui.text("Listo"))
+shell.add = ui.Container(pad=ui.pad.py_6)(ui.text("Contenido"))
+```
+
+| Forma | Ejemplo |
+|---|---|
+| llamada | `shell.add(ui.text("Contenido"))` |
+| asignación | `shell.add = ui.text("Contenido")` |
+| suma | `shell += ui.text("Contenido")` |
+| lista | `shell.add = [ui.text("Uno"), ui.text("Dos")]` |
+
+Lo mismo sirve para cualquier control (`card.add = …`, `form.add = …`) y para
+los menús: `bar["Archivo"] = [ui.ContextItem("Salir", icon=ui.icons.power)]`.
+
+### Ventanas estrechas
+
+En menos de 768 px el sidebar deja de ocupar sitio: se esconde y aparece un
+botón (☰) en una barra superior que lo desliza sobre el contenido, con fondo
+oscuro para cerrarlo al tocar fuera. Al elegir un elemento del menú lateral se
+cierra solo. No hay nada que configurar y el contenido nunca queda aplastado.
 
 ### Posición de la barra lateral
 

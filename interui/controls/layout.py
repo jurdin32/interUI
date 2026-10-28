@@ -434,7 +434,12 @@ class Drawer(Component):
     def content(self, ctx: RenderContext, path: str) -> str:
         from ..base import render_children
 
-        widths = {"sm": "w-72", "md": "w-96", "lg": "w-[32rem]", "full": "w-full"}
+        widths = {
+            "sm": "w-[min(90vw,18rem)]",
+            "md": "w-[min(92vw,24rem)]",
+            "lg": "w-[min(94vw,32rem)]",
+            "full": "w-full",
+        }
         align = "justify-end" if self.side == "right" else "justify-start"
         head = (
             '<div class="flex items-center justify-between border-b border-slate-100 px-4 py-3 '
@@ -845,7 +850,7 @@ class TitleBar(Component):
         left = ""
         if self.icon or self.bar_title:
             left = (
-                '<div class="pywebview-drag-region flex flex-1 items-center gap-2">'
+                '<div class="pywebview-drag-region flex min-w-0 flex-1 items-center gap-2">'
                 + (
                     f'<span class="flex h-6 w-6 items-center justify-center rounded-md bg-indigo-600 text-white">'
                     f"{Icon(self.icon, size=3).render(ctx, path + '-ic')}</span>"
@@ -853,7 +858,7 @@ class TitleBar(Component):
                     else ""
                 )
                 + (
-                    f'<span class="text-xs font-medium text-slate-600 dark:text-slate-300">'
+                    f'<span class="truncate text-xs font-medium text-slate-600 dark:text-slate-300">'
                     f"{escape(self.bar_title)}</span>"
                     if self.bar_title
                     else ""
@@ -868,7 +873,7 @@ class TitleBar(Component):
         controls = ""
         if self.controls:
             controls = (
-                '<div class="flex items-center gap-0.5">'
+                '<div class="flex shrink-0 items-center gap-0.5">'
                 f'<button type="button" data-iui-native="minimize" aria-label="Minimizar" class="{button}">'
                 + Icon("minus", size=3).render(ctx, path + "-mi")
                 + "</button>"
@@ -891,9 +896,9 @@ class StatusBar(Component):
 
     def __init__(self, *children: Any, **props: Any) -> None:
         props["base_class"] = tw(
-            "flex h-7 w-full shrink-0 items-center gap-3 border-t border-slate-200 bg-slate-50 "
-            "px-3 text-[11px] text-slate-500 dark:border-slate-800 dark:bg-slate-900 "
-            "dark:text-slate-400",
+            "flex min-h-7 w-full shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t "
+            "border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-500 "
+            "dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400",
             props.get("base_class"),
         )
         super().__init__(*children, **props)

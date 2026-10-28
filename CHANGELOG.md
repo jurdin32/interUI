@@ -39,6 +39,15 @@ etiqueta como `vX.Y.Z`.
   extras (`interui[postgres]`, etc.).
 - **CLI**: comandos `init` y `db`; `doctor`, `assets`, `dev`, `run`, `new`,
   `build` y `update` siguen igual.
+- **Armar la interfaz por partes**, con la misma notación de punto:
+  `shell.sidebar = ui.Sidebar(...)`, `shell.add = ui.Container(...)`,
+  `card += ui.text("Hola")`, `bar["Archivo"] = [ui.ContextItem(...)]`.
+  `add` funciona como llamada, como asignación y como `+=` en todos los controles.
+- **Diseño adaptable**: en ventanas de menos de 768 px el sidebar del `AppShell`
+  se convierte en un panel deslizante con su botón y fondo para cerrarlo; los
+  diálogos se limitan a la altura de la ventana con scroll interno; las imágenes
+  se ajustan al ancho; la barra de estado baja de línea; el cajón lateral y la
+  barra de menús usan anchos y desplazamientos relativos.
 
 ### Cambiado
 
@@ -47,6 +56,14 @@ etiqueta como `vX.Y.Z`.
 - `Sidebar(width=…)` se respeta al colocar el sidebar a la derecha.
 - `App.run(window="browser"|"none")` termina con `app.exit()` en lugar de quedar
   bloqueado.
+- `AppShell` usa `h-dvh` (alto real de la ventana) y el contenido `<main>` no
+  desborda en horizontal.
+- `Dialog`: el cuerpo siempre tiene scroll cuando el alto no alcanza; el ancho
+  sigue siendo el de `width=`.
+- `Image`: sin proporción fija se ajusta al ancho (`max-w-full`, `h-auto`).
+- `StatusBar`: altura mínima y elementos que bajan de línea.
+- `Drawer`: anchos relativos (`w-[min(90vw,18rem)]` y equivalentes).
+- `MenuBar`: desplazamiento horizontal y laterales sin encoger.
 
 ### Documentación
 
@@ -71,6 +88,9 @@ etiqueta como `vX.Y.Z`.
   cada render.
 - `Progress`, `ProgressRing`, `Meter` y `Gauge` fallaban con señales.
 - `margin.mr`, `margin.mb` y `margin.ml` generaban el padding equivocado.
+- `ui.dialog.info(...)` y `ui.toast(...)` dentro de un handler de una app creada
+  con `ui.App(...)` se abrían en la app implícita (o no aparecían). Ahora usan la
+  ventana que está ejecutando el handler.
 - `"name": ":memory:"` en SQLite creaba un archivo llamado `:memory:`; ahora es
   una base efímera, útil para tests y demos.
 

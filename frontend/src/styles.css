@@ -226,4 +226,94 @@
   .iui-dialog[data-layer="blocking"] {
     z-index: 100;
   }
+
+  /* ------------------------------------------------------------------
+     AppShell en ventanas estrechas: el sidebar pasa a panel deslizante.
+     Se controla con `data-sidebar` en el contenedor y `.iui-shell-drawer`.
+     ------------------------------------------------------------------ */
+  .iui-shell {
+    /* Fallback para motores sin `dvh` (Safari < 15.4, WebView antiguos). */
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .iui-dialog-panel {
+    max-height: calc(100vh - 2rem);
+  }
+
+  @supports (height: 100dvh) {
+    .iui-dialog-panel {
+      max-height: calc(100dvh - 2rem);
+    }
+  }
+
+  .iui-shell-row {
+    position: relative;
+  }
+
+  .iui-shell-bar,
+  .iui-shell-backdrop {
+    display: none;
+  }
+
+  @media (max-width: 767px) {
+    .iui-shell-bar {
+      display: flex;
+    }
+
+    .iui-shell-backdrop {
+      cursor: pointer;
+    }
+
+    .iui-shell-row > aside,
+    .iui-shell-row > .iui-shell-side {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      z-index: 45;
+      width: min(18rem, 85vw) !important;
+      max-width: 85vw;
+      transition: transform 180ms ease;
+      box-shadow: 0 18px 40px rgb(2 6 23 / 0.25);
+    }
+
+    .iui-shell-row[data-side="left"] > aside,
+    .iui-shell-row[data-side="left"] > .iui-shell-side {
+      left: 0;
+      transform: translateX(-102%);
+    }
+
+    .iui-shell-row[data-side="right"] > aside,
+    .iui-shell-row[data-side="right"] > .iui-shell-side {
+      right: 0;
+      transform: translateX(102%);
+      border-left-width: 1px;
+      border-right-width: 0;
+    }
+
+    .iui-shell[data-sidebar="open"] .iui-shell-row > aside,
+    .iui-shell[data-sidebar="open"] .iui-shell-row > .iui-shell-side {
+      transform: translateX(0);
+    }
+
+    .iui-shell[data-sidebar="open"] .iui-shell-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: block;
+      background-color: color-mix(in oklab, var(--color-slate-950) 45%, transparent);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .iui-shell-bar,
+    .iui-shell-backdrop {
+      display: none;
+    }
+  }
+
+  /* Nada más ancho que su contenedor: tablas, código y medios. */
+  .iui-shell main {
+    min-width: 0;
+  }
 }

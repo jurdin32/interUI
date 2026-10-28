@@ -413,3 +413,57 @@ def test_toast_compacto_acepta_opciones() -> None:
     toast_fn("Listo", "success", title="Hecho", icon=ui.icons.check)
     assert app.server.sent[0]["title"] == "Hecho"
     assert app.server.sent[0]["icon"].startswith("<svg")
+
+
+# --- la app del handler ------------------------------------------------------
+
+
+def test_dialog_se_abre_en_la_app_del_handler(monkeypatch, tmp_path):
+    """`ui.dialog.info` dentro de un handler usa esa app, no la implícita."""
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    application = ui.App("Explícita")
+
+    @application.page("/")
+    def index():
+        return ui.Screen(ui.Button("Abrir", on_click=lambda: ui.dialog.info("hola", title="Aviso")))
+
+    client = Client()
+    application._client_pages[client.id] = "/"
+    _title, _html, bindings = application.render_page("/")
+    application._bindings[client.id] = bindings
+    application._push_render(client)
+
+    uid = ids_with(bindings, "click")[0]
+    application._dispatch(client, {"t": "event", "id": uid, "e": "click"})
+
+    assert len(application.dialogs) == 1, "el diálogo se abrió en otra app"
+    _title, html, _bindings = application.render_page("/")
+    assert "Aviso" in html and 'role="dialog"' in html
+
+
+def test_toast_usa_la_app_del_handler(monkeypatch, tmp_path):
+    monkeypatch.setenv("INTERUI_DATA_DIR", str(tmp_path))
+    application = ui.App("Explícita")
+    avisos: list[tuple] = []
+    monkeypatch.setattr(application, "notify", lambda *args, **kwargs: avisos.append(args))
+
+    @application.page("/")
+    def index():
+        return ui.Screen(ui.Button("Avisar", on_click=lambda: ui.toast("hecho", "success")))
+
+    client = Client()
+    application._client_pages[client.id] = "/"
+    _title, _html, bindings = application.render_page("/")
+    application._bindings[client.id] = bindings
+    application._push_render(client)
+
+    uid = ids_with(bindings, "click")[0]
+    application._dispatch(client, {"t": "event", "id": uid, "e": "click"})
+
+    assert avisos and avisos[0][0] == "hecho"
+
+
+def test_fuera_de_un_handler_no_hay_app_activa() -> None:
+    from interui.app import active_app
+
+    assert active_app() is None

@@ -403,10 +403,11 @@ class ConfirmDialog(Component):
         ctx.bind(f"{uid}-no", "click", self.handlers.get("cancel"))
         tones = {"danger": "bg-rose-600 hover:bg-rose-500", "primary": "bg-indigo-600 hover:bg-indigo-500"}
         return (
-            '<div class="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl dark:bg-slate-900">'
+            '<div class="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl '
+            'bg-white p-5 shadow-xl dark:bg-slate-900">'
             f'<h3 class="text-base font-semibold text-slate-900 dark:text-white">{escape(self.title)}</h3>'
             f'<div class="mt-2 text-sm text-slate-600 dark:text-slate-300">{render_children(self.children, ctx, path)}</div>'
-            '<div class="mt-5 flex justify-end gap-2">'
+            '<div class="mt-5 flex flex-wrap justify-end gap-2">'
             f'<button type="button" id="{escape(uid)}-no" data-iui-emit="click" '
             'class="h-9 rounded-lg border border-slate-300 px-3 text-sm font-medium text-slate-700 '
             'transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">'
