@@ -36,7 +36,8 @@ commit.
 ## 1. Requisitos
 
 ```bash
-pip install "interui[desktop]"
+# Todavía no está en PyPI: se instala desde GitHub
+pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 python -c "import interui; print(interui.__version__)"
 ```
 
@@ -48,7 +49,7 @@ python -c "import interui; print(interui.__version__, interui.__file__)"
 ```
 
 Debe decir que `pywebview` está instalado, que el CSS existe y que la versión es
-**≥ 0.2.0**. Si `import interui` te da una versión antigua (o `window` «es un
+**≥ 0.5.0**. Si `import interui` te da una versión antigua (o `window` «es un
 símbolo de importación desconocido»), tienes otra copia instalada en el
 intérprete que usa tu editor:
 
@@ -56,8 +57,8 @@ intérprete que usa tu editor:
 # trabajando sobre el repositorio
 pip install -e ".[desktop,dev]"
 
-# desde GitHub, versión concreta
-pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.2.0"
+# desde GitHub (fija una versión con @v0.5.0 si lo necesitas)
+pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 ```
 
 En VS Code, selecciona el mismo intérprete con `Ctrl/Cmd + Shift + P` →

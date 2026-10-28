@@ -15,13 +15,20 @@ que te toca.
 Depende de cómo instalaste interUI. El framework lo detecta solo y te muestra el
 comando correcto en el aviso de la app y con `interui update`.
 
-**Instalado desde Git** (lo habitual antes del primer release en PyPI):
+**Instalado desde GitHub** (la forma disponible hoy, porque el paquete aún no
+está en PyPI):
 
 ```bash
 pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 ```
 
-**Instalado desde PyPI** (cuando esté publicado):
+Para moverte a una versión concreta en lugar de a la última de `main`:
+
+```bash
+pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.5.0"
+```
+
+**Instalado desde PyPI** (cuando se publique el primer release):
 
 ```bash
 pip install -U interui[desktop]
