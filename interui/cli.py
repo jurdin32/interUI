@@ -100,6 +100,52 @@ def cmd_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_startproject(args: argparse.Namespace) -> int:
+    """`iui startproject tienda`: estructura completa, al estilo de Django."""
+    from .scaffold import create_project, package_name
+
+    parent = Path(args.destination or ".").expanduser().resolve()
+    target = parent / args.name
+    settings: dict[str, Any] = {}
+    for field in ("database", "host", "port", "user", "password"):
+        value = getattr(args, field, None)
+        if value is not None:
+            settings["name" if field == "database" else field] = value
+
+    try:
+        files = create_project(
+            target,
+            args.name,
+            engine=args.db or "sqlite",
+            settings=settings,
+            force=args.force,
+        )
+    except FileExistsError as exc:
+        raise SystemExit(f"interui: {exc}") from None
+    except ValueError as exc:
+        raise SystemExit(f"interui: {exc}") from None
+
+    print(f"[interui] proyecto creado en {target}")
+    print(f"[interui] {len(files)} archivos, paquete {package_name(args.name)}")
+    if args.migrate:
+        location = str(target / "interui.json")
+        code = cmd_db(
+            argparse.Namespace(action="makemigrations", name=None, force=True, config=location)
+        )
+        if code:
+            return code
+        return cmd_db(
+            argparse.Namespace(action="migrate", name=None, force=False, config=location)
+        )
+    print("[interui] siguientes pasos:")
+    print(f"  cd {target.name}")
+    print("  pip install -r requirements.txt")
+    print("  python iui.py makemigrations")
+    print("  python iui.py migrate")
+    print("  python iui.py run")
+    return 0
+
+
 def cmd_new(args: argparse.Namespace) -> int:
     target = Path(args.destination).expanduser().resolve()
     if target.exists() and any(target.iterdir()):
@@ -443,8 +489,9 @@ def cmd_build(args: argparse.Namespace) -> int:
 # parser
 # ---------------------------------------------------------------------------
 def build_parser() -> argparse.ArgumentParser:
+    invoked = Path(sys.argv[0]).name if sys.argv and sys.argv[0] else "interui"
     parser = argparse.ArgumentParser(
-        prog="interui",
+        prog="iui" if invoked.startswith("iui") else "interui",
         description="Aplicaciones de escritorio en Python con HTML, Tailwind y JS.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
@@ -461,6 +508,22 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--height", type=int)
     run.add_argument("--theme", choices=["light", "dark"])
     run.set_defaults(func=cmd_run)
+
+    start = sub.add_parser(
+        "startproject",
+        help="estructura completa de un proyecto (estilo Django, solo escritorio)",
+    )
+    start.add_argument("name", help="nombre del proyecto (también la carpeta)")
+    start.add_argument("destination", nargs="?", default=".", help="carpeta donde crearlo")
+    start.add_argument("--db", help="motor: sqlite, postgres, mysql, mongo o file")
+    start.add_argument("--database", help="nombre de la base de datos o ruta del archivo")
+    start.add_argument("--host")
+    start.add_argument("--port", type=int)
+    start.add_argument("--user")
+    start.add_argument("--password")
+    start.add_argument("--migrate", action="store_true", help="crea y aplica la migración inicial")
+    start.add_argument("--force", action="store_true", help="escribe en una carpeta no vacía")
+    start.set_defaults(func=cmd_startproject)
 
     new = sub.add_parser("new", help="crea un proyecto nuevo")
     new.add_argument("destination", help="carpeta del proyecto")
@@ -515,6 +578,134 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("assets", help="recompila Tailwind (Vite)").set_defaults(func=cmd_assets)
     sub.add_parser("dev", help="Tailwind en modo watch").set_defaults(func=cmd_dev)
     return parser
+
+
+def project_parser() -> argparse.ArgumentParser:
+    """Comandos del `iui.py` que genera `startproject`."""
+    parser = argparse.ArgumentParser(
+        prog="iui.py",
+        description="Comandos de este proyecto interUI (solo escritorio).",
+    )
+    sub = parser.add_subparsers(dest="action")
+
+    run = sub.add_parser("run", help="abre la ventana de escritorio")
+    run.add_argument("--debug", action="store_true", help="herramientas de desarrollo")
+    run.add_argument("--verbose", action="store_true")
+    run.add_argument("--window", default="desktop", choices=["desktop", "none"], help=argparse.SUPPRESS)
+
+    make = sub.add_parser("makemigrations", help="genera la migración de los modelos")
+    make.add_argument("name", nargs="?", help="nombre de la migración")
+    make.add_argument("--force", action="store_true", help="permite cambios que borran datos")
+
+    sub.add_parser("migrate", help="aplica las migraciones pendientes")
+    sub.add_parser("status", help="estado de las migraciones")
+    sub.add_parser("shell", help="consola de Python con los modelos cargados")
+    sub.add_parser("check", help="revisa la configuración del proyecto")
+    return parser
+
+
+def _project_config() -> tuple[Any, Path]:
+    """Carga `interui.json` desde el directorio actual (o hacia arriba)."""
+    from .config import find_config, load
+
+    path = find_config()
+    if path is None:
+        raise SystemExit(
+            "interui: no encuentro interui.json. Ejecuta `python iui.py` desde la "
+            "carpeta del proyecto."
+        )
+    return load(path), path
+
+
+def _project_app(settings: Any, root: Path) -> Any:
+    """Importa la `App` del proyecto a partir de `app.entry`."""
+    from .app import App
+
+    entry = str(settings.get("app", {}).get("entry") or "app.py")
+    if entry.endswith(".py"):
+        return _load_app(root / entry)
+
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    module = importlib.import_module(entry)
+    found = getattr(module, "app", None)
+    if isinstance(found, App):
+        return found
+    factory = getattr(module, "create_app", None)
+    if callable(factory):
+        return factory()
+    raise SystemExit(f"interui: {entry} no define `app` ni `create_app()`")
+
+
+def project_main(argv: Sequence[str] | None = None) -> int:
+    """Punto de entrada del `iui.py` del proyecto."""
+    parser = project_parser()
+    args = parser.parse_args(list(argv) if argv is not None else None)
+    action = args.action or "run"
+    settings, path = _project_config()
+    root = path.parent
+
+    if action == "check":
+        settings.validate()
+        print(f"[interui] configuración correcta: {path}")
+        print(f"[interui] app: {settings.get('app', {}).get('name')}")
+        database = settings.database()
+        print(f"[interui] base de datos: {database.describe()}")
+        return 0
+
+    if action in ("makemigrations", "migrate", "status"):
+        return cmd_db(
+            argparse.Namespace(
+                action=action,
+                name=getattr(args, "name", None),
+                force=getattr(args, "force", False),
+                config=str(path),
+            )
+        )
+
+    if action == "shell":
+        return cmd_shell(settings)
+
+    _warn_pending(settings)
+    app = _project_app(settings, root)
+    if getattr(args, "verbose", False):
+        app.verbose = True
+    app.run(window=args.window, debug=getattr(args, "debug", False))
+    return 0
+
+
+def _warn_pending(settings: Any) -> None:
+    """Avisa (sin bloquear) si quedan migraciones por aplicar."""
+    from . import db, migrations
+
+    try:
+        db.configure(settings)
+        pending = migrations.pending(settings)
+    except Exception:  # noqa: BLE001 - la ventana debe abrirse igual
+        return
+    if pending:
+        nombres = ", ".join(migration.name for migration in pending)
+        print(f"[interui] migraciones pendientes ({nombres}): python iui.py migrate")
+
+
+def cmd_shell(settings: Any) -> int:
+    """Consola interactiva con la `App`, los modelos y `ui` a mano."""
+    import code
+
+    from . import db
+    from .orm import declared_models
+
+    db.configure(settings)
+    namespace: dict[str, Any] = {"ui": __import__("interui"), "db": db, "config": settings}
+    models_path = settings.get("migrations", {}).get("models") or "models.py"
+    try:
+        for model in declared_models(settings.resolve(models_path)):
+            namespace[model.__name__] = model
+    except Exception as exc:  # noqa: BLE001 - la consola debe abrirse igual
+        print(f"[interui] no se pudieron cargar los modelos: {exc}")
+    print("[interui] consola: `ui`, `db`, `config` y tus modelos están disponibles.")
+    code.interact(banner="", local=namespace)
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:

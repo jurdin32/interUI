@@ -54,6 +54,7 @@ dev = [
 
 [project.scripts]
 interui = "interui.cli:main"
+iui = "interui.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/jurdin32/interUI"

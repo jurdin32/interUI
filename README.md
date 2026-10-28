@@ -271,10 +271,44 @@ obsoleto.
 ## Inicio rápido
 
 ```bash
-interui new mi_app          # crea mi_app/app.py + README + .gitignore
+iui startproject mi_app     # estructura completa, al estilo de Django
 cd mi_app
-python app.py               # abre la ventana nativa
+pip install -r requirements.txt
+python iui.py makemigrations
+python iui.py migrate
+python iui.py run           # abre la ventana nativa
 ```
+
+Lo que crea (todo de escritorio, sin servidor web):
+
+```
+mi_app/
+├── iui.py              # comandos, como manage.py
+├── interui.json        # configuración, como settings.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── mi_app/             # el paquete del proyecto
+│   ├── __init__.py
+│   ├── app.py          # crea la App y registra las rutas
+│   ├── urls.py         # ruta → vista
+│   ├── views.py        # las páginas
+│   ├── layout.py       # armazón: menú lateral, título y estado
+│   └── models.py       # modelos del ORM
+├── migrations/         # migraciones generadas
+└── data/               # SQLite o archivos
+```
+
+| Django | interUI |
+|---|---|
+| `manage.py` | `iui.py` (`run`, `makemigrations`, `migrate`, `status`, `shell`, `check`) |
+| `settings.py` | `interui.json` |
+| `urls.py` / `views.py` | `mi_app/urls.py` / `mi_app/views.py` |
+| `models.py` + migraciones | `mi_app/models.py` + `migrations/*.json` |
+| `wsgi.py` / `asgi.py` | no hay: la app abre su propia ventana |
+
+`iui` y `interui` son el mismo comando (`iui startproject`, `iui run`, `iui db
+migrate`…). Si solo quieres un archivo suelto: `interui new mi_app`.
 
 Contenido de `app.py`:
 
@@ -977,15 +1011,32 @@ window.interui.desktop      // true dentro de la ventana nativa
 
 ## CLI
 
+`iui` y `interui` son el mismo comando. Todo es de escritorio: no hay servidor
+que desplegar.
+
 ```bash
-interui run app.py              # ventana nativa (por defecto)
-interui run app.py --window browser  # navegador (depuración)
-interui run app.py --debug      # herramientas de desarrollo en la ventana
-interui new mi_app              # proyecto nuevo
-interui doctor                  # comprueba el entorno
-interui assets                  # recompila Tailwind (Vite)
-interui dev                     # Tailwind en modo watch
-interui build app.py --name MiApp
+iui startproject mi_app         # estructura completa (estilo Django)
+iui run app.py                  # ventana nativa (por defecto)
+iui run app.py --debug          # herramientas de desarrollo en la ventana
+iui new mi_app                  # un solo archivo, sin base de datos
+iui init mi_app                 # asistente: interui.json + base de datos
+iui db makemigrations           # migraciones (también `iui db migrate|status`)
+iui doctor                      # comprueba el entorno
+iui assets                      # recompila Tailwind (Vite)
+iui dev                         # Tailwind en modo watch
+iui build app.py --name MiApp
+```
+
+Dentro de un proyecto creado con `startproject`, los comandos viven en `iui.py`
+(como `manage.py`):
+
+```bash
+python iui.py run
+python iui.py makemigrations
+python iui.py migrate
+python iui.py status
+python iui.py shell             # consola con tus modelos cargados
+python iui.py check             # revisa interui.json y la base de datos
 ```
 
 `python -m interui ...` funciona igual si no quieres el script en el PATH.

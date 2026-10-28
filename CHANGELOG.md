@@ -39,6 +39,13 @@ etiqueta como `vX.Y.Z`.
   extras (`interui[postgres]`, etc.).
 - **CLI**: comandos `init` y `db`; `doctor`, `assets`, `dev`, `run`, `new`,
   `build` y `update` siguen igual.
+- **`iui` y `iui startproject`**: el comando corto hace lo mismo que `interui` y
+  `startproject` crea la estructura completa al estilo de Django, solo para
+  escritorio:
+  `iui.py` (comandos), `interui.json` (configuración), `mi_app/` con `app.py`,
+  `urls.py`, `views.py`, `layout.py` y `models.py`, más `migrations/` y `data/`.
+  El `iui.py` del proyecto trae `run`, `makemigrations`, `migrate`, `status`,
+  `shell` (consola con los modelos cargados) y `check`.
 - **Armar la interfaz por partes**, con la misma notación de punto:
   `shell.sidebar = ui.Sidebar(...)`, `shell.add = ui.Container(...)`,
   `card += ui.text("Hola")`, `bar["Archivo"] = [ui.ContextItem(...)]`.

@@ -26,15 +26,81 @@ la biblioteca estándar; PostgreSQL, MySQL/MariaDB y MongoDB son un extra de `pi
 
 ---
 
-## 1. Proyecto nuevo en tres comandos
+## 1. Proyecto nuevo
+
+Dos caminos: la estructura completa estilo Django (`iui startproject`) o el
+archivo único del asistente (`interui init`).
+
+### 1.1 Estructura completa: `iui startproject`
 
 ```bash
 pip install "interui[desktop]"
+iui startproject tienda
+cd tienda
+pip install -r requirements.txt
+python iui.py makemigrations
+python iui.py migrate
+python iui.py run
+```
+
+```text
+tienda/
+├── iui.py              ← comandos, como manage.py
+├── interui.json        ← configuración, como settings.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+├── tienda/             ← paquete del proyecto
+│   ├── __init__.py
+│   ├── app.py          ← crea la App y registra las rutas
+│   ├── urls.py         ← ruta → vista
+│   ├── views.py        ← las páginas
+│   ├── layout.py       ← armazón: menú lateral, título y estado
+│   └── models.py       ← modelos del ORM
+├── migrations/         ← migraciones generadas
+└── data/               ← SQLite o archivos
+```
+
+| Django | interUI |
+|---|---|
+| `manage.py` | `iui.py` |
+| `settings.py` | `interui.json` |
+| `urls.py` | `tienda/urls.py` (`urlpatterns` + `register(app)`) |
+| `views.py` | `tienda/views.py`, cada vista devuelve un componente |
+| `models.py` + migraciones | `tienda/models.py` + `migrations/*.json` |
+| `wsgi.py` / `asgi.py` | no existe: la app abre su propia ventana de escritorio |
+
+Opciones:
+
+| Opción | Para qué |
+|---|---|
+| `--db` | `sqlite` (por defecto), `file`, `postgres`, `mysql` o `mongo`. |
+| `--database` | Ruta del archivo (SQLite/archivos) o nombre de la base. |
+| `--host`, `--port`, `--user`, `--password` | Conexión de servidor. |
+| `--migrate` | crea y aplica la migración inicial al terminar. |
+| `--force` | escribe aunque la carpeta no esté vacía. |
+
+Y los comandos del proyecto, desde su carpeta:
+
+```bash
+python iui.py run              # ventana de escritorio
+python iui.py makemigrations
+python iui.py migrate
+python iui.py status
+python iui.py shell            # consola con `ui`, `db`, `config` y tus modelos
+python iui.py check            # revisa interui.json y la base de datos
+```
+
+### 1.2 Un solo archivo: `interui init`
+
+Si prefieres el proyecto mínimo, sin paquete:
+
+```bash
 interui init tienda --db sqlite --name Tienda --migrate
 cd tienda && python app.py
 ```
 
-`interui init` pregunta lo mínimo y deja el proyecto listo:
+`interui init` pregunta lo mínimo:
 
 ```text
 Nombre de la aplicación [tienda]: Tienda
