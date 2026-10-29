@@ -70,7 +70,7 @@ app.run()
 > pip install -U "interui[desktop]"
 > ```
 >
-> 📖 **Guía de actualización:** [docs/actualizar.md](docs/actualizar.md) ·
+> 📖 **Guía de actualización:** [docs/actualizar.md](https://github.com/jurdin32/interUI/blob/main/docs/actualizar.md) ·
 > 🚀 **Última versión:** <https://github.com/jurdin32/interUI/releases>
 
 La aplicación avisa sola: al arrancar consulta (en segundo plano, sin bloquear la
@@ -83,7 +83,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 
 ## Índice
 
-- [Documentación completa](docs/indice.md) — tutorial, temas, referencia y cómo se hace
+- [Documentación completa](https://github.com/jurdin32/interUI/blob/main/docs/indice.md) — tutorial, temas, referencia y cómo se hace
 - [Estado del proyecto](#estado-del-proyecto)
 - [Multiplataforma](#multiplataforma)
 - [Actualizar interUI](#actualizar-interui)
@@ -229,16 +229,16 @@ En VS Code: `Ctrl/Cmd + Shift + P` → *Python: Select Interpreter* → elige el
 `venv` del proyecto.
 
 👉 Guía completa de instalación y **publicación en PyPI**:
-[`docs/publicar.md`](docs/publicar.md).
+[`docs/publicar.md`](https://github.com/jurdin32/interUI/blob/main/docs/publicar.md).
 
 👉 Para **mantenerlo actualizado** (comandos por tipo de instalación, aviso en la
-app y problemas frecuentes): [`docs/actualizar.md`](docs/actualizar.md).
+app y problemas frecuentes): [`docs/actualizar.md`](https://github.com/jurdin32/interUI/blob/main/docs/actualizar.md).
 
 ---
 
 ## Tutorial paso a paso
 
-El recorrido completo está en **[docs/guia.md](docs/guia.md)**: doce pasos en
+El recorrido completo está en **[docs/guia.md](https://github.com/jurdin32/interUI/blob/main/docs/guia.md)**: doce pasos en
 orden, cada uno un archivo que se ejecuta tal cual, desde una ventana vacía
 hasta la app con base de datos.
 
@@ -258,7 +258,7 @@ hasta la app con base de datos.
 | 12 | El proyecto completo, con apps |
 
 Cada bloque de código del tutorial se compila y se ejecuta en las pruebas
-([`tests/test_guide.py`](tests/test_guide.py)), así que no puede quedarse
+([`tests/test_guide.py`](https://github.com/jurdin32/interUI/blob/main/tests/test_guide.py)), así que no puede quedarse
 obsoleto.
 
 ---
@@ -348,25 +348,25 @@ def create_app() -> ui.App:
 app = create_app()
 ```
 
-Ejemplos completos en [`examples/`](examples):
+Ejemplos completos en [`examples/`](https://github.com/jurdin32/interUI/tree/main/examples):
 
 | Archivo | Qué muestra |
 |---|---|
-| [`00_minimo.py`](examples/00_minimo.py) | Ventana + texto + botón en 8 líneas (API compacta). |
-| [`01_hello.py`](examples/01_hello.py) | Contador con la API explícita. |
-| [`02_grid.py`](examples/02_grid.py) | Rejilla de 12 columnas y breakpoints. |
-| [`03_catalog.py`](examples/03_catalog.py) | Catálogo visual de todos los controles. |
-| [`04_desktop.py`](examples/04_desktop.py) | Integración nativa: diálogos, notificaciones, barra de título. |
-| [`05_crud.py`](examples/05_crud.py) | **App completa**: alta/edición, búsqueda, validación, persistencia y exportación. |
-| [`06_app_moderna.py`](examples/06_app_moderna.py) | Armazón de app, menús, iconos y diálogos. |
-| [`07_estilos.py`](examples/07_estilos.py) | Estilos con tokens: colores, variantes, hex y degradados. |
-| [`08_snackbars.py`](examples/08_snackbars.py) | Snackbars con icono, imagen, acción y duración. |
-| [`09_app_shell.py`](examples/09_app_shell.py) | Sidebar a izquierda/derecha, modales por niveles y cierre. |
-| [`10_multiventana.py`](examples/10_multiventana.py) | Varias ventanas, rutas independientes y cierre por ventana. |
-| [`11_datos.py`](examples/11_datos.py) | Modelos, SQLite y una pantalla CRUD completa. |
-| [`12_responsive.py`](examples/12_responsive.py) | Armazón por partes y todo adaptándose al tamaño de la ventana. |
+| [`00_minimo.py`](https://github.com/jurdin32/interUI/blob/main/examples/00_minimo.py) | Ventana + texto + botón en 8 líneas (API compacta). |
+| [`01_hello.py`](https://github.com/jurdin32/interUI/blob/main/examples/01_hello.py) | Contador con la API explícita. |
+| [`02_grid.py`](https://github.com/jurdin32/interUI/blob/main/examples/02_grid.py) | Rejilla de 12 columnas y breakpoints. |
+| [`03_catalog.py`](https://github.com/jurdin32/interUI/blob/main/examples/03_catalog.py) | Catálogo visual de todos los controles. |
+| [`04_desktop.py`](https://github.com/jurdin32/interUI/blob/main/examples/04_desktop.py) | Integración nativa: diálogos, notificaciones, barra de título. |
+| [`05_crud.py`](https://github.com/jurdin32/interUI/blob/main/examples/05_crud.py) | **App completa**: alta/edición, búsqueda, validación, persistencia y exportación. |
+| [`06_app_moderna.py`](https://github.com/jurdin32/interUI/blob/main/examples/06_app_moderna.py) | Armazón de app, menús, iconos y diálogos. |
+| [`07_estilos.py`](https://github.com/jurdin32/interUI/blob/main/examples/07_estilos.py) | Estilos con tokens: colores, variantes, hex y degradados. |
+| [`08_snackbars.py`](https://github.com/jurdin32/interUI/blob/main/examples/08_snackbars.py) | Snackbars con icono, imagen, acción y duración. |
+| [`09_app_shell.py`](https://github.com/jurdin32/interUI/blob/main/examples/09_app_shell.py) | Sidebar a izquierda/derecha, modales por niveles y cierre. |
+| [`10_multiventana.py`](https://github.com/jurdin32/interUI/blob/main/examples/10_multiventana.py) | Varias ventanas, rutas independientes y cierre por ventana. |
+| [`11_datos.py`](https://github.com/jurdin32/interUI/blob/main/examples/11_datos.py) | Modelos, SQLite y una pantalla CRUD completa. |
+| [`12_responsive.py`](https://github.com/jurdin32/interUI/blob/main/examples/12_responsive.py) | Armazón por partes y todo adaptándose al tamaño de la ventana. |
 
-Y un **proyecto completo de ejemplo**: [`examples/proyecto_tareas/`](examples/proyecto_tareas)
+Y un **proyecto completo de ejemplo**: [`examples/proyecto_tareas/`](https://github.com/jurdin32/interUI/tree/main/examples/proyecto_tareas)
 — creado con `iui startproject` + `iui startapp notas`, con `main.py`, `iui.py` y
 SQLite (`python main.py` dentro de esa carpeta).
 
@@ -440,7 +440,7 @@ También existen `offset` (desplazamiento), `order`, `Row(dense=True)` y la reji
 nativa de CSS con `ui.Grid(cols=1, md=2, lg=4)`.
 
 👉 Guía completa con patrones de dashboard, formularios y tarjetas:
-[`docs/rejilla.md`](docs/rejilla.md).
+[`docs/rejilla.md`](https://github.com/jurdin32/interUI/blob/main/docs/rejilla.md).
 
 ---
 
@@ -622,7 +622,7 @@ comentado —un renglón por control con todas sus opciones— y cada app creada
 `iui startapp` trae el suyo.
 
 👉 Referencia completa, tabla de argumentos y catálogo de tokens:
-[`docs/estilos.md`](docs/estilos.md).
+[`docs/estilos.md`](https://github.com/jurdin32/interUI/blob/main/docs/estilos.md).
 
 ---
 
@@ -676,7 +676,7 @@ ana.save()
 - **Migraciones**: se generan comparando los modelos con el esquema actual y solo
   escriben las diferencias; los cambios que borran datos exigen `--force`.
 
-👉 Guía completa: [`docs/datos.md`](docs/datos.md) — el `interui.json` clave por
+👉 Guía completa: [`docs/datos.md`](https://github.com/jurdin32/interUI/blob/main/docs/datos.md) — el `interui.json` clave por
 clave (también escrito a mano), los modelos campo por campo, el ORM, las
 migraciones paso a paso, un CRUD completo dentro de la interfaz y los errores
 frecuentes con su solución.
@@ -691,7 +691,7 @@ Todo se importa desde el paquete:
 import interui as ui
 ```
 
-Categorías (referencia completa con firmas en [`docs/controles.md`](docs/controles.md)):
+Categorías (referencia completa con firmas en [`docs/controles.md`](https://github.com/jurdin32/interUI/blob/main/docs/controles.md)):
 
 | Categoría | Ejemplos |
 |---|---|
@@ -835,7 +835,7 @@ Son HTML + CSS dentro de tu ventana (no diálogos del sistema), con
 `role="dialog"`, foco, `Escape`, cierre por fondo y animación. No bloquean: la
 respuesta llega a tu handler.
 
-👉 Guía completa, opciones y recetas: [`docs/dialogos.md`](docs/dialogos.md).
+👉 Guía completa, opciones y recetas: [`docs/dialogos.md`](https://github.com/jurdin32/interUI/blob/main/docs/dialogos.md).
 
 ---
 
@@ -962,8 +962,8 @@ Cada ventana tiene su propio canal WebSocket, su ruta y su ciclo de vida:
 `app.windows`, `app.main_window`, `ventana.close()`, `ventana.navigate("/otra")`.
 Requiere `window="desktop"` y el extra `interui[desktop]`.
 
-Detalle completo en [menús y armazón](docs/menus.md) y en el ejemplo
-[`examples/06_app_moderna.py`](examples/06_app_moderna.py).
+Detalle completo en [menús y armazón](https://github.com/jurdin32/interUI/blob/main/docs/menus.md) y en el ejemplo
+[`examples/06_app_moderna.py`](https://github.com/jurdin32/interUI/blob/main/examples/06_app_moderna.py).
 
 ---
 
@@ -994,7 +994,7 @@ ContextItem("Salir", icon=icons.power, on_click=app.exit)
 
 `len(ui.ICON_NAMES)` → 204 iconos, y
 `ui.IconGrid(searchable=True)` dibuja la galería completa. La lista está en el
-[catálogo de iconos](docs/iconos.md).
+[catálogo de iconos](https://github.com/jurdin32/interUI/blob/main/docs/iconos.md).
 
 ---
 
@@ -1052,7 +1052,7 @@ await window.interui.native.notify("Hola", "desde JS")
 window.interui.desktop      // true dentro de la ventana nativa
 ```
 
-👉 Detalles y empaquetado: [`docs/escritorio.md`](docs/escritorio.md).
+👉 Detalles y empaquetado: [`docs/escritorio.md`](https://github.com/jurdin32/interUI/blob/main/docs/escritorio.md).
 
 ---
 
@@ -1137,9 +1137,9 @@ python -m twine upload dist/*                          # definitivo
 ```
 
 La versión vive en un solo sitio: `__version__` en
-[`interui/__init__.py`](interui/__init__.py) (la lee `hatchling`).
+[`interui/__init__.py`](https://github.com/jurdin32/interUI/blob/main/interui/__init__.py) (la lee `hatchling`).
 
-Publicación automática: [`.github/workflows/publish.yml`](.github/workflows/publish.yml)
+Publicación automática: [`.github/workflows/publish.yml`](https://github.com/jurdin32/interUI/blob/main/.github/workflows/publish.yml)
 usa *Trusted Publishing* (OIDC, sin tokens en el repo) al crear un release.
 Solo hay que registrar el proyecto en
 [PyPI → Publishing](https://pypi.org/manage/account/publishing/) con
@@ -1153,7 +1153,7 @@ git push origin v0.5.1
 ```
 
 👉 Paso a paso, errores habituales y checklist de versión:
-[`docs/publicar.md`](docs/publicar.md).
+[`docs/publicar.md`](https://github.com/jurdin32/interUI/blob/main/docs/publicar.md).
 
 ---
 
@@ -1161,7 +1161,7 @@ git push origin v0.5.1
 
 El CSS se genera con el compilador de utilidades sobre Vite
 ([guía de instalación](https://example.com/docs/installation/using-vite)) en
-[`frontend/`](frontend):
+[`frontend/`](https://github.com/jurdin32/interUI/tree/main/frontend):
 
 ```
 frontend/
@@ -1278,8 +1278,8 @@ Las tres causas habituales, en orden de frecuencia:
 
 3. **Símbolos generados en tiempo de ejecución.** Los analizadores no ven nada
    creado con `globals()[...] = ...`. Por eso los alias (`text`, `button`…) se
-   declaran **estáticamente** en [`interui/aliases.py`](interui/aliases.py), y una
-   prueba ([`tests/test_structure.py`](tests/test_structure.py)) impide volver a
+   declaran **estáticamente** en [`interui/aliases.py`](https://github.com/jurdin32/interUI/blob/main/interui/aliases.py), y una
+   prueba ([`tests/test_structure.py`](https://github.com/jurdin32/interUI/blob/main/tests/test_structure.py)) impide volver a
    inyectarlos dinámicamente.
 
 Comprobación rápida de que el paquete se analiza bien: abre un archivo con
@@ -1298,44 +1298,44 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 
 ## Documentación adicional
 
-El mapa completo está en **[docs/indice.md](docs/indice.md)**.
+El mapa completo está en **[docs/indice.md](https://github.com/jurdin32/interUI/blob/main/docs/indice.md)**.
 
 **Primeros pasos**
 
-- [Tutorial paso a paso](docs/guia.md) — de la ventana vacía a la app completa, en 12 pasos.
-- [Anatomía de un proyecto](docs/proyecto.md) — qué es `main.py`, qué es `iui.py`,
+- [Tutorial paso a paso](https://github.com/jurdin32/interUI/blob/main/docs/guia.md) — de la ventana vacía a la app completa, en 12 pasos.
+- [Anatomía de un proyecto](https://github.com/jurdin32/interUI/blob/main/docs/proyecto.md) — qué es `main.py`, qué es `iui.py`,
   dónde van los modelos y cómo encajan las apps.
-- [Configuración](docs/configuracion.md) — cada clave de `interui.json`.
+- [Configuración](https://github.com/jurdin32/interUI/blob/main/docs/configuracion.md) — cada clave de `interui.json`.
 
 **Temas**
 
-- [Escritorio](docs/escritorio.md) — ciclo de vida, multiventana, diálogos del
+- [Escritorio](https://github.com/jurdin32/interUI/blob/main/docs/escritorio.md) — ciclo de vida, multiventana, diálogos del
   sistema, datos persistentes y empaquetado.
-- [Menús y barras](docs/menus.md) — `AppShell`, barra de menús, menú contextual,
+- [Menús y barras](https://github.com/jurdin32/interUI/blob/main/docs/menus.md) — `AppShell`, barra de menús, menú contextual,
   barra de comandos y notificaciones.
-- [Diálogos](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
-- [Rejilla de 12 columnas](docs/rejilla.md) — columnas, breakpoints y patrones.
-- [Estilos](docs/estilos.md) — tokens, variantes, hex y degradados.
-- [Formularios](docs/formularios.md) — `forms.py` en la app, `ui.ModelForm`,
+- [Diálogos](https://github.com/jurdin32/interUI/blob/main/docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
+- [Rejilla de 12 columnas](https://github.com/jurdin32/interUI/blob/main/docs/rejilla.md) — columnas, breakpoints y patrones.
+- [Estilos](https://github.com/jurdin32/interUI/blob/main/docs/estilos.md) — tokens, variantes, hex y degradados.
+- [Formularios](https://github.com/jurdin32/interUI/blob/main/docs/formularios.md) — `forms.py` en la app, `ui.ModelForm`,
   validación y `ui.state()` en las vistas.
-- [Datos](docs/datos.md) — modelos, ORM, migraciones, motores y recetas.
-- [Iconos](docs/iconos.md) — los 204 iconos incluidos.
+- [Datos](https://github.com/jurdin32/interUI/blob/main/docs/datos.md) — modelos, ORM, migraciones, motores y recetas.
+- [Iconos](https://github.com/jurdin32/interUI/blob/main/docs/iconos.md) — los 204 iconos incluidos.
 
 **Referencia**
 
-- [Comandos](docs/comandos.md) — `iui`, `interui`, `iui.py` y `python -m interui`.
-- [Controles](docs/controles.md) — firma y ejemplo ejecutable de cada componente.
+- [Comandos](https://github.com/jurdin32/interUI/blob/main/docs/comandos.md) — `iui`, `interui`, `iui.py` y `python -m interui`.
+- [Controles](https://github.com/jurdin32/interUI/blob/main/docs/controles.md) — firma y ejemplo ejecutable de cada componente.
 
 **Cómo se hace**
 
-- [Actualizar interUI](docs/actualizar.md) — versión, comandos y aviso en la app.
-- [Empaquetar y publicar](docs/publicar.md) — wheel, TestPyPI, PyPI y ejecutables.
-- [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
-- [Instalación y publicación](docs/publicar.md) — instalar desde PyPI y publicar una versión nueva.
-- [Historial de cambios](CHANGELOG.md) — qué trae cada versión (actual: 0.5.1).
+- [Actualizar interUI](https://github.com/jurdin32/interUI/blob/main/docs/actualizar.md) — versión, comandos y aviso en la app.
+- [Empaquetar y publicar](https://github.com/jurdin32/interUI/blob/main/docs/publicar.md) — wheel, TestPyPI, PyPI y ejecutables.
+- [Guía de escritorio](https://github.com/jurdin32/interUI/blob/main/docs/escritorio.md) — ventana nativa, puente y empaquetado.
+- [Instalación y publicación](https://github.com/jurdin32/interUI/blob/main/docs/publicar.md) — instalar desde PyPI y publicar una versión nueva.
+- [Historial de cambios](https://github.com/jurdin32/interUI/blob/main/CHANGELOG.md) — qué trae cada versión (actual: 0.5.1).
 
 ---
 
 ## Licencia
 
-MIT. Ver [`LICENSE`](LICENSE).
+MIT. Ver [`LICENSE`](https://github.com/jurdin32/interUI/blob/main/LICENSE).

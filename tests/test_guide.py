@@ -146,8 +146,15 @@ def test_guide_links_exist() -> None:
 
 
 def test_readme_links_exist() -> None:
+    """El README se publica en PyPI: los enlaces van absolutos al repositorio."""
     text = (ROOT / "README.md").read_text(encoding="utf-8")
+    base = "https://github.com/jurdin32/interUI/"
     for target in re.findall(r"\]\(([^)#]+)\)", text):
+        if target.startswith(base):
+            # .../blob/main/docs/x.md -> docs/x.md (y que exista de verdad)
+            local = target[len(base):].split("/", 2)[2]
+            assert (ROOT / local).exists(), f"enlace roto en el README: {target}"
+            continue
         if target.startswith("http"):
             continue
         assert (ROOT / target).exists(), f"enlace roto en el README: {target}"

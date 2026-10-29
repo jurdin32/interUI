@@ -61,7 +61,7 @@ Homepage = "https://github.com/jurdin32/interUI"
 Repository = "https://github.com/jurdin32/interUI"
 Issues = "https://github.com/jurdin32/interUI/issues"
 Changelog = "https://github.com/jurdin32/interUI/commits/main"
-Documentation = "https://github.com/jurdin32/interUI#readme"
+Documentation = "https://github.com/jurdin32/interUI/blob/main/docs/indice.md"
 
 [tool.hatch.version]
 path = "interui/__init__.py"
