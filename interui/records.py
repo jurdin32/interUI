@@ -30,14 +30,16 @@ from .context import RenderContext
 from .controls.buttons import Button
 from .controls.data import Table
 from .controls.feedback import Alert
+from .controls.inputs import Input, Select
 from .controls.layout import Card
 from .controls.typography import Badge, Heading, Muted
 from .forms import ModelForm
 from .grid import Container, Stack
 from .html import escape
 from .orm import Model
+from .simple import state as _state
 from .style import tw
-from .theme import margin, pad, tone
+from .theme import gap, margin, pad, tone
 
 __all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
 
@@ -62,6 +64,30 @@ def _records(model: type[Model]) -> list[Any] | None:
 def _plural(name: str) -> str:
     """``Persona`` → ``Personas``: el título por defecto de la página."""
     return name if name.endswith("s") else f"{name}s"
+
+
+def _ordenar(records: list[Any], campo: str, desc: bool) -> list[Any]:
+    """Ordena por un campo; los huecos al final y sin reventar con tipos mixtos."""
+
+    try:
+        return sorted(
+            records,
+            key=lambda record: (
+                getattr(record, campo, None) is None,
+                getattr(record, campo, None),
+            ),
+            reverse=desc,
+        )
+    except TypeError:
+        # Campos con tipos mezclados (o textos y números): se comparan como texto.
+        return sorted(
+            records,
+            key=lambda record: (
+                getattr(record, campo, None) is None,
+                str(getattr(record, campo, "")).lower(),
+            ),
+            reverse=desc,
+        )
 
 
 def _cell(value: Any) -> Any:
@@ -159,6 +185,15 @@ class RecordTable(Component):
         card: bool = True,
         actions: Sequence[RowAction] | None = None,
         actions_header: Any = "",
+        search: bool = False,
+        search_columns: Sequence[str] | None = None,
+        search_placeholder: str = "Buscar…",
+        page_size: int | None = 10,
+        page_sizes: Sequence[int] = (10, 15, 20),
+        sort: bool = True,
+        sortable: Sequence[str] | None = None,
+        order_by: str | None = None,
+        prefix: str | None = None,
         **props: Any,
     ) -> None:
         self.form = form
@@ -167,7 +202,37 @@ class RecordTable(Component):
         self.card = card
         self.actions = list(actions or ())
         self.actions_header = actions_header
+        self.search = bool(search)
+        self.search_columns = list(search_columns) if search_columns else None
+        self.search_placeholder = search_placeholder
+        self.page_size = page_size
+        self.page_sizes = tuple(page_sizes)
+        self.sort = bool(sort)
+        self.sortable = list(sortable) if sortable else list(self.columns)
+        self.order_by = order_by or ""
+        self.prefix = prefix
         super().__init__(**props)
+
+    # -- estado de la tabla ---------------------------------------------
+    def _key(self, suffix: str) -> str:
+        base = self.prefix or f"tabla_{_model_of(self.form)._table}"
+        return f"{base}_{suffix}"
+
+    def _filtrar(self, records: list[Any], texto: str) -> list[Any]:
+        """Búsqueda global: el texto en cualquiera de las columnas mostradas."""
+        aguja = texto.strip().lower()
+        if not aguja:
+            return records
+        columnas = self.search_columns or self.columns
+        filtrados = []
+        for record in records:
+            valores = [
+                str(getattr(record, name) if getattr(record, name) is not None else "")
+                for name in columnas
+            ]
+            if any(aguja in valor.lower() for valor in valores):
+                filtrados.append(record)
+        return filtrados
 
     def content(self, ctx: RenderContext, path: str) -> str:
         records = _records(_model_of(self.form))
@@ -178,7 +243,142 @@ class RecordTable(Component):
                 level=tone.warning,
             ).render(ctx, f"{path}-alerta")
 
-        headers = [self.form.label(name) for name in self.columns]
+        total = len(records)
+        controles: list[Any] = []
+        piezas: list[Any] = []
+
+        if self.search:
+            busqueda = _state("", name=self._key("busqueda"))
+            pagina_signal = _state(0, name=self._key("pagina"))
+
+            def al_buscar(evento: Any) -> None:
+                busqueda.set("" if evento.value is None else str(evento.value))
+                pagina_signal.set(0)
+
+            controles.append(
+                Input(
+                    busqueda.get(),
+                    label=None,
+                    icon="search",
+                    placeholder=self.search_placeholder,
+                    on_input=al_buscar,
+                    margin=margin.b_4,
+                )
+            )
+            records = self._filtrar(records, busqueda.get())
+            pieza_pagina: Any = pagina_signal
+        else:
+            pieza_pagina = _state(0, name=self._key("pagina"))
+
+        # -- ordenación por columna -------------------------------------
+        orden = _state(self.order_by.lstrip("-"), name=self._key("orden"))
+        sentido = _state(
+            "desc" if self.order_by.startswith("-") else "asc", name=self._key("sentido")
+        )
+        campo = orden.get()
+        if campo:
+            records = _ordenar(records, campo, sentido.get() == "desc")
+
+        filtrados = len(records)
+
+        if self.page_size and filtrados > self.page_size:
+            tamano_signal = _state(self.page_size, name=self._key("tamano"))
+
+            def al_cambiar_tamano(evento: Any) -> None:
+                try:
+                    tamano_signal.set(int(evento.value))
+                except (TypeError, ValueError):
+                    tamano_signal.set(self.page_size)
+                pieza_pagina.set(0)
+
+            tamano = int(tamano_signal.get() or self.page_size)
+            paginas = max(1, (filtrados + tamano - 1) // tamano)
+            pagina = min(max(int(pieza_pagina.get() or 0), 0), paginas - 1)
+            if pagina != pieza_pagina.get():
+                pieza_pagina.set(pagina)
+            desde = pagina * tamano
+            records = records[desde : desde + tamano]
+
+            def ir_a(destino: int) -> Any:
+                return lambda: pieza_pagina.set(max(0, min(destino, paginas - 1)))
+
+            piezas.append(
+                Stack(
+                    Muted(
+                        f"Mostrando {desde + 1}–{desde + len(records)} de {filtrados}"
+                    ),
+                    Stack(
+                        Select(
+                            [(str(tamano), str(tamano)) for tamano in self.page_sizes],
+                            value=str(tamano),
+                            on_change=al_cambiar_tamano,
+                            size="sm",
+                            width="w-20",
+                        ),
+                        Button(
+                            icon="chevron-left",
+                            variant="outline",
+                            size="sm",
+                            title="Anterior",
+                            aria={"label": "Página anterior"},
+                            disabled=pagina == 0,
+                            on_click=ir_a(pagina - 1),
+                        ),
+                        Muted(f"{pagina + 1} / {paginas}"),
+                        Button(
+                            icon="chevron-right",
+                            variant="outline",
+                            size="sm",
+                            title="Siguiente",
+                            aria={"label": "Página siguiente"},
+                            disabled=pagina >= paginas - 1,
+                            on_click=ir_a(pagina + 1),
+                        ),
+                        direction="row",
+                        align="center",
+                        gap=gap.all_2,
+                    ),
+                    direction="row",
+                    justify="between",
+                    align="center",
+                    gap=gap.all_3,
+                    margin=margin.t_4,
+                )
+            )
+        elif self.search:
+            piezas.append(
+                Muted(
+                    f"{filtrados} de {total}" if filtrados != total else f"{total} en total",
+                    margin=margin.t_3,
+                )
+            )
+
+        def cabecera(name: str) -> Any:
+            etiqueta = self.form.label(name)
+            if not self.sort or name not in self.sortable:
+                return etiqueta
+            activo = campo == name
+            icono = ("chevron-up" if sentido.get() == "asc" else "chevron-down") if activo else None
+
+            def al_ordenar() -> None:
+                if orden.get() == name:
+                    sentido.set("desc" if sentido.get() == "asc" else "asc")
+                else:
+                    orden.set(name)
+                    sentido.set("asc")
+                pieza_pagina.set(0)
+
+            return Button(
+                etiqueta,
+                variant="ghost",
+                size="sm",
+                icon=icono,
+                aria={"label": f"Ordenar por {etiqueta}"},
+                on_click=al_ordenar,
+                class_="-ml-2",
+            )
+
+        headers = [cabecera(name) for name in self.columns]
         rows: list[list[Any]] = [
             [_cell(getattr(record, name)) for name in self.columns] for record in records
         ]
@@ -194,10 +394,15 @@ class RecordTable(Component):
                     )
                 )
 
-        table = Table(headers=headers, rows=rows, empty=self.empty)
+        table = Table(
+            headers=headers,
+            rows=rows,
+            empty=self.empty if total == 0 else "Ningún resultado para la búsqueda",
+        )
+        contenido: list[Any] = [*controles, table, *piezas]
         if not self.card:
-            return table.render(ctx, f"{path}-tabla")
-        return Card(table, pad=pad.all_2).render(ctx, f"{path}-tabla")
+            return Stack(*contenido, gap=0).render(ctx, f"{path}-tabla")
+        return Card(*contenido, pad=pad.all_2).render(ctx, f"{path}-tabla")
 
 
 class RecordPage(Component):
@@ -230,6 +435,13 @@ class RecordPage(Component):
         table: bool = True,
         columns: Sequence[str] | None = None,
         actions: Sequence[RowAction] | None = None,
+        search: bool = False,
+        search_columns: Sequence[str] | None = None,
+        page_size: int | None = 10,
+        page_sizes: Sequence[int] = (10, 15, 20),
+        sort: bool = True,
+        sortable: Sequence[str] | None = None,
+        order_by: str | None = None,
         form_mode: str = "inline",
         new_label: Any = "Nuevo",
         new_icon: str | None = "plus",
@@ -247,6 +459,15 @@ class RecordPage(Component):
         self.show_table = table
         self.columns = list(columns) if columns is not None else None
         self.actions = list(actions or ())
+        self.table_options: dict[str, Any] = {
+            "search": search,
+            "search_columns": search_columns,
+            "page_size": page_size,
+            "page_sizes": page_sizes,
+            "sort": sort,
+            "sortable": sortable,
+            "order_by": order_by,
+        }
         self.form_mode = modo
         self.new_label = new_label
         self.new_icon = new_icon
@@ -286,6 +507,7 @@ class RecordPage(Component):
                     columns=self.columns,
                     actions=self.actions,
                     margin=margin.t_6,
+                    **self.table_options,
                 )
             )
         return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")

@@ -8,6 +8,11 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Tablas con buscador, orden y paginación** (estilo DataTable):
+  `search=True` (global, sobre `search_columns`), `page_size=10` con selector
+  `page_sizes=(10, 15, 20)` y pie «Mostrando 1–10 de 25», y cabeceras que ordenan
+  al pulsarlas (`sort=True`, `sortable=[...]`, `order_by="-campo"`). Todo en
+  Python, así que funciona con cualquier motor.
 - **La página del registro se configura desde la vista**: `RecordPage(...,
   form_mode="inline" | "modal" | "none")`. En `"modal"` la página se queda con el
   contador y la tabla, y un botón **Nuevo** (`new_label`, `new_icon`) abre el

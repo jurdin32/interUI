@@ -358,6 +358,7 @@ def test_rowaction_ejecuta_con_el_registro_de_su_fila(app) -> None:
             ui.RecordTable(
                 ui.ModelForm(Persona),
                 columns=["nombre"],
+                sort=False,
                 actions=[
                     ui.RowAction("Eliminar", icon=ui.icons.trash, danger=True, on_click=borrar),
                 ],
@@ -387,6 +388,7 @@ def test_rowaction_con_confirm_pide_permiso(app) -> None:
             ui.RecordTable(
                 ui.ModelForm(Persona),
                 columns=["nombre"],
+                sort=False,
                 actions=[
                     ui.RowAction(
                         "Eliminar",
@@ -524,3 +526,116 @@ def test_fresh_copia_la_configuracion_del_formulario(app) -> None:
     assert copia.form_labels == {"nombre": "Nombre completo"}
     assert copia.form_placeholders == {"email": "tu@correo.com"}
     assert copia is not None
+
+
+def _tabla_app(tmp_path, total: int = 25):
+    """App con una tabla de `total` personas y su página de registro."""
+    db.reset()
+    db.configure(
+        Config({"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "t.db")}}})
+    )
+    db.backend().create_table("form_personas", Persona.columns())
+    for numero in range(1, total + 1):
+        Persona.objects.create(
+            nombre=f"Persona {numero:02d}",
+            email=f"p{numero}@x.com",
+            activo=numero % 2 == 0,
+        )
+    return ui.App("Tabla", data_dir=tmp_path)
+
+
+def _tabla(page: ui.Component, app) -> ui.Component:
+    app.page("/tabla")(lambda: ui.Screen(page))
+    return app
+
+
+def test_tabla_pagina_de_10_en_10(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    page = ui.RecordPage(ui.ModelForm(Persona), title="Personas", search=True, page_size=10)
+    _tabla(page, app)
+
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Mostrando 1–10 de 25" in html
+    assert "1 / 3" in html
+    assert html.count("Persona ") == 10, "solo diez filas"
+
+    app._signals["tabla_form_personas_pagina"].set(2)
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Mostrando 21–25 de 25" in html
+    assert "3 / 3" in html
+    db.reset()
+
+
+def test_tabla_pagina_configurable(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=15), app)
+
+    app.render_page("/tabla")
+    app._signals["tabla_form_personas_tamano"].set(15)
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Mostrando 1–15 de 25" in html
+    db.reset()
+
+
+def test_tabla_busca_en_las_columnas(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True), app)
+    app.render_page("/tabla")
+
+    app._signals["tabla_form_personas_busqueda"].set("Persona 07")
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Persona 07" in html
+    assert "Persona 08" not in html
+    assert "1 de 25" in html
+    db.reset()
+
+
+def test_tabla_busca_solo_en_las_columnas_indicadas(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    _tabla(
+        ui.RecordPage(
+            ui.ModelForm(Persona), search=True, search_columns=["email"], columns=["nombre"]
+        ),
+        app,
+    )
+    app.render_page("/tabla")
+
+    app._signals["tabla_form_personas_busqueda"].set("p7@x.com")
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Persona 07" in html and "Persona 08" not in html
+    db.reset()
+
+
+def test_tabla_ordena_por_columna(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True), app)
+
+    _title, html, _bindings = app.render_page("/tabla")
+    assert 'aria-label="Ordenar por Nombre"' in html
+
+    app._signals["tabla_form_personas_orden"].set("nombre")
+    app._signals["tabla_form_personas_sentido"].set("desc")
+    _title, html, _bindings = app.render_page("/tabla")
+    primera = html.split("Persona ")[1][:2]
+    assert primera == "25", f"orden descendente, llegó {primera}"
+
+    app._signals["tabla_form_personas_sentido"].set("asc")
+    _title, html, _bindings = app.render_page("/tabla")
+    assert html.split("Persona ")[1][:2] == "01"
+    db.reset()
+
+
+def test_tabla_sin_ordenacion_ni_busqueda(tmp_path) -> None:
+    app = _tabla_app(tmp_path)
+    _tabla(
+        ui.RecordPage(
+            ui.ModelForm(Persona), search=False, sort=False, page_size=None
+        ),
+        app,
+    )
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Ordenar por" not in html
+    assert "Buscar…" not in html
+    assert "Mostrando" not in html, "sin paginación no hay pie"
+    assert "Persona 25" in html, "todas las filas de una vez"
+    db.reset()

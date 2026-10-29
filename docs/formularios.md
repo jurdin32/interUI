@@ -200,6 +200,41 @@ El botón se cambia con `new_label="Nueva persona"` y `new_icon=ui.icons.plus`. 
 diálogo se genera **solo** a partir del formulario: mismos campos, mismas
 etiquetas, mismos iconos.
 
+### Buscar, ordenar y paginar
+
+`ui.RecordTable` (y `ui.RecordPage`) traen las tres cosas de serie y se
+configuran desde la vista:
+
+```python
+ui.RecordPage(
+    PersonaForm(),
+    title="Personas",
+    search=True,                 # buscador arriba de la tabla
+    page_size=10,                # 10, 15 o 20 (selector en el pie)
+    order_by="nombres",          # orden inicial («-creado» para descendente)
+    sortable=["nombres", "email"],   # qué cabeceras se pueden pulsar
+)
+```
+
+| Opción | Qué hace | Por defecto |
+|---|---|---|
+| `search` | muestra el buscador | `False` |
+| `search_columns` | en qué campos busca (`["email"]`) | las columnas visibles |
+| `search_placeholder` | texto del buscador | `"Buscar…"` |
+| `page_size` | filas por página; `None` las muestra todas | `10` |
+| `page_sizes` | tamaños del selector | `(10, 15, 20)` |
+| `sort` | cabeceras que ordenan al pulsarlas | `True` |
+| `sortable` | qué columnas ordenan | todas las visibles |
+| `order_by` | orden inicial; `"-campo"` empieza de mayor a menor | sin orden |
+
+La búsqueda es **global** (el texto en cualquiera de las columnas, sin distinguir
+mayúsculas) y vuelve a la primera página. Al pulsar una cabecera se ordena
+ascendente y, si la pulsas otra vez, descendente; la columna activa muestra la
+flecha.
+
+Todo se resuelve en Python sobre los registros ya cargados: funciona igual con
+SQLite, PostgreSQL o MySQL, sin tocar el motor.
+
 ### Acciones en cada fila: editar y eliminar
 
 `actions=` añade iconos al final de cada fila. El handler recibe **el registro**
