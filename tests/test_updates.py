@@ -97,7 +97,8 @@ def test_instalacion_local_en_editable(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_instalacion_desde_wheel_local(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
     wheel = tmp_path / "interui-0.4.0-py3-none-any.whl"
     wheel.write_bytes(b"")
-    monkeypatch.setattr(updates, "_direct_url", lambda: {"url": f"file://{wheel}"})
+    # `as_uri()` arma el mismo `file:///C:/...` que escribe pip en Windows.
+    monkeypatch.setattr(updates, "_direct_url", lambda: {"url": wheel.as_uri()})
     origin, command = updates.install_info()
     assert origin == "wheel"
     # El comando cita la ruta (en Windows lleva `\\` y espacios).

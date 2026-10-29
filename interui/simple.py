@@ -174,7 +174,9 @@ def _key_for_caller(frame: Any) -> str:
     entre repintados (que es lo que espera una vista).
     """
     code = frame.f_code
-    raw = f"{code.co_filename}|{code.co_qualname}|{frame.f_lineno}|{frame.f_lasti}"
+    # `co_qualname` existe desde Python 3.11: en 3.10 se usa el nombre a secas.
+    cualificado = getattr(code, "co_qualname", code.co_name)
+    raw = f"{code.co_filename}|{cualificado}|{frame.f_lineno}|{frame.f_lasti}"
     digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
     return f"s_{code.co_name}_{digest}"
 
