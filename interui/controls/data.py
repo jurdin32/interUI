@@ -10,7 +10,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
-from ..tema import estilos_de
+from ..tema import styles_for
 from ..theme import Color, Token, juntar_estilos, paint, style_attr
 
 __all__ = [
@@ -131,7 +131,7 @@ class Table(Component):
         surface: bool = True,
         **props: Any,
     ) -> None:
-        del_tema = estilos_de(type(self))
+        del_tema = styles_for(type(self))
         self.headers = list(headers or [])
         self.rows = [list(row) for row in (rows or [])]
         self.caption = caption

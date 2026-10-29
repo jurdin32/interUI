@@ -13,19 +13,19 @@ from interui import db
 from interui.config import Config
 from interui.context import RenderContext
 from interui.tema import (
-    aplicar_tema,
-    estilos_de,
-    por_defecto,
-    reiniciar_tema,
-    tema_actual,
+    apply_theme,
+    current_theme,
+    reset_theme,
+    styles_for,
+    theme_default,
 )
 
 
 @pytest.fixture(autouse=True)
 def sin_tema():
-    reiniciar_tema()
+    reset_theme()
     yield
-    reiniciar_tema()
+    reset_theme()
 
 
 def _html(component: ui.Component) -> str:
@@ -34,55 +34,55 @@ def _html(component: ui.Component) -> str:
 
 # --- el registro -----------------------------------------------------------
 def test_aplicar_y_reiniciar() -> None:
-    aplicar_tema({"Button": dict(pad=ui.pad.px_6)})
-    assert tema_actual() == {"Button": {"pad": "px-6"}}
-    reiniciar_tema()
-    assert tema_actual() == {}
+    apply_theme({"Button": dict(pad=ui.pad.px_6)})
+    assert current_theme() == {"Button": {"pad": "px-6"}}
+    reset_theme()
+    assert current_theme() == {}
 
 
 def test_se_suma_lo_que_se_aplica_despues() -> None:
-    aplicar_tema({"Button": dict(pad=ui.pad.px_6)})
-    aplicar_tema({"Button": dict(font=ui.font.sm), "Card": dict(radius="2xl")})
-    assert tema_actual()["Button"] == {"pad": "px-6", "font": "text-sm"}
-    assert tema_actual()["Card"] == {"radius": "2xl"}
+    apply_theme({"Button": dict(pad=ui.pad.px_6)})
+    apply_theme({"Button": dict(font=ui.font.sm), "Card": dict(radius="2xl")})
+    assert current_theme()["Button"] == {"pad": "px-6", "font": "text-sm"}
+    assert current_theme()["Card"] == {"radius": "2xl"}
 
 
-def test_reiniciar_en_la_misma_llamada() -> None:
-    aplicar_tema({"Card": dict(radius="2xl")})
-    aplicar_tema({"Card": dict(radius="sm")}, reiniciar=True)
-    assert tema_actual() == {"Card": {"radius": "sm"}}
+def test_reset_en_la_misma_llamada() -> None:
+    apply_theme({"Card": dict(radius="2xl")})
+    apply_theme({"Card": dict(radius="sm")}, reiniciar=True)
+    assert current_theme() == {"Card": {"radius": "sm"}}
 
 
 def test_estilos_de_acepta_clase_instancia_y_nombre() -> None:
-    aplicar_tema({"*": dict(rounded="2xl"), "Button": dict(pad=ui.pad.p_5)})
+    apply_theme({"*": dict(rounded="2xl"), "Button": dict(pad=ui.pad.p_5)})
     esperado = {"rounded": "2xl", "pad": "p-5"}
-    assert estilos_de(ui.Button) == esperado
-    assert estilos_de(ui.Button("x")) == esperado
-    assert estilos_de("Button") == {"rounded": "2xl", "pad": "p-5"}
-    assert estilos_de(ui.Card) == {"rounded": "2xl"}
+    assert styles_for(ui.Button) == esperado
+    assert styles_for(ui.Button("x")) == esperado
+    assert styles_for("Button") == {"rounded": "2xl", "pad": "p-5"}
+    assert styles_for(ui.Card) == {"rounded": "2xl"}
 
 
 def test_por_defecto_no_pisa_lo_explicito() -> None:
-    aplicar_tema({"Card": dict(radius="2xl")})
-    assert por_defecto(ui.Card, "radius") == "2xl"
-    assert por_defecto(ui.Card, "radius", "sm") == "sm"
+    apply_theme({"Card": dict(radius="2xl")})
+    assert theme_default(ui.Card, "radius") == "2xl"
+    assert theme_default(ui.Card, "radius", "sm") == "sm"
 
 
 # --- se aplica a los controles --------------------------------------------
 def test_el_comodin_llega_a_todos_los_controles() -> None:
-    aplicar_tema({"*": dict(rounded="2xl")})
+    apply_theme({"*": dict(rounded="2xl")})
     assert "rounded-2xl" in _html(ui.Button("Guardar"))
     assert "rounded-2xl" in _html(ui.Card("x"))
 
 
 def test_solo_el_control_nombrado() -> None:
-    aplicar_tema({"Button": dict(pad=ui.pad.p_6)})
+    apply_theme({"Button": dict(pad=ui.pad.p_6)})
     assert "p-6" in _html(ui.Button("Guardar"))
     assert "p-6" not in _html(ui.Card("x"))
 
 
 def test_lo_explicito_gana_sobre_el_tema() -> None:
-    aplicar_tema({"Button": dict(pad=ui.pad.p_6)})
+    apply_theme({"Button": dict(pad=ui.pad.p_6)})
     assert "p-2" in _html(ui.Button("Guardar", pad=ui.pad.p_2))
     assert "p-6" not in _html(ui.Button("Guardar", pad=ui.pad.p_2))
 
@@ -91,17 +91,17 @@ def test_la_clave_de_la_clase_base_vale_para_las_subclases() -> None:
     class MiBoton(ui.Button):
         pass
 
-    aplicar_tema({"Button": dict(pad=ui.pad.p_6)})
+    apply_theme({"Button": dict(pad=ui.pad.p_6)})
     assert "p-6" in _html(MiBoton("Guardar"))
 
 
 def test_la_variante_tambien_se_puede_fijar() -> None:
-    aplicar_tema({"Button": dict(hover_bg=ui.colors.emerald_500)})
+    apply_theme({"Button": dict(hover_bg=ui.colors.emerald_500)})
     assert "hover:bg-emerald-500" in _html(ui.Button("Guardar"))
 
 
 def test_class_y_style_en_el_tema() -> None:
-    aplicar_tema({"Card": dict(class_="ring-2", style={"min-height": "10rem"})})
+    apply_theme({"Card": dict(class_="ring-2", style={"min-height": "10rem"})})
     html = _html(ui.Card("x"))
     assert "ring-2" in html
     assert "min-height" in html
@@ -109,7 +109,7 @@ def test_class_y_style_en_el_tema() -> None:
 
 # --- opciones propias ------------------------------------------------------
 def test_card_cabecera_y_esquinas() -> None:
-    aplicar_tema({"Card": dict(header_bg=ui.colors.amber_100, radius="2xl")})
+    apply_theme({"Card": dict(header_bg=ui.colors.amber_100, radius="2xl")})
     html = _html(ui.Card("x", title="Hola"))
     assert "bg-amber-100" in html
     assert "rounded-2xl" in html
@@ -123,7 +123,7 @@ def test_card_respeta_radius_de_fabrica() -> None:
 
 
 def test_tabla_colores_desde_el_tema() -> None:
-    aplicar_tema(
+    apply_theme(
         {
             "Table": dict(
                 header_bg=ui.colors.amber_100,
@@ -139,7 +139,7 @@ def test_tabla_colores_desde_el_tema() -> None:
 
 
 def test_dialogo_desde_el_tema() -> None:
-    aplicar_tema({"Dialog": dict(header_bg=ui.colors.slate_100, body_pad=ui.pad.p_8)})
+    apply_theme({"Dialog": dict(header_bg=ui.colors.slate_100, body_pad=ui.pad.p_8)})
     html = _html(ui.Dialog(title="Aviso", message="Hola"))
     assert "bg-slate-100" in html
     assert "p-8" in html
@@ -155,7 +155,7 @@ def test_formulario_de_modelo_desde_el_tema() -> None:
     class PersonaForm(ui.ModelForm):
         model = Persona
 
-    aplicar_tema({"ModelForm": dict(header_bg=ui.colors.slate_100)})
+    apply_theme({"ModelForm": dict(header_bg=ui.colors.slate_100)})
     html = _html(PersonaForm())
     assert "bg-slate-100" in html
 
@@ -173,8 +173,8 @@ def test_modal_declarado_desde_el_tema() -> None:
     class PersonaModal(ui.FormModal):
         form = PersonaForm
 
-    aplicar_tema({"FormModal": dict(width="2xl")})
-    assert estilos_de(PersonaModal)["width"] == "2xl"
+    apply_theme({"FormModal": dict(width="2xl")})
+    assert styles_for(PersonaModal)["width"] == "2xl"
 
 
 # --- tablas de registro ----------------------------------------------------
@@ -214,7 +214,7 @@ def test_tabla_de_registro_toma_el_tema(app) -> None:
     class PersonaTable(ui.RecordTable):
         form = PersonaForm
 
-    aplicar_tema({"RecordTable": dict(header_bg=ui.colors.amber_100, striped=True)})
+    apply_theme({"RecordTable": dict(header_bg=ui.colors.amber_100, striped=True)})
     html = _pagina(app, PersonaTable())
     assert "bg-amber-100" in html, "el tema manda sobre el valor de fábrica"
 
@@ -224,7 +224,7 @@ def test_lo_declarado_en_la_clase_gana_sobre_el_tema(app) -> None:
         form = PersonaForm
         header_bg = ui.colors.slate_200
 
-    aplicar_tema({"RecordTable": dict(header_bg=ui.colors.amber_100)})
+    apply_theme({"RecordTable": dict(header_bg=ui.colors.amber_100)})
     html = _pagina(app, PersonaTable())
     assert "bg-slate-200" in html
     assert "bg-amber-100" not in html
@@ -234,7 +234,7 @@ def test_franja_de_la_pagina_desde_el_tema(app) -> None:
     class PersonaTable(ui.RecordTable):
         form = PersonaForm
 
-    aplicar_tema({"RecordPage": dict(title_bg=ui.colors.emerald_600)})
+    apply_theme({"RecordPage": dict(title_bg=ui.colors.emerald_600)})
     html = _pagina(app, ui.RecordPage(PersonaTable))
     assert "bg-emerald-600" in html
 
@@ -260,7 +260,7 @@ def test_startproject_genera_estilos(tmp_path) -> None:
     assert "TEMA" in codigo
     for nombre in ('"Card"', '"RecordTable"', '"Dialog"', '"FormModal"'):
         assert nombre in codigo, f"el catálogo debe incluir {nombre}"
-    assert "aplicar_tema" in codigo
+    assert "apply_theme" in codigo
     app_py = (tmp_path / "demo" / "demo" / "app.py").read_text(encoding="utf-8")
     assert "estilos" in app_py
 
@@ -326,7 +326,7 @@ def test_franja_con_color_literal(tmp_path) -> None:
     app = ui.App("Tema", data_dir=tmp_path)
     try:
         html = _pagina(app, ui.RecordPage(ui.ModelForm(Persona), title="Personas", table=True))
-        aplicar_tema({"RecordPage": dict(title_bg=AZUL)})
+        apply_theme({"RecordPage": dict(title_bg=AZUL)})
         html = _pagina(app, ui.RecordPage(ui.ModelForm(Persona), title="Personas", table=True))
         assert "background-color: #876005" in html
     finally:
@@ -340,7 +340,7 @@ def test_card_sin_cabecera() -> None:
 
 
 def test_card_sin_cabecera_desde_el_tema() -> None:
-    aplicar_tema({"Card": dict(header=False)})
+    apply_theme({"Card": dict(header=False)})
     assert "Hola" not in _html(ui.Card("x", title="Hola"))
 
 
@@ -361,3 +361,14 @@ def test_formulario_sin_cabecera_la_mantiene_en_el_modal() -> None:
     assert "Nueva persona" not in html, "la tarjeta no lleva cabecera"
     assert "Guardar" in html
     assert form.form_title == "Nueva persona", "el modal sí conserva el título"
+
+
+def test_los_nombres_en_español_siguen_funcionando() -> None:
+    """`apply_theme` es el nombre nuevo; los alias antiguos no se rompen."""
+    assert ui.aplicar_tema is ui.apply_theme
+    assert ui.reiniciar_tema is ui.reset_theme
+    assert ui.tema_actual is ui.current_theme
+    assert ui.estilos_de is ui.styles_for
+    assert ui.por_defecto is ui.theme_default
+    ui.aplicar_tema({"Button": dict(pad=ui.pad.p_6)})
+    assert ui.tema_actual()["Button"] == {"pad": "p-6"}

@@ -39,7 +39,7 @@ from .html import escape
 from .orm import Model
 from .simple import state as _state
 from .style import tw
-from .tema import por_defecto
+from .tema import theme_default
 from .theme import Color, Token, gap, juntar_estilos, margin, pad, paint, style_attr, tone
 
 __all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
@@ -283,7 +283,7 @@ def _preferir_tema(nombre: str, valor: Any, clase: type) -> Any:
     Los atributos de `RecordTable` son valores de fábrica: si la clase de la app
     no los cambia, `estilos.py` puede fijarlos sin que la vista repita nada.
     """
-    del_tema = por_defecto(clase, nombre)
+    del_tema = theme_default(clase, nombre)
     if del_tema is None:
         return valor
     if valor is None or valor == getattr(RecordTable, nombre, None):
@@ -894,9 +894,9 @@ class RecordPage(Component):
                 del_formulario = getattr(type(self.form), nombre, None)
                 if del_formulario is not None:
                     return del_formulario
-            del_tema = por_defecto(type(self), nombre)
+            del_tema = theme_default(type(self), nombre)
             if del_tema is None and declarada_tabla is not None:
-                del_tema = por_defecto(declarada_tabla, nombre)
+                del_tema = theme_default(declarada_tabla, nombre)
             return del_tema
 
         self.new_label = heredado("new_label", new_label) or "Nuevo"

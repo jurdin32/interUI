@@ -7,7 +7,7 @@ seguir pisándolo pasándolo explícitamente.
 ```python
 import interui as ui
 
-ui.aplicar_tema(
+ui.apply_theme(
     {
         "*": dict(rounded="xl"),                            # todos los controles
         "Button": dict(pad=ui.pad.px_4, font=ui.font.sm),   # solo los botones
@@ -23,9 +23,9 @@ Además de las utilidades de estilo (`bg`, `color`, `border`, `ring`, `pad`,
 
 Los controles con opciones propias (la cabecera de una tarjeta, la franja de una
 página, el panel de un diálogo…) también se pueden fijar aquí: sus clases lo
-piden con :func:`por_defecto`. Por ejemplo::
+piden con :func:`theme_default`. Por ejemplo::
 
-    aplicar_tema({"ModelForm": dict(header_bg=ui.colors.slate_100)})
+    apply_theme({"ModelForm": dict(header_bg=ui.colors.slate_100)})
 
 El proyecto que genera ``iui startproject`` trae un ``estilos.py`` con el catálogo
 completo, todo comentado, listo para descomentar lo que haga falta.
@@ -39,11 +39,17 @@ from .theme import STYLE_PROPS, _VARIANT_FIRST
 
 __all__ = [
     "TEMA",
+    "apply_theme",
+    "reset_theme",
+    "current_theme",
+    "styles_for",
+    "theme_default",
+    # nombres en español: siguen funcionando
     "aplicar_tema",
     "reiniciar_tema",
     "tema_actual",
-    "por_defecto",
     "estilos_de",
+    "por_defecto",
 ]
 
 #: Valores por defecto por control (``"*"`` = todos).
@@ -61,7 +67,7 @@ def _es_estilo(nombre: str) -> bool:
     return _parse_style_key(nombre) is not None
 
 
-def aplicar_tema(
+def apply_theme(
     valores: Mapping[str, Mapping[str, Any]] | None = None,
     *,
     reiniciar: bool = False,
@@ -82,12 +88,12 @@ def aplicar_tema(
     return TEMA
 
 
-def reiniciar_tema() -> None:
+def reset_theme() -> None:
     """Vuelve al tema de fábrica (sin valores por defecto)."""
     TEMA.clear()
 
 
-def tema_actual() -> dict[str, dict[str, Any]]:
+def current_theme() -> dict[str, dict[str, Any]]:
     """Copia del tema vigente (útil para depurar o para tests)."""
     return {control: dict(valores) for control, valores in TEMA.items()}
 
@@ -105,7 +111,7 @@ def _nombres(control: Any) -> list[str]:
     return [n for n in reversed(nombres) if n != "object"]
 
 
-def estilos_de(control: Any) -> dict[str, Any]:
+def styles_for(control: Any) -> dict[str, Any]:
     """Estilos por defecto de un control (clase, instancia o nombre)."""
     valores = dict(TEMA.get("*", {}))
     if isinstance(control, str):
@@ -117,11 +123,11 @@ def estilos_de(control: Any) -> dict[str, Any]:
     return valores
 
 
-def por_defecto(clase: Any, nombre: str, valor: Any = None) -> Any:
+def theme_default(clase: Any, nombre: str, valor: Any = None) -> Any:
     """Valor del tema para una opción concreta, si el control no lo recibió."""
     if valor is not None:
         return valor
-    return estilos_de(clase).get(nombre, valor)
+    return styles_for(clase).get(nombre, valor)
 
 
 def _con_tema(clase: Any, props: dict[str, Any]) -> dict[str, Any]:
@@ -132,7 +138,15 @@ def _con_tema(clase: Any, props: dict[str, Any]) -> dict[str, Any]:
     """
     if not TEMA:
         return props
-    for clave, valor in estilos_de(clase).items():
+    for clave, valor in styles_for(clase).items():
         if _es_estilo(clave) and clave not in props:
             props[clave] = valor
     return props
+
+
+# -- alias en español (se conservan: hay proyectos que ya los usan) ---------
+aplicar_tema = apply_theme
+reiniciar_tema = reset_theme
+tema_actual = current_theme
+estilos_de = styles_for
+por_defecto = theme_default

@@ -841,7 +841,7 @@ TEMA: dict[str, dict] = {
 {catalogo}
 
 # Se aplica al importar este módulo (lo hace `app.py` o `urls.py`).
-ui.aplicar_tema(TEMA)
+ui.apply_theme(TEMA)
 '''
 
 

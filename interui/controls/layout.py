@@ -9,7 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
-from ..tema import estilos_de, por_defecto
+from ..tema import styles_for, theme_default
 from ..theme import Color, Token, juntar_estilos, paint, style_attr, utility
 from .buttons import Button
 
@@ -69,16 +69,16 @@ class Card(Component):
         **props: Any,
     ) -> None:
         self.card_title = title
-        self.con_cabecera = por_defecto(type(self), "header", header) is not False
-        radius = por_defecto(type(self), "radius", radius) or "md"
+        self.con_cabecera = theme_default(type(self), "header", header) is not False
+        radius = theme_default(type(self), "radius", radius) or "md"
         if not hover:
-            hover = bool(estilos_de(type(self)).get("hover", False))
-        header_bg = por_defecto(type(self), "header_bg", header_bg)
-        header_color = por_defecto(type(self), "header_color", header_color)
-        header_border = por_defecto(type(self), "header_border", header_border)
-        header_pad = por_defecto(type(self), "header_pad", header_pad)
-        header_font = por_defecto(type(self), "header_font", header_font)
-        footer_bg = por_defecto(type(self), "footer_bg", footer_bg)
+            hover = bool(styles_for(type(self)).get("hover", False))
+        header_bg = theme_default(type(self), "header_bg", header_bg)
+        header_color = theme_default(type(self), "header_color", header_color)
+        header_border = theme_default(type(self), "header_border", header_border)
+        header_pad = theme_default(type(self), "header_pad", header_pad)
+        header_font = theme_default(type(self), "header_font", header_font)
+        footer_bg = theme_default(type(self), "footer_bg", footer_bg)
         self.header_bg = header_bg
         self.header_color = header_color
         self.header_border = header_border

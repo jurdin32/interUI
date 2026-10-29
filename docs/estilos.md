@@ -512,9 +512,13 @@ TEMA: dict[str, dict] = {
 ### Desde código
 
 ```python
-ui.aplicar_tema({"Button": dict(pad=ui.pad.px_6)})   # suma (lo último gana)
-ui.aplicar_tema({...}, reiniciar=True)               # borra lo anterior
-ui.reiniciar_tema()                                  # vuelve a fábrica
-ui.tema_actual()                                     # copia del tema vigente
-ui.estilos_de(ui.Card)                               # lo que le toca a un control
+ui.apply_theme({"Button": dict(pad=ui.pad.px_6)})   # suma (lo último gana)
+ui.apply_theme({...}, reiniciar=True)               # borra lo anterior
+ui.reset_theme()                                    # vuelve a fábrica
+ui.current_theme()                                  # copia del tema vigente
+ui.styles_for(ui.Card)                              # lo que le toca a un control
+ui.theme_default(ui.Card, "radius")                 # un valor concreto
 ```
+
+Los nombres en español (`aplicar_tema`, `reiniciar_tema`, `tema_actual`,
+`estilos_de`, `por_defecto`) siguen valiendo: son alias de los anteriores.

@@ -23,8 +23,8 @@ etiqueta como `vX.Y.Z`.
   espaciados. Prioridad: argumento explícito > valor declarado en la clase de la
   app > tema > fábrica. La clave de una clase base vale para sus subclases
   (`"RecordTable"` también estiliza `PersonaTable`). API:
-  `ui.aplicar_tema`, `ui.reiniciar_tema`, `ui.tema_actual`, `ui.estilos_de`,
-  `ui.por_defecto`.
+  `ui.apply_theme`, `ui.reset_theme`, `ui.current_theme`, `ui.styles_for` y
+  `ui.theme_default` (los nombres en español siguen como alias).
 - **Modales configurables y en su propio archivo**: `startapp` genera
   `dialogs.py` con `<Modelo>Modal(ui.FormModal)` (`form`, `title`, `width` y
   `options`), más `abrir_nuevo()` y `abrir_edicion(registro)`. La tabla lo usa

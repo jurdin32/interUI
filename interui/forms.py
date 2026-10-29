@@ -280,7 +280,7 @@ class ModelForm(Component):
         self.card_options: dict[str, Any] = dict(
             card_options or getattr(type(self), "card_options", None) or {}
         )
-        from .tema import por_defecto
+        from .tema import theme_default
 
         for nombre in _CARD_KEYS:
             # Prioridad: lo que se pasa al crear > lo declarado en la clase > tema.
@@ -291,7 +291,7 @@ class ModelForm(Component):
             if declarado is not None:
                 self.card_options.setdefault(nombre, declarado)
                 continue
-            del_tema = por_defecto(type(self), nombre)
+            del_tema = theme_default(type(self), nombre)
             if del_tema is not None:
                 self.card_options.setdefault(nombre, del_tema)
         super().__init__(**props)
@@ -577,10 +577,10 @@ class FormModal:
             raise TypeError(
                 f"{cls.__name__} necesita un formulario: `form = MiForm` en la clase."
             )
-        from .tema import estilos_de
+        from .tema import styles_for
 
         combinadas = {
-            **estilos_de(cls),
+            **styles_for(cls),
             **dict(getattr(cls, "options", {}) or {}),
             **options,
         }
