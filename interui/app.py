@@ -48,6 +48,32 @@ def active_app() -> Any:
     return _ACTIVE_APP.get()
 
 
+def _register_installed_apps(application: "App", names: list[str]) -> None:
+    """Conecta las rutas de las apps declaradas en ``interui.json``.
+
+    Cada app creada con ``iui startapp`` expone ``urlpatterns`` —o una función
+    ``register(app)``— en ``<app>/urls.py``.
+    """
+    import importlib
+
+    for name in names:
+        module_name = f"{name}.urls"
+        try:
+            module = importlib.import_module(module_name)
+        except ModuleNotFoundError as exc:
+            if exc.name not in (name, module_name):
+                raise
+            raise RuntimeError(
+                f"La app «{name}» está en interui.json pero no existe {name}/urls.py"
+            ) from exc
+        register = getattr(module, "register", None)
+        if callable(register):
+            register(application)
+            continue
+        for path, view, title in getattr(module, "urlpatterns", []):
+            application.page(path, title=title)(view)
+
+
 class App:
     """Aplicación de escritorio/navegador basada en HTML + Tailwind."""
 
@@ -83,7 +109,8 @@ class App:
         self._bindings: dict[str, dict[str, dict[str, Callable[..., Any]]]] = {}
         self._client_pages: dict[str, str] = {}
         self._lock = threading.RLock()
-        self._in_handler = False
+        self._refresh_pending = False
+        self._refresh_thread: threading.Thread | None = None
 
         self.upload_dir = Path(tempfile.gettempdir()) / "interui-uploads"
         self.upload_dir.mkdir(parents=True, exist_ok=True)
@@ -126,18 +153,29 @@ class App:
         application = cls(**options)
         application.config = settings
         db_module.configure(settings)
+        _register_installed_apps(application, settings.installed_apps())
         return application
 
     # ------------------------------------------------------------------
     # rutas
     # ------------------------------------------------------------------
     def page(self, path: str = "/", *, title: str | None = None) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
-        """Registra una vista. ``<int:id>`` produce parámetros tipados."""
+        """Registra una vista. ``<int:id>`` produce parámetros tipados.
+
+        Si la ruta ya existía se sustituye en el sitio (no se duplica): así una
+        app puede redefinir una página del proyecto sin dejar rutas muertas.
+        """
 
         def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
             params: list[tuple[str, str]] = [(m.group("name"), m.group("kind") or "str") for m in _PARAM.finditer(path)]
             regex = re.compile("^" + _PARAM.sub(lambda m: f"(?P<{m.group('name')}>[^/]+)", path) + "$")
-            self._routes.append((path, regex, func, title, params))
+            normalized = path.rstrip("/") or "/"
+            entry = (path, regex, func, title, params)
+            for index, (existing, *_rest) in enumerate(self._routes):
+                if (existing.rstrip("/") or "/") == normalized:
+                    self._routes[index] = entry
+                    return func
+            self._routes.append(entry)
             return func
 
         return decorator
@@ -177,11 +215,48 @@ class App:
     def get_state(self, name: str, default: Any = None) -> Any:
         return self._state.get(name, default)
 
+    @property
+    def _in_handler(self) -> bool:
+        """``True`` mientras **este hilo** ejecuta un handler.
+
+        Es por hilo: el refresco que pide una ventana no debe esperar a que
+        termine el handler de otra, y ``_in_handler`` no puede quedarse en
+        ``True`` por una carrera entre dos conexiones.
+        """
+        return bool(getattr(self._local, "in_handler", 0))
+
+    def _begin_handler(self) -> None:
+        self._local.in_handler = getattr(self._local, "in_handler", 0) + 1
+
+    def _end_handler(self) -> None:
+        self._local.in_handler = max(0, getattr(self._local, "in_handler", 0) - 1)
+
     def schedule_refresh(self) -> None:
-        """Re-renderiza; si se llama fuera de un handler lo hace de inmediato."""
+        """Re-renderiza; si se llama fuera de un handler lo hace de inmediato.
+
+        Varios cambios seguidos (un clic que toca tres señales, dos ventanas a
+        la vez) se agrupan en un solo re-render: antes se abría un hilo por
+        cambio y la interfaz acababa pintando versiones antiguas.
+        """
         if self._in_handler:
             return
-        threading.Thread(target=self.refresh, name="interui-refresh", daemon=True).start()
+        with self._lock:
+            self._refresh_pending = True
+            worker = self._refresh_thread
+            if worker is not None and worker.is_alive():
+                return
+            self._refresh_thread = threading.Thread(
+                target=self._refresh_loop, name="interui-refresh", daemon=True
+            )
+            self._refresh_thread.start()
+
+    def _refresh_loop(self) -> None:
+        while True:
+            with self._lock:
+                if not self._refresh_pending:
+                    return
+                self._refresh_pending = False
+            self.refresh()
 
     # ------------------------------------------------------------------
     # render
@@ -269,7 +344,7 @@ class App:
         """Re-renderiza todas las vistas conectadas."""
         if self.server is None:
             return
-        for ws in list(self.server.clients):
+        for ws in self.server.clients_snapshot():
             if ws.alive:
                 self._push_render(ws)
 
@@ -353,7 +428,7 @@ class App:
             target=message.get("target"),
         )
         if handler is not None:
-            self._in_handler = True
+            self._begin_handler()
             token = _ACTIVE_APP.set(self)
             try:
                 invoke(handler, event)
@@ -364,7 +439,7 @@ class App:
                 ws.send_json({"t": "toast", "level": "error", "message": f"{type(exc).__name__}: {exc}"})
             finally:
                 _ACTIVE_APP.reset(token)
-                self._in_handler = False
+                self._end_handler()
         self._push_render(ws)
 
     # ------------------------------------------------------------------
@@ -689,24 +764,37 @@ class App:
     ) -> None:
         """Abre la aplicación en una ventana nativa de escritorio.
 
-        ``window`` acepta ``"desktop"`` (ventana nativa, por defecto),
-        ``"browser"`` (navegador del sistema, útil para depurar) o ``"none"``
-        (solo servidor, útil para pruebas).
+        ``window`` acepta:
+
+        * ``"desktop"`` (por defecto): ventana nativa. Si falta ``pywebview``
+          **falla** con un mensaje claro; nunca abre el navegador por su cuenta.
+        * ``"auto"``: ventana nativa y, si no está disponible, el navegador.
+        * ``"browser"``: navegador del sistema. Solo para depurar.
+        * ``"none"``: solo el servidor local (pruebas e integraciones).
         """
         if not self._routes:
             raise RuntimeError("Registra al menos una página con @app.page(...)")
-        if window == "auto":
-            window = "desktop"
-        if window not in ("desktop", "browser", "none"):
-            raise ValueError("window debe ser 'desktop', 'browser' o 'none'")
+        if window not in ("desktop", "browser", "none", "auto"):
+            raise ValueError("window debe ser 'desktop', 'auto', 'browser' o 'none'")
 
-        if window == "desktop" and not desktop_available():
+        if window in ("desktop", "auto") and not desktop_available():
+            if window == "desktop":
+                raise DesktopError(
+                    "No se pudo abrir la ventana nativa: falta pywebview.\n"
+                    '  Instálalo con: pip install "interui[desktop]"\n'
+                    "  Para depurar en el navegador: app.run(window=\"browser\")"
+                )
             log(
                 '[interui] pywebview no está disponible: pip install "interui[desktop]".\n'
-                "[interui] Abriendo en el navegador como alternativa.",
+                "[interui] window=\"auto\": se abre en el navegador como alternativa.",
                 error=True,
             )
             window = "browser"
+        elif window == "auto":
+            window = "desktop"
+
+        self._stopped = False
+        self._shutdown_done = False
 
         server = Server(self, host, port)
         self.server = server

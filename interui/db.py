@@ -330,7 +330,21 @@ class SQLBackend(Backend):
 
     def commit(self) -> None:
         if self._conn is not None:
-            self._conn.commit()
+            with self._lock:
+                self._conn.commit()
+
+    def query(self, sql: str, params: Sequence[Any] = ()) -> tuple[list[Any], list[str]]:
+        """Ejecuta y trae todas las filas dentro del **mismo** bloqueo.
+
+        Traer las filas después de soltar el ``lock`` permitía que otra ventana
+        reutilizara la conexión a mitad de lectura: la consulta se quedaba
+        esperando o llegaban filas de otra tabla.
+        """
+        with self._lock:
+            cursor = self.execute(sql, params)
+            rows = cursor.fetchall()
+            names = [item[0] for item in cursor.description] if cursor.description else []
+            return rows, names
 
     def sql_type(self, column: Column) -> str:
         table = _TYPES[self.engine]
@@ -455,9 +469,7 @@ class SQLBackend(Backend):
             sql += f" LIMIT {int(limit)}"
         if offset:
             sql += f" OFFSET {int(offset)}"
-        cursor = self.execute(sql, params)
-        rows = cursor.fetchall()
-        names = [item[0] for item in cursor.description] if cursor.description else []
+        rows, names = self.query(sql, params)
         out: list[dict[str, Any]] = []
         for row in rows:
             if isinstance(row, dict):  # mysql con DictCursor
@@ -469,9 +481,10 @@ class SQLBackend(Backend):
 
     def count(self, table: str, where: Sequence[tuple[str, str, Any]] | None = None) -> int:
         clause, params = _where_sql(where, self.placeholder, self.quote)
-        cursor = self.execute(f"SELECT COUNT(*) FROM {self.quote(_check_ident(table))}{clause}", params)
-        row = cursor.fetchone()
-        return int(row[0]) if row else 0
+        rows, _names = self.query(
+            f"SELECT COUNT(*) FROM {self.quote(_check_ident(table))}{clause}", params
+        )
+        return int(rows[0][0]) if rows else 0
 
     # -- introspección ---------------------------------------------------
     def _logical_type(self, sql_type: str) -> str:

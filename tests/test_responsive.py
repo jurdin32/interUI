@@ -46,10 +46,30 @@ def test_el_panel_respeta_el_lado_configurado() -> None:
 
 
 def test_el_css_trae_las_reglas_del_panel() -> None:
-    assert ".iui-shell-row>aside" in CSS
+    assert ".iui-shell-row[data-collapsible=true]>aside" in CSS
     assert ".iui-shell[data-sidebar=open]" in CSS
     assert "@media(max-width:767px)" in CSS
     assert ".iui-shell-bar" in CSS
+
+
+def test_el_sidebar_puede_quedarse_siempre_visible() -> None:
+    """`collapsible=False`: el menú no se esconde tras el botón en ventanas estrechas."""
+    html = render(
+        ui.AppShell(
+            ui.text("x"),
+            sidebar=ui.Sidebar(ui.SidebarItem("Panel")),
+            collapsible=False,
+        )
+    )
+    assert 'data-collapsible="false"' in html
+    assert 'data-iui-drawer="toggle"' not in html, "no debe haber botón de menú"
+    assert ".iui-shell-row[data-collapsible=true]" in CSS, "las reglas del panel deben ser solo para el plegable"
+
+
+def test_el_sidebar_colapsable_es_el_comportamiento_por_defecto() -> None:
+    html = render(ui.AppShell(ui.text("x"), sidebar=ui.Sidebar(ui.SidebarItem("Panel"))))
+    assert 'data-collapsible="true"' in html
+    assert 'data-iui-drawer="toggle"' in html
 
 
 # --- Controles que deben caber ------------------------------------------------

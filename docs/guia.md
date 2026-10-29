@@ -1,4 +1,4 @@
-# Guía: de una ventana vacía a una aplicación completa
+# Tutorial: de una ventana vacía a una aplicación completa
 
 Tutorial progresivo. Cada paso es un archivo que puedes ejecutar tal cual; al
 final tendrás una app real (agenda de contactos) con formularios, tabla,
@@ -7,6 +7,17 @@ búsqueda, validación, persistencia y diálogos nativos.
 La versión terminada está en
 [`examples/05_crud.py`](../examples/05_crud.py) y las pruebas la ejecutan en cada
 commit.
+
+> **Antes de empezar.** Necesitas interUI instalado
+> ([instalación](../README.md#instalación)) y una terminal. No hace falta saber
+> HTML, CSS ni JavaScript: todo se escribe en Python. Si prefieres ver el
+> resultado final antes de empezar, crea un proyecto con `iui startproject` y
+> ábrelo; la estructura está explicada en [proyecto.md](proyecto.md).
+>
+> **Cómo leerlo.** Cada apartado añade algo a la misma app y termina con el
+> archivo completo. Puedes copiarlo en `app.py` y ejecutarlo con
+> `interui run app.py`, o crear un proyecto (`iui startproject`) y pegar las
+> vistas en `views.py`.
 
 ---
 
@@ -734,7 +745,12 @@ shell.add = Container(pad=pad.py_6)(Text("Contenido"))
 ```
 
 Y en ventanas estrechas el sidebar se convierte en un panel deslizante con su
-propio botón: el contenido no se aplasta aunque la ventana baje a 400 px.
+propio botón: el contenido no se aplasta aunque la ventana baje a 400 px. Si
+prefieres que el menú esté siempre a la vista, pasa `collapsible=False`:
+
+```python
+shell = AppShell(collapsible=False)
+```
 
 También hay `MenuButton(...)` para un desplegable suelto, `CommandBar(...)` para
 un buscador con acciones y `NotificationButton(3, items=[...])` para la campana
@@ -819,22 +835,22 @@ Puedes sobreescribirla con `App(data_dir=...)` o `INTERUI_DATA_DIR`.
 
 ## 15. Estructura recomendada del proyecto
 
-No la escribas a mano: `iui startproject` crea la estructura completa, al estilo
-de Django.
+No la escribas a mano: `iui startproject` crea la estructura completa y, si no
+le das el nombre, te va preguntando la configuración inicial.
 
 ```bash
 iui startproject mi_app
 cd mi_app
 pip install -r requirements.txt
-python iui.py makemigrations
-python iui.py migrate
-python iui.py run
+python iui.py startapp tareas   # opcional: una app dentro del proyecto
+python main.py                  # migra lo pendiente y abre la ventana
 ```
 
 ```
 mi_app/
-├── iui.py              # comandos, como manage.py
-├── interui.json        # configuración, como settings.py
+├── main.py             # punto de entrada: crea todo y abre la ventana
+├── iui.py              # comandos del proyecto
+├── interui.json        # configuración
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
@@ -842,21 +858,25 @@ mi_app/
 │   ├── __init__.py
 │   ├── app.py          # crea la App y registra las rutas
 │   ├── urls.py         # ruta → vista
-│   ├── views.py        # las páginas
-│   ├── layout.py       # armazón compartido: menú lateral, título, estado
-│   └── models.py       # modelos del ORM
+│   ├── views.py        # las páginas (una: «Hola mundo»)
+│   └── models.py       # modelos del ORM (vacío)
+├── tareas/             # una app, si la creas (`python iui.py startapp tareas`)
+│   ├── models.py       # modelos de la app
+│   ├── views.py        # páginas de la app
+│   └── urls.py         # sus rutas (se registran solas)
 ├── migrations/         # migraciones generadas
 └── data/               # SQLite o archivos (se crea al migrar)
 ```
 
-| Equivalente en Django | Aquí |
+| Pieza | Qué hace |
 |---|---|
-| `manage.py` | `iui.py` (`run`, `makemigrations`, `migrate`, `status`, `shell`, `check`) |
-| `settings.py` | `interui.json` |
-| `urls.py` | `mi_app/urls.py` (`urlpatterns` + `register(app)`) |
-| `views.py` | `mi_app/views.py`, cada vista devuelve un componente |
-| `models.py` + migraciones | `mi_app/models.py` + `migrations/*.json` |
-| `wsgi.py`/`asgi.py` | no existe: la app abre su propia ventana de escritorio |
+| `main.py` | punto de entrada: crea todo y abre la ventana |
+| `iui.py` | comandos del proyecto (`startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check`) |
+| `interui.json` | configuración |
+| `mi_app/urls.py` | `urlpatterns` + `register(app)` |
+| `mi_app/views.py` | cada vista devuelve un componente |
+| `models.py` de cada app | tablas del ORM, creadas por las migraciones |
+| `migrations/*.json` | historial del esquema |
 
 Reglas prácticas:
 

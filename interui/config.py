@@ -102,9 +102,11 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "databases": {
         "default": {"engine": "sqlite", "name": "data/app.db"},
     },
+    #: Apps del proyecto (las crea `iui startapp`). Sus rutas se registran solas.
+    "apps": [],
     "migrations": {
         "directory": "migrations",
-        "models": "models.py",
+        "models": ["models.py"],
     },
 }
 
@@ -400,15 +402,34 @@ class Config(Section):
                 options[key] = app[key]
         return options
 
+    def model_paths(self) -> list[Path]:
+        """Archivos de modelos del proyecto.
+
+        ``migrations.models`` acepta un archivo o una lista: cada app creada con
+        ``iui startapp`` añade el suyo.
+        """
+        relative = (self.get("migrations") or {}).get("models", "models.py")
+        items = relative if isinstance(relative, (list, tuple)) else [relative]
+        return [self.resolve(item) for item in items]
+
     def model_classes(self) -> Iterable[type]:
-        """Importa ``migrations.models`` y devuelve las clases ``Model``."""
+        """Importa los ``models.py`` del proyecto y devuelve las clases ``Model``."""
         from .orm import Model, declared_models
 
-        relative = (self.get("migrations") or {}).get("models", "models.py")
-        target = self.resolve(relative)
-        if not target.is_file():
-            raise ConfigError(f"No existe el archivo de modelos {target}")
-        return declared_models(target, Model)
+        models: list[type] = []
+        for target in self.model_paths():
+            if not target.is_file():
+                raise ConfigError(f"No existe el archivo de modelos {target}")
+            for model in declared_models(target, Model):
+                if model not in models:
+                    models.append(model)
+        return models
+
+    def installed_apps(self) -> list[str]:
+        """Apps del proyecto declaradas en ``apps`` (las crea ``iui startapp``)."""
+        raw = self.get("apps") or []
+        items = raw if isinstance(raw, (list, tuple)) else [raw]
+        return [str(item) for item in items if str(item).strip()]
 
 
 def load(path: str | Path | None = None, *, required: bool = True) -> Config:

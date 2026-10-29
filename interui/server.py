@@ -210,6 +210,11 @@ class Server:
                 sent += 1
         return sent
 
+    def clients_snapshot(self) -> list["WebSocket"]:
+        """Copia segura de los clientes: se puede iterar mientras entran y salen."""
+        with self._clients_lock:
+            return list(self.clients)
+
     @property
     def has_clients(self) -> bool:
         with self._clients_lock:

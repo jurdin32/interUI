@@ -230,3 +230,92 @@ def test_exit_stops_a_running_app(tmp_path):
     finally:
         app.quit()
         worker.join(timeout=5)
+
+
+def test_desktop_mode_no_cae_al_navegador_sin_avisar(tmp_path, monkeypatch):
+    """Sin pywebview, ``window="desktop"`` falla en claro en vez de abrir el navegador."""
+    import interui.app as app_module
+
+    monkeypatch.setattr(app_module, "desktop_available", lambda: False)
+    opened: list[str] = []
+    monkeypatch.setattr(app_module.webbrowser, "open", lambda url: opened.append(url))
+
+    app = make_app(tmp_path)
+    with pytest.raises(ui.DesktopError) as error:
+        app.run(window="desktop")
+
+    assert "pywebview" in str(error.value)
+    assert opened == [], "no debe abrir el navegador por su cuenta"
+    assert app.server is None, "no debe dejar el servidor encendido"
+
+
+def test_window_auto_si_acepta_el_navegador_como_alternativa(tmp_path, monkeypatch):
+    """``window="auto"`` sí es un opt-in explícito al navegador."""
+    import threading
+    import time
+
+    import interui.app as app_module
+
+    monkeypatch.setattr(app_module, "desktop_available", lambda: False)
+    opened: list[str] = []
+    monkeypatch.setattr(app_module.webbrowser, "open", lambda url: opened.append(url))
+
+    app = make_app(tmp_path)
+    worker = threading.Thread(target=app.run, kwargs={"window": "auto"}, daemon=True)
+    worker.start()
+    try:
+        for _ in range(200):
+            if app.server is not None and opened:
+                break
+            time.sleep(0.01)
+        assert opened and opened[0].startswith("http://127.0.0.1:"), "no se abrió el navegador"
+        app.exit()
+        worker.join(timeout=5)
+    finally:
+        app.quit()
+        worker.join(timeout=5)
+
+
+def test_los_refrescos_seguidos_se_agrupan(tmp_path, monkeypatch):
+    """Diez cambios rápidos no deben abrir diez renders en paralelo."""
+    import threading
+    import time
+
+    app = make_app(tmp_path)
+    renders: list[int] = []
+    done = threading.Event()
+
+    def fake_refresh() -> None:
+        renders.append(1)
+        time.sleep(0.05)
+
+    monkeypatch.setattr(app, "refresh", fake_refresh)
+    for _ in range(10):
+        app.schedule_refresh()
+    for _ in range(100):
+        if not app._refresh_pending:
+            break
+        time.sleep(0.01)
+    time.sleep(0.15)
+    done.set()
+
+    assert 1 <= len(renders) <= 3, f"se renderizó {len(renders)} veces para 10 cambios"
+    assert not app._in_handler
+
+
+def test_in_handler_es_por_hilo(tmp_path):
+    """El estado de «estoy ejecutando un handler» no se comparte entre ventanas."""
+    import threading
+
+    app = make_app(tmp_path)
+    app._begin_handler()
+    try:
+        seen: list[bool] = []
+        worker = threading.Thread(target=lambda: seen.append(app._in_handler))
+        worker.start()
+        worker.join(timeout=5)
+        assert app._in_handler is True
+        assert seen == [False], "otro hilo no está ejecutando ningún handler"
+    finally:
+        app._end_handler()
+    assert app._in_handler is False

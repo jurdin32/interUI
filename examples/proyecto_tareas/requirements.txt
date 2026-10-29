@@ -1,0 +1,2 @@
+# interUI todavía no está en PyPI: se instala desde GitHub.
+interui[desktop] @ git+https://github.com/jurdin32/interUI

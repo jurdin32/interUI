@@ -1,4 +1,4 @@
-"""Migraciones al estilo de Django: se generan solas y se aplican por orden.
+"""Migraciones: se generan solas y se aplican por orden.
 
 .. code-block:: bash
 

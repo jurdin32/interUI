@@ -8,6 +8,60 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Asistente de proyecto**: `iui startproject` sin nombre pregunta el nombre
+  corto y el **nombre largo** de la ventana, la carpeta, el motor de base de
+  datos (con su ruta o conexión), el tema y si crear y aplicar ya la migración
+  inicial. `--title`, `--theme` y `--no-input` permiten saltarse preguntas;
+  `interui init` pregunta también el nombre largo.
+- **Documentación reorganizada** como un sitio de documentación: índice
+  ([`docs/indice.md`](docs/indice.md)), tutorial, anatomía de un proyecto
+  ([`docs/proyecto.md`](docs/proyecto.md)), referencia de comandos
+  ([`docs/comandos.md`](docs/comandos.md)) y de configuración
+  ([`docs/configuracion.md`](docs/configuracion.md)). Una prueba comprueba que
+  los enlaces y las anclas de toda la documentación existen.
+- **`iui startapp <app>`** (también `python iui.py startapp <app>`): crea una app
+  dentro del proyecto con `models.py`, `views.py`, `urls.py` y `README.md`, la
+  apunta en `apps` de `interui.json` y añade su `models.py` a las migraciones.
+  Sus rutas se registran solas (`App.from_config()` importa `<app>/urls.py`), sin
+  registrar nada a mano; un solo `migrate` pone al día todas las apps.
+  `Config.model_paths()`, `Config.installed_apps()` y `migrations.models` aceptan
+  ahora una lista de archivos.
+- **`main.py` en los proyectos**: punto de entrada único que aplica las
+  migraciones pendientes, construye la `App` y abre la ventana. `iui.py` queda
+  para los comandos (`startapp`, `makemigrations`, `migrate`, `status`, `shell`).
+- **`examples/proyecto_tareas/`**: proyecto completo de ejemplo con una app
+  `notas` y SQLite.
+- `App.page()` sustituye la ruta si ya existía, en lugar de duplicarla.
+
+### Corregido
+
+- **Los desplegables de `MenuBar`, `MenuButton` y `ContextMenu` ya no se quedan
+  detrás del contenido.** Los paneles de menú se pintaban en `absolute` dentro
+  de la barra, y su `overflow-x: auto` los recortaba: el menú se abría pero no se
+  veía. Ahora van en `position: fixed` con `z-index` alto y el runtime los coloca
+  bajo su disparador (y hacia arriba si no caben abajo), así que ningún
+  contenedor con `overflow` los oculta.
+- **`AppShell(collapsible=False)`**: el sidebar se queda siempre visible aunque
+  la ventana sea estrecha (antes pasaba siempre a panel deslizante).
+
+### Cambiado
+
+- **El proyecto que crea `startproject` es mínimo**: una ventana con una
+  etiqueta centrada que dice «Hola mundo». Antes traía un armazón con menú
+  lateral, dos páginas y un modelo `Tarea` de ejemplo; ahora no hay `layout.py`,
+  ni rutas de ejemplo, ni tablas: solo la estructura y una vista. Añadir una app
+  sigue siendo `python iui.py startapp <app>`.
+
+- **`app.run(window="desktop")` ya no abre el navegador por su cuenta** si falta
+  `pywebview`: falla con un `DesktopError` que explica cómo instalarlo. Para
+  aceptar el navegador como alternativa hay que decirlo: `window="auto"`.
+- Los refrescos de estado se agrupan en un solo hilo (antes se abría uno por
+  cambio, con re-renders fuera de orden); `_in_handler` pasa a ser por hilo.
+- SQLite ejecuta la consulta y el `fetchall()` bajo el mismo bloqueo, para que
+  dos ventanas no compartan la conexión a mitad de lectura.
+- El diálogo nativo de macOS espera como máximo 120 s (antes 900 s) y avisa en
+  lugar de dejar la ventana bloqueada.
+
 - **Estilos con notación de punto** (`interui.theme`): `colors.red_500`,
   `pad.py_6`, `radius.xxl`, `shadow.md`, `font.lg.semibold`, `width.full`,
   `flex.center`, `side.right`, `layer.blocking`. Los argumentos (`bg=`, `pad=`,
@@ -33,14 +87,14 @@ etiqueta como `vX.Y.Z`.
   también `start`/`end` y señales.
 - **Datos**: `interui.json` como configuración del proyecto, `interui init`
   (asistente), `interui db makemigrations|migrate|status`, modelos al estilo de
-  Django (`ui.Model`, `Int`, `Str`, `LongText`, `Bool`, `Float`, `Date`,
+  declarativos (`ui.Model`, `Int`, `Str`, `LongText`, `Bool`, `Float`, `Date`,
   `DateTime`, `Json`, `Blob`, `FK`) y migraciones con estado completo.
   Motores: `sqlite` y `file` sin dependencias; `postgres`, `mysql` y `mongo` con
   extras (`interui[postgres]`, etc.).
 - **CLI**: comandos `init` y `db`; `doctor`, `assets`, `dev`, `run`, `new`,
   `build` y `update` siguen igual.
 - **`iui` y `iui startproject`**: el comando corto hace lo mismo que `interui` y
-  `startproject` crea la estructura completa al estilo de Django, solo para
+  `startproject` crea la estructura completa, solo para
   escritorio:
   `iui.py` (comandos), `interui.json` (configuración), `mi_app/` con `app.py`,
   `urls.py`, `views.py`, `layout.py` y `models.py`, más `migrations/` y `data/`.

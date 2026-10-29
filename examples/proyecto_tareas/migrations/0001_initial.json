@@ -1,0 +1,98 @@
+{
+  "name": "0001_initial",
+  "created": "2026-10-29T10:24:17",
+  "operations": [
+    {
+      "op": "CreateModel",
+      "table": "notas",
+      "database": "default",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int",
+          "null": false,
+          "unique": false,
+          "primary_key": true,
+          "auto": true,
+          "max_length": null,
+          "default": null
+        },
+        {
+          "name": "titulo",
+          "type": "varchar",
+          "null": false,
+          "unique": false,
+          "primary_key": false,
+          "auto": false,
+          "max_length": 120,
+          "default": null
+        },
+        {
+          "name": "hecha",
+          "type": "bool",
+          "null": false,
+          "unique": false,
+          "primary_key": false,
+          "auto": false,
+          "max_length": null,
+          "default": false
+        },
+        {
+          "name": "creada",
+          "type": "datetime",
+          "null": false,
+          "unique": false,
+          "primary_key": false,
+          "auto": false,
+          "max_length": null,
+          "default": null
+        }
+      ]
+    }
+  ],
+  "state": {
+    "tables": {
+      "notas": {
+        "database": "default",
+        "fields": {
+          "id": {
+            "type": "int",
+            "null": false,
+            "unique": false,
+            "primary_key": true,
+            "auto": true,
+            "max_length": null,
+            "default": null
+          },
+          "titulo": {
+            "type": "varchar",
+            "null": false,
+            "unique": false,
+            "primary_key": false,
+            "auto": false,
+            "max_length": 120,
+            "default": null
+          },
+          "hecha": {
+            "type": "bool",
+            "null": false,
+            "unique": false,
+            "primary_key": false,
+            "auto": false,
+            "max_length": null,
+            "default": false
+          },
+          "creada": {
+            "type": "datetime",
+            "null": false,
+            "unique": false,
+            "primary_key": false,
+            "auto": false,
+            "max_length": null,
+            "default": null
+          }
+        }
+      }
+    }
+  }
+}

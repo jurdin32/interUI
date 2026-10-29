@@ -13,9 +13,15 @@ app = App("Mi app", width=1100, height=720, theme="light")
 def index(): ...
 
 app.run()                       # ventana nativa (por defecto)
+app.run(window="auto")          # ventana nativa; si falta pywebview, el navegador
 app.run(window="browser")       # navegador del sistema (solo depuración)
 app.run(window="none")          # solo servidor (tests, integración con otros procesos)
 ```
+
+`app.run(window="desktop")` no cae nunca al navegador: si falta `pywebview` lanza
+`DesktopError` con el comando exacto para instalarlo. El navegador es una
+herramienta de depuración, no el destino de la app, así que hay que pedirlo
+explícitamente (`"auto"` o `"browser"`).
 
 Secuencia interna:
 

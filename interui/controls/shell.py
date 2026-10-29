@@ -139,14 +139,16 @@ class MenuButton(Component):
             size=self.size,
             icon=self.icon,
             icon_right="chevron-down",
-            data={"iui-menu": panel_id},
+            data={
+                "iui-menu": panel_id,
+                "iui-align": "left" if self.align == "left" else "right",
+            },
         )
         panel = (
             f'<div id="{escape(panel_id)}" data-iui-menu-panel role="menu" '
-            'class="absolute top-full z-[55] mt-1 hidden min-w-52 flex-col overflow-hidden '
+            'class="fixed z-[70] hidden min-w-52 flex-col overflow-hidden '
             'rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 '
-            f'dark:bg-slate-900 {"left-0" if self.align == "left" else "right-0"}">'
-            f'{_render_items(self.items, ctx, f"{path}-p")}</div>'
+            f'dark:bg-slate-900">{_render_items(self.items, ctx, f"{path}-p")}</div>'
         )
         return trigger.render(ctx, f"{path}-t") + panel
 
@@ -241,7 +243,7 @@ class MenuBar(Component):
                 'aria-expanded:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 '
                 f'dark:aria-expanded:bg-slate-800">{escape(label)}</button>'
                 f'<div id="{escape(panel_id)}" data-iui-menu-panel role="menu" '
-                'class="absolute left-0 top-full z-[55] mt-1 hidden min-w-56 flex-col overflow-hidden '
+                'class="fixed z-[70] hidden min-w-56 flex-col overflow-hidden '
                 'rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 '
                 f'dark:bg-slate-900">{items_html}</div></div>'
             )
@@ -349,7 +351,8 @@ class AppShell(Component):
     ```
 
     En ventanas estrechas el sidebar se convierte en un panel deslizante con su
-    propio botón, así el contenido nunca queda aplastado.
+    propio botón, así el contenido nunca queda aplastado. Con
+    ``collapsible=False`` el menú queda siempre a la vista.
     """
 
     tag = "div"
@@ -365,6 +368,7 @@ class AppShell(Component):
         sidebar_position: str = "left",
         sidebar_width: str = "w-64",
         menu_label: Any = "Menú",
+        collapsible: bool = True,
         **props: Any,
     ) -> None:
         self.title_bar = title_bar
@@ -375,6 +379,7 @@ class AppShell(Component):
         self.sidebar_position = _sidebar_side(sidebar_position)
         self.sidebar_width = sidebar_width
         self.menu_label = menu_label
+        self.collapsible = bool(collapsible)
         props["base_class"] = tw(
             "iui-shell flex h-dvh w-full flex-col overflow-hidden bg-slate-50 text-slate-900 "
             "dark:bg-slate-950 dark:text-slate-100",
@@ -385,7 +390,7 @@ class AppShell(Component):
     # -- zonas -----------------------------------------------------------
     def content(self, ctx: RenderContext, path: str) -> str:
         parts: list[str] = []
-        if self.sidebar is not None:
+        if self.sidebar is not None and self.collapsible:
             parts.append(self._drawer_bar(ctx, f"{path}-bar"))
         for index, slot in enumerate((self.title_bar, self.header)):
             if slot is None:
@@ -410,9 +415,11 @@ class AppShell(Component):
                 side = f'<div class="iui-shell-side {self.sidebar_width} shrink-0">{body}</div>'
             backdrop = '<div class="iui-shell-backdrop" data-iui-drawer="close" aria-hidden="true"></div>'
             row = f"{side}{main}" if self.sidebar_position != "right" else f"{main}{side}"
+            collapsible = "true" if self.collapsible else "false"
             parts.append(
                 f'<div class="iui-shell-row relative flex min-h-0 flex-1 overflow-hidden" '
-                f'data-side="{self.sidebar_position}">{row}{backdrop}</div>'
+                f'data-side="{self.sidebar_position}" data-collapsible="{collapsible}">'
+                f"{row}{backdrop}</div>"
             )
 
         if self.footer is not None:

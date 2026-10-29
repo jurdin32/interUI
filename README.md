@@ -78,6 +78,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 
 ## Índice
 
+- [Documentación completa](docs/indice.md) — tutorial, temas, referencia y cómo se hace
 - [Estado del proyecto](#estado-del-proyecto)
 - [Multiplataforma](#multiplataforma)
 - [Actualizar interUI](#actualizar-interui)
@@ -271,20 +272,33 @@ obsoleto.
 ## Inicio rápido
 
 ```bash
-iui startproject mi_app     # estructura completa, al estilo de Django
+iui startproject mi_app     # sin nombre abre un asistente de configuración
 cd mi_app
 pip install -r requirements.txt
-python iui.py makemigrations
-python iui.py migrate
-python iui.py run           # abre la ventana nativa
+python main.py              # crea todo y abre la ventana nativa
 ```
 
-Lo que crea (todo de escritorio, sin servidor web):
+El asistente pregunta el **nombre largo** de la ventana, el motor de base de
+datos, la ruta del archivo, el tema y si aplicar ya la migración inicial. Todo se
+puede pasar por parámetro si prefieres no responder preguntas.
+
+Para añadir una app dentro del proyecto:
+
+```bash
+python iui.py startapp tareas
+python iui.py makemigrations
+python iui.py migrate
+python main.py
+```
+
+Lo que crea (todo de escritorio, sin servidor web): **lo mínimo**, una ventana
+con una etiqueta centrada que dice «Hola mundo».
 
 ```
 mi_app/
-├── iui.py              # comandos, como manage.py
-├── interui.json        # configuración, como settings.py
+├── main.py             # punto de entrada: crea todo y abre la ventana
+├── iui.py              # comandos del proyecto
+├── interui.json        # configuración
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
@@ -292,20 +306,32 @@ mi_app/
 │   ├── __init__.py
 │   ├── app.py          # crea la App y registra las rutas
 │   ├── urls.py         # ruta → vista
-│   ├── views.py        # las páginas
-│   ├── layout.py       # armazón: menú lateral, título y estado
-│   └── models.py       # modelos del ORM
+│   ├── views.py        # las páginas (una: «Hola mundo»)
+│   └── models.py       # modelos del ORM (vacío)
 ├── migrations/         # migraciones generadas
 └── data/               # SQLite o archivos
 ```
 
-| Django | interUI |
+Cuando necesites más, `python iui.py startapp tareas` añade una app con sus
+modelos, vistas y rutas.
+
+`main.py` y `iui.py` se reparten el trabajo: `main.py` es el punto de entrada
+(aplica las migraciones pendientes, crea la `App` y abre la ventana) e `iui.py`
+es la consola de comandos.
+
+Cada pieza tiene una responsabilidad y no se solapan:
+
+| Pieza | Para qué |
 |---|---|
-| `manage.py` | `iui.py` (`run`, `makemigrations`, `migrate`, `status`, `shell`, `check`) |
-| `settings.py` | `interui.json` |
-| `urls.py` / `views.py` | `mi_app/urls.py` / `mi_app/views.py` |
-| `models.py` + migraciones | `mi_app/models.py` + `migrations/*.json` |
-| `wsgi.py` / `asgi.py` | no hay: la app abre su propia ventana |
+| `main.py` | abre la app: aplica migraciones, construye la `App` y muestra la ventana |
+| `iui.py` | comandos que nunca abren ventana: `startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check` |
+| `interui.json` | configuración: identidad, ventana, base de datos, apps y migraciones |
+| `urls.py` | qué vista responde a cada ruta |
+| `views.py` | qué se pinta en cada página |
+| `models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
+| `migrations/` | historial del esquema, en JSON legible y versionado |
+| `data/` | base de datos y archivos de la app (fuera de git) |
+| `<app>/` | apps del proyecto: modelos, vistas y rutas que se registran solas |
 
 `iui` y `interui` son el mismo comando (`iui startproject`, `iui run`, `iui db
 migrate`…). Si solo quieres un archivo suelto: `interui new mi_app`.
@@ -344,6 +370,10 @@ Ejemplos completos en [`examples/`](examples):
 | [`10_multiventana.py`](examples/10_multiventana.py) | Varias ventanas, rutas independientes y cierre por ventana. |
 | [`11_datos.py`](examples/11_datos.py) | Modelos, SQLite y una pantalla CRUD completa. |
 | [`12_responsive.py`](examples/12_responsive.py) | Armazón por partes y todo adaptándose al tamaño de la ventana. |
+
+Y un **proyecto completo de ejemplo**: [`examples/proyecto_tareas/`](examples/proyecto_tareas)
+— creado con `iui startproject` + `iui startapp notas`, con `main.py`, `iui.py` y
+SQLite (`python main.py` dentro de esa carpeta).
 
 ---
 
@@ -626,8 +656,8 @@ ana.save()
   y `mongo` van con extras (`pip install "interui[postgres]"` y compañía).
 - **Secretos fuera del JSON**: `${VARIABLE}` se lee del entorno, como un `.env`.
 - **Varias bases** por alias; cada modelo elige la suya con `Meta.database`.
-- **Migraciones** al estilo Django: se generan del diff entre modelos y esquema, y
-  los cambios que borran datos exigen `--force`.
+- **Migraciones**: se generan comparando los modelos con el esquema actual y solo
+  escriben las diferencias; los cambios que borran datos exigen `--force`.
 
 👉 Guía completa: [`docs/datos.md`](docs/datos.md) — el `interui.json` clave por
 clave (también escrito a mano), los modelos campo por campo, el ORM, las
@@ -1015,7 +1045,8 @@ window.interui.desktop      // true dentro de la ventana nativa
 que desplegar.
 
 ```bash
-iui startproject mi_app         # estructura completa (estilo Django)
+iui startproject mi_app         # proyecto completo (sin nombre: asistente)
+iui startapp tareas             # una app dentro del proyecto (desde su carpeta)
 iui run app.py                  # ventana nativa (por defecto)
 iui run app.py --debug          # herramientas de desarrollo en la ventana
 iui new mi_app                  # un solo archivo, sin base de datos
@@ -1027,17 +1058,22 @@ iui dev                         # Tailwind en modo watch
 iui build app.py --name MiApp
 ```
 
-Dentro de un proyecto creado con `startproject`, los comandos viven en `iui.py`
-(como `manage.py`):
+Dentro de un proyecto creado con `startproject`, los comandos viven en `iui.py`,
+la consola del proyecto:
 
 ```bash
 python iui.py run
+python iui.py startapp tareas   # crea tareas/ y la registra en interui.json
 python iui.py makemigrations
 python iui.py migrate
 python iui.py status
 python iui.py shell             # consola con tus modelos cargados
 python iui.py check             # revisa interui.json y la base de datos
 ```
+
+`iui startapp` crea `models.py`, `views.py`, `urls.py` y `README.md`, añade la
+app a `apps` de `interui.json` y su `models.py` a la lista de migraciones: sus
+rutas se registran solas y un solo `migrate` pone al día todas las apps.
 
 `python -m interui ...` funciona igual si no quieres el script en el PATH.
 
@@ -1187,7 +1223,7 @@ duplicados, catálogo exportado).
 
 | Síntoma | Causa y solución |
 |---|---|
-| La ventana no aparece / no abre | `interui doctor`: falta `pywebview` → `pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"`. |
+| La ventana no aparece / no abre | `interui doctor`: falta `pywebview` → `pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"`. Desde 0.5 la app no abre el navegador por su cuenta: si quieres depurar así, `app.run(window="browser")` o `--window browser`. |
 | Se ve sin estilos | Falta `interui/static/app.css` → `interui assets`. |
 | `ImportError: No module named webview` | Instala el extra `desktop`. |
 | Linux: error de GTK/WebKit | Instala `libgtk-3-0` y `libwebkit2gtk-4.1-0`. |
@@ -1245,16 +1281,36 @@ y pasa el ratón por `button`; debe mostrar `(type) button = Button`. Si aparece
 
 ## Documentación adicional
 
-- [Guía paso a paso](docs/guia.md) — de la ventana vacía a la app completa.
-- [Referencia de controles](docs/controles.md) — un ejemplo ejecutable y la firma de cada control.
-- [Guía de la rejilla](docs/rejilla.md) — patrones responsive.
-- [Estilos con notación de punto](docs/estilos.md) — tokens, variantes, hex y degradados.
-- [Datos y migraciones](docs/datos.md) — `interui.json` a mano o con asistente,
-  modelos, ORM, migraciones, CRUD en la interfaz y errores frecuentes.
-- [Diálogos y ventanas modales](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
-- [Actualizar interUI](docs/actualizar.md) — comprobar versión, comandos y aviso en la app.
-- [Menús, barras y armazón de app](docs/menus.md) — `AppShell`, barra de menús, menú contextual, comandos y notificaciones.
-- [Catálogo de iconos](docs/iconos.md) — los 204 iconos incluidos y cómo usarlos.
+El mapa completo está en **[docs/indice.md](docs/indice.md)**.
+
+**Primeros pasos**
+
+- [Tutorial](docs/guia.md) — de la ventana vacía a la app completa, paso a paso.
+- [Anatomía de un proyecto](docs/proyecto.md) — qué es `main.py`, qué es `iui.py`,
+  dónde van los modelos y cómo encajan las apps.
+- [Configuración](docs/configuracion.md) — cada clave de `interui.json`.
+
+**Temas**
+
+- [Escritorio](docs/escritorio.md) — ciclo de vida, multiventana, diálogos del
+  sistema, datos persistentes y empaquetado.
+- [Menús y barras](docs/menus.md) — `AppShell`, barra de menús, menú contextual,
+  barra de comandos y notificaciones.
+- [Diálogos](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
+- [Rejilla de 12 columnas](docs/rejilla.md) — columnas, breakpoints y patrones.
+- [Estilos](docs/estilos.md) — tokens, variantes, hex y degradados.
+- [Datos](docs/datos.md) — modelos, ORM, migraciones, motores y recetas.
+- [Iconos](docs/iconos.md) — los 204 iconos incluidos.
+
+**Referencia**
+
+- [Comandos](docs/comandos.md) — `iui`, `interui`, `iui.py` y `python -m interui`.
+- [Controles](docs/controles.md) — firma y ejemplo ejecutable de cada componente.
+
+**Cómo se hace**
+
+- [Actualizar interUI](docs/actualizar.md) — versión, comandos y aviso en la app.
+- [Empaquetar y publicar](docs/publicar.md) — wheel, TestPyPI, PyPI y ejecutables.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
 - [Instalación y publicación](docs/publicar.md) — instalar desde GitHub y publicar en PyPI.
 - [Historial de cambios](CHANGELOG.md) — qué trae cada versión (actual: 0.5.0).

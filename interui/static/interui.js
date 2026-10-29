@@ -693,12 +693,32 @@ function closeMenus(except) {
   }
 }
 
+/* Los paneles son `fixed`: así ningún contenedor con `overflow` los recorta
+   (barra de menús con scroll horizontal, tarjetas, el propio `main`). */
+function placeMenu(panel, trigger) {
+  if (!trigger || !trigger.getBoundingClientRect) return;
+  const anchor = trigger.getBoundingClientRect();
+  const align = trigger.dataset && trigger.dataset.iuiAlign === "right" ? "right" : "left";
+  panel.style.left = "0px";
+  panel.style.top = "0px";
+  const box = panel.getBoundingClientRect();
+  let left = align === "right" ? anchor.right - box.width : anchor.left;
+  left = Math.max(8, Math.min(left, window.innerWidth - box.width - 8));
+  let top = anchor.bottom + 4;
+  if (top + box.height > window.innerHeight - 8) {
+    top = Math.max(8, anchor.top - box.height - 4);
+  }
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+}
+
 function openMenu(panelId, trigger) {
   const panel = document.getElementById(panelId);
   if (!panel) return;
   closeMenus(panel);
   panel.classList.remove("hidden");
   panel.classList.add("flex");
+  placeMenu(panel, trigger);
   if (trigger) trigger.setAttribute("aria-expanded", "true");
 }
 
@@ -745,6 +765,10 @@ document.addEventListener("click", (event) => {
     closeMenus();
   }
 }, true);
+
+/* Si cambia el tamaño de la ventana, la posición calculada deja de valer:
+   cerrar es más predecible que recolocar a medias. */
+window.addEventListener("resize", () => closeMenus());
 
 document.addEventListener("mouseover", (event) => {
   // Con un menú abierto, pasar por otro elemento de la barra cambia de menú.

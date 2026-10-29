@@ -52,6 +52,26 @@ def index():
 | `sidebar_position` | `ui.side.left` (por defecto) o `ui.side.right`; también `start`/`end`. |
 | `sidebar_width` | Clase de ancho del hueco cuando `sidebar` no es un `ui.Sidebar`. |
 | `menu_label` | Texto que acompaña al botón del menú en ventanas estrechas. |
+| `collapsible` | `True` (por defecto): en ventanas estrechas el sidebar pasa a panel deslizante. `False`: el menú **siempre** queda a la vista, aunque la ventana se encoja. |
+
+En una app de escritorio, lo normal es que la navegación no desaparezca: si
+quieres el menú siempre visible, `collapsible=False`.
+
+```python
+ui.AppShell(
+    ui.Container(pad=ui.pad.py_6)(ui.text("Contenido")),
+    sidebar=ui.Sidebar(ui.SidebarItem("Inicio", icon=ui.icons.home, active=True)),
+    collapsible=False,          # nunca se esconde tras el botón ☰
+)
+```
+
+### Los desplegables siempre quedan encima
+
+Los paneles de `MenuBar`, `MenuButton` y `ContextMenu` se dibujan en `position:
+fixed` con `z-index` alto y el runtime los coloca bajo su disparador. Así no los
+recorta ningún contenedor con `overflow` (la barra de menús con scroll
+horizontal, una tarjeta, el propio `<main>`), y se abren hacia arriba si no caben
+abajo.
 
 ### Armarlo por partes
 

@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "proyecto_tareas",
+    "version": "0.1.0",
+    "theme": "light",
+    "width": 1180,
+    "height": 780,
+    "entry": "proyecto_tareas.app",
+    "debug": false,
+    "title": "proyecto_tareas"
+  },
+  "databases": {
+    "default": {
+      "engine": "sqlite",
+      "name": "data/app.db"
+    }
+  },
+  "apps": [
+    "notas",
+    "local"
+  ],
+  "migrations": {
+    "directory": "migrations",
+    "models": [
+      "proyecto_tareas/models.py",
+      "notas/models.py",
+      "local/models.py"
+    ]
+  }
+}

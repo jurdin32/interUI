@@ -107,6 +107,10 @@ def _enum(name: str) -> Any:
 
 _EXTENSION = re.compile(r"\*\.([A-Za-z0-9_+-]+)")
 
+#: Espera máxima del *sheet* de macOS. Antes eran 15 minutos: si el panel no
+#: llegaba a abrirse, el hilo de eventos se quedaba colgado todo ese tiempo.
+_DIALOG_TIMEOUT = 120.0
+
 
 def _extensions(file_types: Sequence[str] | None) -> list[str]:
     """Extrae extensiones de filtros como ``"Texto (*.txt;*.md)"``."""
@@ -533,7 +537,12 @@ class DesktopWindow:
                 panel.beginWithCompletionHandler_(handler)
 
         AppHelper.callAfter(show)
-        if not done.wait(timeout=900):
+        if not done.wait(timeout=_DIALOG_TIMEOUT):
+            if getattr(self.app, "verbose", False):
+                print(
+                    "[interui] el diálogo nativo no respondió en "
+                    f"{_DIALOG_TIMEOUT:.0f}s; se cancela para no bloquear la ventana."
+                )
             return []
         return payload["paths"]
 

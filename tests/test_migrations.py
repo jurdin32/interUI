@@ -1,4 +1,4 @@
-"""Migraciones: se generan solas y se aplican como en Django."""
+"""Migraciones: se generan solas y se aplican por orden."""
 
 from __future__ import annotations
 

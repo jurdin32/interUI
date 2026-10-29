@@ -1841,7 +1841,7 @@ Alias en minúsculas: `ui.app_shell`
 Armazón completo: barra de título, cabecera/menús, barra lateral, contenido con scroll y barra de estado.
 
 ```text
-ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_position=side.left, sidebar_width="w-64", menu_label="Menú")
+ui.AppShell(*children, title_bar=None, header=None, sidebar=None, status=None, footer=None, sidebar_position=side.left, sidebar_width="w-64", menu_label="Menú", collapsible=True)
 ```
 
 ```python

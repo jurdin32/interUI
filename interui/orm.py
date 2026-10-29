@@ -1,4 +1,4 @@
-"""Modelos declarativos al estilo de Django, sobre cualquier motor.
+"""Modelos declarativos, sobre cualquier motor.
 
 .. code-block:: python
 

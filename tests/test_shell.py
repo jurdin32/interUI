@@ -110,7 +110,8 @@ def test_menu_button_despliega_su_panel() -> None:
 
 def test_menu_button_alineado_a_la_derecha() -> None:
     html = render(ui.MenuButton("Más", items=["Uno"], align="right"))
-    assert "right-0" in html
+    assert 'data-iui-align="right"' in html
+    assert 'data-iui-align="left"' in render(ui.MenuButton("Más", items=["Uno"]))
 
 
 # --- ContextMenu --------------------------------------------------------------
@@ -354,3 +355,38 @@ def test_posicion_del_sidebar_invalida() -> None:
 def test_app_shell_sin_sidebar_no_emite_fila() -> None:
     html = render(ui.AppShell(ui.Text("x")))
     assert "iui-shell-row" not in html
+
+
+def _panel_attrs(html: str, marker: str = "data-iui-menu-panel") -> str:
+    """Devuelve la etiqueta de apertura del panel (sin el contenido)."""
+    position = html.index(marker)
+    start = html.rfind("<div", 0, position)
+    return html[start : html.index(">", position) + 1]
+
+
+def test_el_panel_de_la_barra_no_lo_recorta_el_overflow() -> None:
+    """El desplegable va en `fixed`: la barra con scroll horizontal lo ocultaba."""
+    html = render(ui.MenuBar({"Archivo": [ui.ContextItem("Salir")]}, brand="Mi app"))
+    panel = _panel_attrs(html)
+    assert "fixed" in panel, panel
+    assert "absolute" not in panel, panel
+    assert "z-[70]" in panel, panel
+
+
+def test_el_panel_de_menu_button_tambien_es_fixed() -> None:
+    html = render(
+        ui.MenuButton("Acciones", items=[ui.ContextItem("Editar")], align="right")
+    )
+    panel = _panel_attrs(html)
+    assert "fixed" in panel, panel
+    assert "absolute" not in panel, panel
+    assert 'data-iui-align="right"' in html
+
+
+def test_el_runtime_coloca_los_menus_fijos_bajo_su_disparador() -> None:
+    from interui.server import STATIC_DIR
+
+    runtime = (STATIC_DIR / "interui.js").read_text(encoding="utf-8")
+    assert "function placeMenu(" in runtime
+    assert "placeMenu(panel, trigger)" in runtime
+    assert "dataset.iuiAlign" in runtime

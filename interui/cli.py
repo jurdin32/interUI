@@ -81,6 +81,8 @@ def _frontend_dir() -> Path | None:
 # comandos
 # ---------------------------------------------------------------------------
 def cmd_run(args: argparse.Namespace) -> int:
+    from .desktop import DesktopError
+
     app = _load_app(Path(args.script))
     if args.title:
         app.title = args.title
@@ -91,43 +93,149 @@ def cmd_run(args: argparse.Namespace) -> int:
     if args.theme:
         app.theme = args.theme
     app.verbose = args.verbose or app.verbose
-    app.run(
-        window=args.window,
-        port=args.port,
-        host=args.host,
-        debug=args.debug,
-    )
+    try:
+        app.run(
+            window=args.window,
+            port=args.port,
+            host=args.host,
+            debug=args.debug,
+        )
+    except DesktopError as exc:
+        print(f"[interui] {exc}", file=sys.stderr)
+        return 1
     return 0
 
 
-def cmd_startproject(args: argparse.Namespace) -> int:
-    """`iui startproject tienda`: estructura completa, al estilo de Django."""
-    from .scaffold import create_project, package_name
+def _project_wizard(args: argparse.Namespace) -> dict[str, Any]:
+    """Preguntas del asistente de ``startproject``.
 
-    parent = Path(args.destination or ".").expanduser().resolve()
-    target = parent / args.name
+    Lo que llega por parámetro no se pregunta: así `iui startproject tienda`
+    sigue funcionando sin escribir nada y `--db postgres` se respeta.
+    """
+    from .config import ENGINES
+    from .scaffold import package_name
+
+    name = args.name or _ask("Nombre del proyecto (carpeta y paquete)", "mi_app", input_fn=input)
+    package = package_name(name)
+    title = args.title or _ask(
+        "Nombre largo (el que se ve en la ventana)", str(name).strip() or package, input_fn=input
+    )
+    destination = args.destination or _ask("Carpeta donde crearlo", ".", input_fn=input)
+
+    engine = args.db or _choose_engine(ENGINES, input_fn=input)
+    if engine not in ENGINES:
+        raise SystemExit(f"interui: motor desconocido {engine!r}; usa {', '.join(sorted(ENGINES))}")
+
+    flags = {
+        "name": args.database,
+        "host": args.host,
+        "port": args.port,
+        "user": args.user,
+        "password": args.password,
+    }
+    defaults = ENGINES[engine]["defaults"]
+    settings: dict[str, Any] = {}
+    for field in ENGINES[engine]["fields"]:
+        value = flags.get(field)
+        if value is None:
+            label = "Ruta del archivo" if field == "name" else field
+            value = _ask(f"  {label}", defaults.get(field, ""), input_fn=input)
+            if field == "port" and str(value).isdigit():
+                value = int(value)
+        settings[field] = value
+
+    theme = args.theme or _ask("Tema inicial (light/dark)", "light", input_fn=input)
+    theme = "dark" if str(theme).strip().lower()[:1] in ("d", "o") else "light"
+
+    migrate = bool(args.migrate)
+    if not migrate:
+        answer = _ask(
+            "¿Crear y aplicar la migración inicial ahora? (s/n)", "n", input_fn=input
+        )
+        migrate = str(answer).strip().lower()[:1] in ("s", "y")
+
+    return {
+        "name": package,
+        "title": title.strip() or package,
+        "destination": destination,
+        "engine": engine,
+        "settings": settings,
+        "theme": theme,
+        "migrate": migrate,
+    }
+
+
+def _project_from_flags(args: argparse.Namespace) -> dict[str, Any]:
+    """Valores sin preguntar: lo que hace la CLI cuando no hay terminal."""
+    from .config import ENGINES
+
     settings: dict[str, Any] = {}
     for field in ("database", "host", "port", "user", "password"):
         value = getattr(args, field, None)
         if value is not None:
             settings["name" if field == "database" else field] = value
+    engine = args.db or "sqlite"
+    if engine not in ENGINES:
+        raise SystemExit(f"interui: motor desconocido {engine!r}; usa {', '.join(sorted(ENGINES))}")
+    for field in ENGINES[engine]["fields"]:
+        settings.setdefault(field, ENGINES[engine]["defaults"].get(field, ""))
 
+    return {
+        "name": args.name,
+        "title": args.title or args.name,
+        "destination": args.destination or ".",
+        "engine": engine,
+        "settings": {k: v for k, v in settings.items() if v is not None},
+        "theme": args.theme or "light",
+        "migrate": bool(args.migrate),
+    }
+
+
+def cmd_startproject(args: argparse.Namespace) -> int:
+    """`iui startproject`: asistente que crea la estructura completa."""
+    from .config import ENGINES
+    from .scaffold import create_project, package_name
+
+    interactive = not getattr(args, "no_input", False) and sys.stdin.isatty()
+    if interactive:
+        values = _project_wizard(args)
+    else:
+        if not args.name:
+            print(
+                "[interui] falta el nombre del proyecto.\n"
+                "  Uso: iui startproject <nombre> [carpeta]\n"
+                "  El asistente se abre al ejecutar `iui startproject` en una terminal.",
+                file=sys.stderr,
+            )
+            return 1
+        values = _project_from_flags(args)
+
+    parent = Path(values["destination"]).expanduser().resolve()
+    target = parent / values["name"]
     try:
         files = create_project(
             target,
-            args.name,
-            engine=args.db or "sqlite",
-            settings=settings,
+            values["name"],
+            engine=values["engine"],
+            settings=values["settings"],
             force=args.force,
+            title=values["title"],
+            theme=values["theme"],
         )
     except FileExistsError as exc:
         raise SystemExit(f"interui: {exc}") from None
     except ValueError as exc:
         raise SystemExit(f"interui: {exc}") from None
 
-    print(f"[interui] proyecto creado en {target}")
-    print(f"[interui] {len(files)} archivos, paquete {package_name(args.name)}")
-    if args.migrate:
+    database = ENGINES[values["engine"]]
+    detail = values["settings"].get("name") or database["defaults"].get("name", "")
+    print("")
+    print(f"[interui] proyecto «{values['title']}» ({package_name(values['name'])})")
+    print(f"[interui] base de datos: {values['engine']} · {detail}")
+    print(f"[interui] tema: {values['theme']}")
+    print(f"[interui] creado en {target} ({len(files)} archivos)")
+
+    if values["migrate"]:
         location = str(target / "interui.json")
         code = cmd_db(
             argparse.Namespace(action="makemigrations", name=None, force=True, config=location)
@@ -137,12 +245,49 @@ def cmd_startproject(args: argparse.Namespace) -> int:
         return cmd_db(
             argparse.Namespace(action="migrate", name=None, force=False, config=location)
         )
+
     print("[interui] siguientes pasos:")
     print(f"  cd {target.name}")
     print("  pip install -r requirements.txt")
+    print("  python main.py             # abre la ventana con «Hola mundo»")
+    print("  python iui.py startapp <app>   # cuando quieras añadir una app")
+    return 0
+
+
+def cmd_startapp(args: argparse.Namespace) -> int:
+    """``iui startapp tareas``: una app dentro del proyecto."""
+    from .config import find_config
+    from .scaffold import create_app_module, package_name
+
+    raw = getattr(args, "config", None)
+    if raw:
+        location = Path(raw).expanduser()
+    else:
+        found = find_config()
+        if found is None:
+            print(
+                "[interui] no encuentro interui.json: ejecuta `startapp` dentro del "
+                "proyecto o crea uno con `iui startproject <nombre>`.",
+                file=sys.stderr,
+            )
+            return 1
+        location = found
+    if location.is_dir():
+        location = location / "interui.json"
+
+    try:
+        files = create_app_module(location.parent, args.name, force=args.force)
+    except (FileExistsError, FileNotFoundError, ValueError) as exc:
+        print(f"[interui] {exc}", file=sys.stderr)
+        return 1
+
+    package = package_name(args.name)
+    print(f"[interui] app «{package}» creada en {location.parent / package} ({len(files)} archivos)")
+    print("[interui] ya está en `apps` de interui.json: sus rutas se registran solas.")
+    print("[interui] siguientes pasos:")
     print("  python iui.py makemigrations")
     print("  python iui.py migrate")
-    print("  python iui.py run")
+    print("  python main.py")
     return 0
 
 
@@ -213,16 +358,17 @@ if __name__ == "__main__":
 '''
 
 
-def _ask(question: str, default: Any = None, *, input_fn: Any = input) -> str:
+def _ask(question: str, default: Any = None, *, input_fn: Any = None) -> str:
+    reader = input_fn or input
     suffix = f" [{default}]" if default not in (None, "") else ""
     try:
-        answer = str(input_fn(f"{question}{suffix}: ")).strip()
+        answer = str(reader(f"{question}{suffix}: ")).strip()
     except (EOFError, KeyboardInterrupt):
         answer = ""
     return answer or (str(default) if default is not None else "")
 
 
-def _choose_engine(engines: dict[str, Any], input_fn: Any = input) -> str:
+def _choose_engine(engines: dict[str, Any], input_fn: Any = None) -> str:
     names = list(engines)
     print("\nMotor de base de datos:")
     for index, name in enumerate(names, start=1):
@@ -245,6 +391,7 @@ def cmd_init(args: argparse.Namespace) -> int:
         if args.no_input else _ask
 
     name = args.name or ask("Nombre de la aplicación", target.name or "Mi app")
+    title = args.title or ask("Nombre largo (el que se ve en la ventana)", name)
     engine = args.db or ("sqlite" if args.no_input else _choose_engine(ENGINES))
     if engine not in ENGINES:
         raise SystemExit(f"interui: motor desconocido {engine!r}; usa {', '.join(ENGINES)}")
@@ -267,7 +414,7 @@ def cmd_init(args: argparse.Namespace) -> int:
     data["app"].update(
         {
             "name": name,
-            "title": args.title or name,
+            "title": title,
             "theme": args.theme or "light",
             "entry": "app.py",
         }
@@ -497,8 +644,16 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     run = sub.add_parser("run", help="abre una app de escritorio")
-    run.add_argument("script", help="archivo Python que define `app`")
-    run.add_argument("--window", default="desktop", choices=["desktop", "browser", "none"])
+    run.add_argument(
+        "script", help="archivo Python que define `app`"
+    )
+    run.add_argument(
+        "--window",
+        default="desktop",
+        choices=["desktop", "auto", "browser", "none"],
+        help="desktop = ventana nativa (por defecto); browser = solo depurar; "
+        "none = solo servidor",
+    )
     run.add_argument("--port", type=int, default=0, help="puerto local (0 = aleatorio)")
     run.add_argument("--host", default="127.0.0.1")
     run.add_argument("--debug", action="store_true", help="abre las herramientas de desarrollo")
@@ -511,10 +666,19 @@ def build_parser() -> argparse.ArgumentParser:
 
     start = sub.add_parser(
         "startproject",
-        help="estructura completa de un proyecto (estilo Django, solo escritorio)",
+        help="crea un proyecto (sin nombre abre el asistente)",
+        description=(
+            "Sin argumentos abre un asistente que pregunta el nombre largo, la base "
+            "de datos, el tema y si aplicar la migración inicial."
+        ),
     )
-    start.add_argument("name", help="nombre del proyecto (también la carpeta)")
-    start.add_argument("destination", nargs="?", default=".", help="carpeta donde crearlo")
+    start.add_argument("name", nargs="?", help="nombre del proyecto (también la carpeta)")
+    start.add_argument("destination", nargs="?", default=None, help="carpeta donde crearlo")
+    start.add_argument("--title", help="nombre largo que se ve en la ventana")
+    start.add_argument("--theme", choices=["light", "dark"], help="tema inicial")
+    start.add_argument(
+        "--no-input", action="store_true", help="sin preguntas (usa los valores por defecto)"
+    )
     start.add_argument("--db", help="motor: sqlite, postgres, mysql, mongo o file")
     start.add_argument("--database", help="nombre de la base de datos o ruta del archivo")
     start.add_argument("--host")
@@ -524,6 +688,14 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--migrate", action="store_true", help="crea y aplica la migración inicial")
     start.add_argument("--force", action="store_true", help="escribe en una carpeta no vacía")
     start.set_defaults(func=cmd_startproject)
+
+    startapp = sub.add_parser(
+        "startapp", help="crea una app dentro del proyecto"
+    )
+    startapp.add_argument("name", help="nombre de la app (también la carpeta)")
+    startapp.add_argument("--config", help="ruta de interui.json")
+    startapp.add_argument("--force", action="store_true", help="sobrescribe la app si existe")
+    startapp.set_defaults(func=cmd_startapp)
 
     new = sub.add_parser("new", help="crea un proyecto nuevo")
     new.add_argument("destination", help="carpeta del proyecto")
@@ -599,6 +771,9 @@ def project_parser() -> argparse.ArgumentParser:
 
     sub.add_parser("migrate", help="aplica las migraciones pendientes")
     sub.add_parser("status", help="estado de las migraciones")
+    app_new = sub.add_parser("startapp", help="crea una app dentro del proyecto")
+    app_new.add_argument("name", help="nombre de la app")
+    app_new.add_argument("--force", action="store_true", help="sobrescribe la app si existe")
     sub.add_parser("shell", help="consola de Python con los modelos cargados")
     sub.add_parser("check", help="revisa la configuración del proyecto")
     return parser
@@ -660,6 +835,15 @@ def project_main(argv: Sequence[str] | None = None) -> int:
                 name=getattr(args, "name", None),
                 force=getattr(args, "force", False),
                 config=str(path),
+            )
+        )
+
+    if action == "startapp":
+        return cmd_startapp(
+            argparse.Namespace(
+                name=args.name,
+                config=str(path),
+                force=getattr(args, "force", False),
             )
         )
 

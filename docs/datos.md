@@ -1,13 +1,14 @@
 # Datos: `interui.json`, modelos, ORM y migraciones
 
 Todo lo que hay en esta guía viene en el paquete (`interui.config`,
-`interui.db`, `interui.orm` y `interui.migrations`): no necesitas Django,
-SQLAlchemy ni ningún servidor para empezar. SQLite y los archivos JSON usan solo
-la biblioteca estándar; PostgreSQL, MySQL/MariaDB y MongoDB son un extra de `pip`.
+`interui.db`, `interui.orm` y `interui.migrations`): no necesitas ninguna
+biblioteca de persistencia adicional ni un servidor para empezar. SQLite y los
+archivos JSON usan solo la biblioteca estándar; PostgreSQL, MySQL/MariaDB y
+MongoDB son un extra de `pip`.
 
 | Quiero… | Sección |
 |---|---|
-| crear el proyecto con el asistente | [1](#1-proyecto-nuevo-en-tres-comandos) |
+| crear el proyecto con el asistente | [1](#1-proyecto-nuevo) |
 | escribir `interui.json` a mano | [2](#2-interuijson-paso-a-paso) |
 | declarar mis modelos | [3](#3-modelos-paso-a-paso) |
 | consultar datos | [4](#4-consultas-orm) |
@@ -28,25 +29,24 @@ la biblioteca estándar; PostgreSQL, MySQL/MariaDB y MongoDB son un extra de `pi
 
 ## 1. Proyecto nuevo
 
-Dos caminos: la estructura completa estilo Django (`iui startproject`) o el
-archivo único del asistente (`interui init`).
+Dos caminos: la estructura completa (`iui startproject`, con asistente y una
+carpeta por responsabilidad) o el archivo único del asistente (`interui init`).
 
 ### 1.1 Estructura completa: `iui startproject`
 
 ```bash
 pip install "interui[desktop]"
-iui startproject tienda
+iui startproject tienda       # sin nombre abre el asistente de configuración
 cd tienda
 pip install -r requirements.txt
-python iui.py makemigrations
-python iui.py migrate
-python iui.py run
+python main.py                 # aplica migraciones y abre la ventana nativa
 ```
 
 ```text
 tienda/
-├── iui.py              ← comandos, como manage.py
-├── interui.json        ← configuración, como settings.py
+├── main.py             ← punto de entrada: crea todo y abre la ventana
+├── iui.py              ← comandos del proyecto
+├── interui.json        ← configuración
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
@@ -54,21 +54,42 @@ tienda/
 │   ├── __init__.py
 │   ├── app.py          ← crea la App y registra las rutas
 │   ├── urls.py         ← ruta → vista
-│   ├── views.py        ← las páginas
-│   ├── layout.py       ← armazón: menú lateral, título y estado
-│   └── models.py       ← modelos del ORM
+│   ├── views.py        ← las páginas (una: «Hola mundo»)
+│   └── models.py       ← modelos del ORM (vacío)
+├── tareas/             ← una app (`python iui.py startapp tareas`)
 ├── migrations/         ← migraciones generadas
 └── data/               ← SQLite o archivos
 ```
 
-| Django | interUI |
+| Pieza | Qué hace |
 |---|---|
-| `manage.py` | `iui.py` |
-| `settings.py` | `interui.json` |
-| `urls.py` | `tienda/urls.py` (`urlpatterns` + `register(app)`) |
-| `views.py` | `tienda/views.py`, cada vista devuelve un componente |
-| `models.py` + migraciones | `tienda/models.py` + `migrations/*.json` |
-| `wsgi.py` / `asgi.py` | no existe: la app abre su propia ventana de escritorio |
+| `main.py` | punto de entrada: aplica migraciones, construye la `App` y abre la ventana |
+| `iui.py` | comandos que no abren ventana (migraciones, `startapp`, `shell`, `check`) |
+| `interui.json` | identidad, ventana, base de datos, apps y migraciones |
+| `tienda/urls.py` | `urlpatterns` + `register(app)`: qué vista responde a cada ruta |
+| `tienda/views.py` | cada vista devuelve un componente |
+| `models.py` de cada app | tablas del ORM; las migraciones las crean y actualizan |
+| `migrations/` | historial del esquema, en JSON legible y versionado |
+
+El detalle de cada archivo está en [proyecto.md](proyecto.md).
+
+### 1.2 Apps dentro del proyecto: `iui startapp`
+
+```bash
+python iui.py startapp tareas
+python iui.py makemigrations
+python iui.py migrate
+python main.py
+```
+
+Crea `tareas/` con `models.py`, `views.py`, `urls.py` y `README.md`, y la
+declara en `apps` de `interui.json`. Sus rutas se registran solas
+(`App.from_config()` importa `<app>/urls.py`) y sus modelos entran en las
+migraciones del proyecto: **un solo `migrate` pone al día todas las apps**.
+
+No hay ninguna lista de apps que mantener a mano ni imports que escribir: la
+lista `apps` de `interui.json` es la que manda. Las migraciones son del proyecto
+(`migrations/`), no de cada app.
 
 Opciones:
 
@@ -569,7 +590,7 @@ except DoesNotExist:
 
 ## 5. Migraciones
 
-El flujo es el de Django: declaras modelos, generas la migración, la aplicas.
+El flujo es siempre el mismo: declaras modelos, generas la migración, la aplicas.
 Entre una y otra, `interui` compara el esquema guardado en la última migración con
 el que describen tus modelos.
 

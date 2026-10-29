@@ -278,7 +278,7 @@ escribas nada:
 
 | Control | Qué hace al encoger la ventana |
 |---|---|
-| `AppShell` | el sidebar se vuelve un panel deslizante con botón (☰); el contenido nunca se aplasta |
+| `AppShell` | el sidebar se vuelve un panel deslizante con botón (☰); con `collapsible=False` se queda siempre visible; el contenido nunca se aplasta |
 | `<main>` del armazón | scroll vertical propio y `overflow-x` oculto |
 | `Container` | padding `px-4 → sm:px-6 → lg:px-8` |
 | `Row` / `Col` | `span`, `sm`, `md`, `lg`, `xl` por columna |
