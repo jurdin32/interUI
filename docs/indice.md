@@ -11,12 +11,31 @@ datos real.
 
 ---
 
-## Primeros pasos
+## Empieza aquí: el tutorial paso a paso
+
+Si es tu primera vez, **no leas el resto todavía**. El tutorial va en orden, un
+paso por archivo, y cada paso se ejecuta:
+
+1. [Paso 1 · La ventana más pequeña posible](guia.md#paso-1-la-ventana-más-pequeña-posible) — una ventana vacía.
+2. [Paso 2 · Añadir contenido](guia.md#paso-2-añadir-contenido-y-jerarquía) — texto y tarjetas.
+3. [Paso 3 · Poner un menú](guia.md#paso-3-poner-un-menú) — Archivo, Ayuda y botones de ventana.
+4. [Paso 4 · Botones y eventos](guia.md#paso-4-botones-y-eventos) — que un botón haga algo.
+5. [Paso 5 · Estado reactivo](guia.md#paso-5-estado-reactivo) — que la ventana se actualice sola.
+6. [Paso 6 · La rejilla](guia.md#paso-6-la-rejilla-de-12-columnas) — columnas.
+7. [Paso 7 · Varias vistas](guia.md#paso-7-varias-vistas-y-navegación) — páginas.
+8. [Paso 8 · Formularios](guia.md#paso-8-formularios-con-validación) — campos y validación.
+9. [Paso 9 · Tabla y búsqueda](guia.md#paso-9-mostrar-datos-tabla-y-búsqueda) — listas.
+10. [Paso 10 · Persistencia](guia.md#paso-10-persistencia-de-datos) — guardar entre sesiones.
+11. [Paso 11 · Formulario desde un modelo](guia.md#paso-11-formulario-desde-un-modelo) — el formulario se genera solo.
+12. [Paso 12 · De archivo a proyecto](guia.md#paso-12-de-archivo-suelto-a-proyecto) — la carpeta completa.
+
+---
+
+## Referencia rápida
 
 | Documento | Qué aprendes |
 |---|---|
 | [Instalación](../README.md#instalación) | Instalar interUI y comprobar el entorno con `iui doctor`. |
-| [Tutorial](guia.md) | De una ventana vacía a una app con estado, formularios, tablas, diálogos y persistencia. |
 | [Anatomía de un proyecto](proyecto.md) | Qué es `main.py`, qué es `iui.py`, dónde van los modelos y cómo encajan las apps. |
 
 Camino mínimo, si tienes prisa:

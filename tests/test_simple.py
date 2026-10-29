@@ -311,3 +311,17 @@ def test_state_sin_nombre_es_estable_dentro_de_una_vista() -> None:
     assert len(claves) == 1, claves
     _title, html, _bindings = app.render_page("/")
     assert "Buscando: hola" in html, "el texto escrito se perdió al repintar"
+
+
+def test_dos_ventanas_en_el_mismo_proceso(monkeypatch) -> None:
+    """`window()` registra la página `/` en cada app nueva, no solo en la primera."""
+    import interui.simple as simple
+
+    monkeypatch.setattr(simple, "_DEFAULT_APP", None)
+    primera = simple.window("Una", simple.text("hola"))
+    monkeypatch.setattr(simple, "_DEFAULT_APP", None)
+    segunda = simple.window("Otra", simple.text("adiós"))
+
+    assert primera is not segunda
+    assert primera.has_page("/"), "la primera ventana perdió su página"
+    assert segunda.has_page("/"), "la segunda ventana no registró la página"

@@ -64,6 +64,12 @@ etiqueta como `vX.Y.Z`.
   contenedor con `overflow` los oculta.
 - **`AppShell(collapsible=False)`**: el sidebar se queda siempre visible aunque
   la ventana sea estrecha (antes pasaba siempre a panel deslizante).
+- **`TitleBar("Mi app", icon=…)` pone el título de verdad**: antes el primer
+  argumento se trataba como un hijo y el nombre aparecía suelto, al otro lado de
+  la barra. La firma es `TitleBar(title, *children, …)`.
+- **Dos ventanas en el mismo proceso**: `window()` registraba la página `/` una
+  sola vez, así que la segunda `App` se quedaba sin ruta. Ahora se registra por
+  app.
 - **`ValidationSummary` ya muestra su título**: el texto de `title=` se pintaba
   vacío porque el componente base se quedaba con el atributo.
 
@@ -150,6 +156,13 @@ etiqueta como `vX.Y.Z`.
 - `MenuBar`: desplazamiento horizontal y laterales sin encoger.
 
 ### Documentación
+
+- **El tutorial se reescribió como 12 pasos en orden**: ventana vacía → contenido
+  → menú → botones → estado → rejilla → varias vistas → formulario → tabla →
+  persistencia → formulario desde el modelo → proyecto. Cada paso es un archivo
+  que se ejecuta tal cual, con «qué vas a ver», «cómo se lee» y el enlace a la
+  referencia. Las pruebas ejecutan y renderizan todos los ejemplos, incluidos los
+  de `window(...)`, que antes solo se compilaban.
 
 - `docs/datos.md` reescrita de cero: `interui.json` creado a mano (con todas las
   claves y sus valores por defecto), modelos campo por campo, el ORM con tablas de

@@ -1,93 +1,63 @@
-# Tutorial: de una ventana vacía a una aplicación completa
+# Tutorial: paso a paso, de la ventana vacía a la aplicación
 
-Tutorial progresivo. Cada paso es un archivo que puedes ejecutar tal cual; al
-final tendrás una app real (agenda de contactos) con formularios, tabla,
-búsqueda, validación, persistencia y diálogos nativos.
+Este es el recorrido completo, en orden. Cada paso es **un archivo que puedes
+ejecutar tal cual** y que añade una sola cosa al anterior. Si haces los pasos en
+orden, al final tienes una aplicación de escritorio con menús, formularios,
+tabla y base de datos.
 
-La versión terminada está en
-[`examples/05_crud.py`](../examples/05_crud.py) y las pruebas la ejecutan en cada
-commit.
+> **Cómo leerlo.** No hace falta saber HTML, CSS ni JavaScript: todo se escribe
+> en Python. Copia el bloque en un archivo `mi_app.py`, ejecútalo con
+> `python mi_app.py` y mira la ventana. Cuando entiendas el paso, pasa al
+> siguiente.
 
-> **Antes de empezar.** Necesitas interUI instalado
-> ([instalación](../README.md#instalación)) y una terminal. No hace falta saber
-> HTML, CSS ni JavaScript: todo se escribe en Python. Si prefieres ver el
-> resultado final antes de empezar, crea un proyecto con `iui startproject` y
-> ábrelo; la estructura está explicada en [proyecto.md](proyecto.md).
+> **Antes de empezar.** Instala interUI y comprueba el entorno:
 >
-> **Cómo leerlo.** Cada apartado añade algo a la misma app y termina con el
-> archivo completo. Puedes copiarlo en `app.py` y ejecutarlo con
-> `interui run app.py`, o crear un proyecto (`iui startproject`) y pegar las
-> vistas en `views.py`.
+> ```bash
+> pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+> iui doctor
+> ```
+>
+> Si `doctor` dice que falta `pywebview`, la ventana no se puede abrir:
+> `pip install "interui[desktop]"` lo resuelve.
+>
+> **Si trabajas sobre el código del framework**, instálalo en modo enlace
+> (`pip install -e .` dentro del repositorio). Con una copia normal, tus cambios
+> no se ven y el síntoma es desconcertante: los archivos están bien pero la app
+> se comporta como antes. Compruébalo siempre con
+> `python -c "import interui; print(interui.__file__)"`: la ruta debe ser la de
+> tu repositorio, no la de `site-packages`.
 
 ---
 
-## Índice
+## Los 12 pasos
 
-1. [Requisitos](#1-requisitos)
-2. [La ventana más pequeña posible](#2-la-ventana-más-pequeña-posible)
-3. [Añadir contenido y jerarquía](#3-añadir-contenido-y-jerarquía)
-4. [La rejilla de 12 columnas](#4-la-rejilla-de-12-columnas)
-5. [Botones y eventos](#5-botones-y-eventos)
-6. [Estado reactivo](#6-estado-reactivo)
-7. [Formularios con validación en Python](#7-formularios-con-validación-en-python)
-8. [Mostrar datos: tabla y búsqueda](#8-mostrar-datos-tabla-y-búsqueda)
-9. [Varias vistas y navegación](#9-varias-vistas-y-navegación)
-10. [Diálogos, notificaciones y archivos](#10-diálogos-notificaciones-y-archivos)
-11. [Tema claro y oscuro](#11-tema-claro-y-oscuro)
-12. [Barra de menús y menú contextual](#12-barra-de-menús-y-menú-contextual)
-13. [Iconos](#13-iconos)
-14. [Persistencia de datos](#14-persistencia-de-datos)
-15. [Estructura recomendada del proyecto](#15-estructura-recomendada-del-proyecto)
-16. [Empaquetar y distribuir](#16-empaquetar-y-distribuir)
-17. [Errores frecuentes](#17-errores-frecuentes)
-18. [Mantener interUI actualizado](#18-mantener-interui-actualizado)
+| Paso | Qué consigues |
+|---|---|
+| [1](#paso-1-la-ventana-más-pequeña-posible) | Una ventana vacía |
+| [2](#paso-2-añadir-contenido-y-jerarquía) | Texto y tarjetas dentro |
+| [3](#paso-3-poner-un-menú) | Un menú de verdad, con Archivo y Ayuda |
+| [4](#paso-4-botones-y-eventos) | Que un botón ejecute tu código |
+| [5](#paso-5-estado-reactivo) | Que la ventana se actualice sola |
+| [6](#paso-6-la-rejilla-de-12-columnas) | Ordenar todo en columnas |
+| [7](#paso-7-varias-vistas-y-navegación) | Varias páginas en la misma ventana |
+| [8](#paso-8-formularios-con-validación) | Un formulario que valida |
+| [9](#paso-9-mostrar-datos-tabla-y-búsqueda) | Una tabla con búsqueda |
+| [10](#paso-10-persistencia-de-datos) | Guardar entre sesiones |
+| [11](#paso-11-formulario-desde-un-modelo) | El formulario, hecho solo desde el modelo |
+| [12](#paso-12-de-archivo-suelto-a-proyecto) | El proyecto completo, con apps |
 
----
-
-## 1. Requisitos
-
-```bash
-# Todavía no está en PyPI: se instala desde GitHub
-pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
-python -c "import interui; print(interui.__version__)"
-```
-
-Comprueba el entorno:
-
-```bash
-interui doctor
-python -c "import interui; print(interui.__version__, interui.__file__)"
-```
-
-Debe decir que `pywebview` está instalado, que el CSS existe y que la versión es
-**≥ 0.5.0**. Si `import interui` te da una versión antigua (o `window` «es un
-símbolo de importación desconocido»), tienes otra copia instalada en el
-intérprete que usa tu editor:
-
-```bash
-# trabajando sobre el repositorio
-pip install -e ".[desktop,dev]"
-
-# desde GitHub (fija una versión con @v0.5.0 si lo necesitas)
-pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
-```
-
-En VS Code, selecciona el mismo intérprete con `Ctrl/Cmd + Shift + P` →
-*Python: Select Interpreter*, y si acabas de instalar, recarga la ventana
-(*Developer: Reload Window*): Pylance indexa cada intérprete por separado y
-seguiría marcando `window` en rojo con el índice antiguo.
-
-> Si el editor subraya `text`/`button` pero `python app.py` funciona, el problema
-> es del analizador (intérprete o caché), no del código. Los alias del framework
-> están declarados de forma estática en `interui/aliases.py` precisamente para
-> que el editor los vea.
+Al final: [tema claro y oscuro](#extras-tema-claro-y-oscuro),
+[diálogos y avisos](#extras-diálogos-y-avisos),
+[empaquetar](#extras-empaquetar-y-distribuir) y
+[errores frecuentes](#errores-frecuentes).
 
 ---
 
-## 2. La ventana más pequeña posible
+## Paso 1 · La ventana más pequeña posible
 
-La forma más corta es `window(...)`, que crea la app, registra la página `/` y
-envuelve el contenido en un contenedor:
+**Objetivo:** abrir una ventana nativa, vacía.
+
+Archivo `mi_app.py`:
 
 ```python
 from interui import window
@@ -95,20 +65,26 @@ from interui import window
 window("Mi primera ventana").run()
 ```
 
-Y con un texto y un botón, que es lo que casi siempre necesitas:
+Ejecuta:
 
-```python
-from interui import window, text, button
-
-window(
-    "Mi ventana",
-    text("Hola mundo"),
-    button("Pulsar", on_click=lambda: print("clic")),
-).run()
+```bash
+python mi_app.py
 ```
 
-Si prefieres el control explícito (útil cuando una ventana tiene varias vistas o
-una estructura propia), la API larga es esta:
+**Ves:** una ventana del sistema operativo, de 960×680, con el título
+«Mi primera ventana» y nada dentro. Al cerrarla, el programa termina.
+
+**Qué acaba de pasar.** `window(...)` hace tres cosas a la vez:
+
+1. crea la aplicación (`App`),
+2. registra una página en la ruta `/`,
+3. envuelve lo que le pases en un contenedor centrado.
+
+`.run()` abre la ventana. El contenido que le pases después del título son los
+hijos de esa página, así que el paso 2 es tan simple como añadirlos.
+
+<details>
+<summary>La misma ventana con la API larga (cuando la app crece)</summary>
 
 ```python
 from interui import App
@@ -118,281 +94,317 @@ app = App("Mi primera ventana")
 
 @app.page("/")
 def index():
-    return None          # ← una vista vacía
+    return None          # ← una vista sin contenido
 
 
 app.run()
 ```
 
-Ejecuta con `python archivo.py`. Se abre una ventana nativa vacía con el título
-«Mi primera ventana». El servidor interno escucha solo en `127.0.0.1` y muere al
-cerrar la ventana.
+`App` es la ventana y `@app.page("/")` dice qué función pinta la página `/`.
+Es lo que usarás a partir del paso 7; `window(...)` es un atajo de esto.
 
-> `window(...)` devuelve la `App`, así que `.run()` se puede encadenar. Si el
-> archivo puede importarse desde otro sitio (por ejemplo, en pruebas), deja
-> `.run()` dentro de `if __name__ == "__main__":` para que importar no abra la
-> ventana.
-
-Sobre `App`:
-
-```python
-app = App(
-    "Mi aplicación",
-    width=1100, height=720,     # tamaño inicial
-    theme="light",              # o "dark"
-    frameless=False,            # True → sin marco del sistema
-)
-```
-
-También puedes arrancar desde la CLI: `interui run archivo.py`.
+</details>
 
 ---
 
-## 3. Añadir contenido y jerarquía
+## Paso 2 · Añadir contenido y jerarquía
 
-En la API compacta los controles se llaman en minúsculas y se apilan solos:
+**Objetivo:** poner cosas dentro de la ventana.
 
 ```python
-from interui import window, title, text, subtitle, card, row, button
+from interui import window, title, text, card
 
 window(
     "Mi app",
-    title("Hola, escritorio", subtitle="Una ventana nativa"),
-    text("Todo lo que ves son controles de interUI."),
-    row(
-        card(title="Uno")(text("Contenido")),
-        card(title="Dos")(text("Contenido")),
+    title("Hola, escritorio"),
+    text("Todo esto es Python: no hay HTML ni JavaScript."),
+    card(
+        text("Nombre: Ana"),
+        text("Ciudad: Madrid"),
+        title="Ficha",
     ),
 ).run()
 ```
 
-Con la API larga, todo es un componente que se anida pasando hijos:
+**Ves:** un título grande, un párrafo y una tarjeta con dos líneas.
 
-```python
-from interui import App, Card, Container, Heading, Muted, Screen, Text, pad
+**Tres ideas que sirven para todo el resto del tutorial:**
 
-app = App("Mi primera ventana")
-
-
-@app.page("/")
-def index():
-    return Screen(
-        Container(size="prose", pad=pad.py_10)(
-            Heading("Hola, escritorio", level=1),
-            Muted("Esto no es un navegador: es una ventana nativa."),
-            Card(title="Primera tarjeta", description="Con cuerpo")(
-                Text("El contenido vive dentro de la tarjeta."),
-            ),
-        )
-    )
-
-
-app.run()
-```
-
-Piezas básicas:
-
-| Componente | Para qué |
+| Idea | Ejemplo |
 |---|---|
-| `Screen` | raíz de la ventana (alto completo, fondo del tema) |
-| `Container` | centra y limita el ancho (`sm`, `md`, `lg`, `xl`, `full`, `prose`) |
-| `Stack` | apila en vertical/horizontal con `gap` |
-| `Card` | agrupa contenido con cabecera y pie |
-| `Heading`, `Text`, `Muted`, `Paragraph` | texto |
+| Cada control es una función | `text("...")`, `card(...)`, `button("...")` |
+| Los hijos se pasan dentro | `window("título", hijo1, hijo2)` |
+| Los nombres en minúscula son atajos | `text` es `Text`, `card` es `Card` |
 
-Los hijos también se pueden añadir después: `card(ui.Text("más"))`.
+> Los controles se apilan en vertical y se separan solos. No hay que colocar
+> nada a mano: si quieres columnas, está el paso 6.
 
----
-
-## 4. La rejilla de 12 columnas
-
-`Row` es una rejilla de 12; `Col` dice cuántas ocupa en cada breakpoint.
-
-```python
-from interui import App, Card, Col, Container, Row, Screen, Text, height, pad
-
-app = App("Rejilla")
-
-
-@app.page("/")
-def index():
-    def tarjeta(titulo):
-        return Card(title=titulo, h=height.full)(Text("Contenido de ejemplo"))
-
-    return Screen(
-        Container(pad=pad.py_8)(
-            Row(
-                Col(span=12, md=6, lg=4)(tarjeta("Uno")),
-                Col(span=12, md=6, lg=4)(tarjeta("Dos")),
-                Col(span=12, md=12, lg=4)(tarjeta("Tres")),
-                gap=4,
-            )
-        )
-    )
-
-
-app.run()
-```
-
-- Móvil/ventana estrecha: `span=12` (100 %).
-- Desde 768 px (`md`): 6 columnas (50 %).
-- Desde 1024 px (`lg`): 4 columnas (33 %).
-
-Más patrones en [la guía de la rejilla](rejilla.md).
+👉 Todos los controles, con un ejemplo de cada uno: [controles.md](controles.md).
 
 ---
 
-## 5. Botones y eventos
+## Paso 3 · Poner un menú
 
-Los handlers son funciones Python. El cliente solo envía el evento; la lógica se
-ejecuta en tu proceso.
+**Objetivo:** una ventana principal **vacía**, con la barra de menús arriba
+(Archivo, Ayuda…) y los botones de la ventana.
 
-```python
-from interui import App, Button, Container, Screen, Stack, icons, variant, pad
-
-app = App("Eventos")
-
-
-@app.page("/")
-def index():
-    def saludar() -> None:
-        app.notify("¡Hola desde Python!")
-
-    def despedir(evento: object) -> None:
-        print("evento recibido:", evento)
-
-    return Screen(
-        Container(pad=pad.py_8)(
-            Stack(
-                Button("Saludar", icon=icons.send, on_click=saludar),
-                Button("Despedir", variant=variant.outline, on_click=despedir),
-                Button("Abrir documentación", variant=variant.link,
-                       on_click=lambda: app.native.open_external("https://tailwindcss.com")),
-            )
-        )
-    )
-
-
-app.run()
-```
-
-`app.notify(...)` muestra un *toast* en la ventana. Los handlers pueden recibir
-`ui.UIEvent` (`value`, `checked`, `files`, `key`, `index`…) o no recibir nada.
-
-Eventos disponibles en cualquier control: `on_click`, `on_dblclick`,
-`on_change`, `on_input`, `on_submit`, `on_keydown`, `on_keyup`, `on_enter`,
-`on_focus`, `on_blur`, `on_mouseenter`, `on_mouseleave`, `on_scroll`,
-`on_sort`, `on_page`, `on_remove`, `on_add`, `on_toggle`.
-
----
-
-## 6. Estado reactivo
-
-Una señal es un valor que, al cambiar, repinta la ventana. Con la API compacta,
-un contador completo son ocho líneas:
-
-```python
-from interui import window, text, button, state
-
-count = state(0)
-
-window(
-    "Contador",
-    text("Pulsaciones: ", count),          # el texto depende de la señal
-    button("Pulsar", on_click=count.inc),  # el botón la incrementa
-).run()
-```
-
-También puedes pasar una función para calcular el texto:
-
-```python
-window("Contador", text(lambda: f"doble = {count.get() * 2}"))
-```
-
-La API larga, con `app.state()` y handlers propios:
-
-```python
-from interui import App, Button, Card, Container, Screen, Text, Stack, icons, size, variant, pad
-
-app = App("Contador")
-
-
-@app.page("/")
-def index():
-    contador = app.state("contador", 0)
-
-    return Screen(
-        Container(size="prose", pad=pad.py_10)(
-            Card(title="Contador")(
-                Text(f"Valor actual: {contador.get()}", size=size.lg, weight="semibold"),
-                Stack(
-                    Button("−", variant=variant.outline, on_click=lambda: contador.set(contador.get() - 1)),
-                    Button("+", icon=icons.plus, on_click=lambda: contador.update(lambda n: n + 1)),
-                    Button("Reiniciar", variant=variant.ghost, on_click=lambda: contador.set(0)),
-                    direction="row",
-                    gap=2,
-                ),
-            )
-        )
-    )
-
-
-app.run()
-```
-
-Métodos de una señal: `get()`, `set(valor)`, `update(fn)`, `toggle()`,
-`push(item)`, `clear()`.
-
-> El cliente conserva el foco y el texto que estás escribiendo: el re-render no
-> pisa los campos activos.
-
----
-
-## 7. Formularios con validación en Python
-
-La forma corta: pasa la señal como handler y el control guarda el valor.
-
-```python
-from interui import window, text, input, switch, button, state, toast
-
-nombre = state("")
-correo = state("")
-activo = state(True)
-
-
-def guardar() -> None:
-    if "@" not in correo.get():
-        toast("El correo no parece válido", "error")
-        return
-    toast(f"Guardado: {nombre.get()}", "success")
-
-
-window(
-    "Formulario",
-    input(value=nombre, label="Nombre", on_input=nombre),
-    input(value=correo, label="Correo", on_input=correo),
-    switch("Activo", checked=activo, on_change=activo),
-    text("Estado: ", lambda: "activo" if activo.get() else "inactivo"),
-    button("Guardar", on_click=guardar),
-).run()
-```
-
-La versión completa, con resumen de errores y validación por campo:
+Un menú no es un control suelto: vive en el **armazón** de la aplicación
+(`AppShell`), que es el que reparte la ventana en zonas.
 
 ```python
 from interui import (
-    App, Button, Card, Container, Input, Screen, Stack, Switch, Text, ValidationSummary,
-    icons,
-    size, tone,
-    pad,
+    App, AppShell, ContextItem, MenuBar, TitleBar, dialog, icons,
+)
+
+app = App("registro")
+
+
+@app.page("/")
+def inicio():
+    shell = AppShell(
+        title_bar=TitleBar("registro", icon=icons.layers),   # barra de arriba
+        header=MenuBar(                                      # el menú
+            {
+                "Archivo": [
+                    ContextItem("Salir", icon=icons.power, on_click=salir),
+                ],
+                "Ayuda": [
+                    ContextItem("Acerca de", icon=icons.info, on_click=acerca),
+                ],
+            }
+        ),
+    )
+    return shell
+
+
+def salir() -> None:
+    app.quit()
+
+
+def acerca() -> None:
+    dialog.info("registro 0.1.0", title="Acerca de")
+
+
+app.run()
+```
+
+**Ves:** la ventana con su barra de título, la fila **Archivo · Ayuda** y el
+resto vacío. Al abrir **Archivo → Salir** se cierra; **Ayuda → Acerca de** abre
+un aviso encima.
+
+**Cómo se lee:**
+
+| Pieza | Qué es |
+|---|---|
+| `AppShell(...)` | el esqueleto: barra de título, menú, contenido, barra de estado |
+| `TitleBar("registro")` | la barra de arriba con el nombre y minimizar/maximizar/cerrar |
+| `MenuBar({...})` | las pestañas del menú; cada clave es un título |
+| `ContextItem("Salir", on_click=salir)` | una entrada del menú que llama a tu función |
+
+No hay contenido porque no le pasaste ningún hijo a `AppShell`: por eso la
+ventana está vacía. Cuando quieras llenarla, se la pasas igual que a
+`window(...)`:
+
+```python
+AppShell(
+    text("Aquí va el contenido"),          # ← esto llena la zona central
+    title_bar=TitleBar("registro"),
+    header=MenuBar({"Archivo": [ContextItem("Salir", on_click=salir)]}),
+)
+```
+
+> **Cada cosa en su zona.** Lo que se pasa *dentro* de `AppShell` es el contenido
+> central; `title_bar`, `header`, `sidebar` y `status` son zonas fijas alrededor.
+> Con `AppShell(collapsible=False)` la barra lateral queda siempre visible.
+
+👉 Menús contextuales, barra de comandos y notificaciones: [menus.md](menus.md).
+
+---
+
+## Paso 4 · Botones y eventos
+
+**Objetivo:** que al pulsar un botón pase algo.
+
+```python
+from interui import window, button, text, toast, title
+
+window(
+    "Botones",
+    title("Pulsa el botón"),
+    text("El mensaje aparece abajo, en la ventana."),
+    button("Saludar", icon="hand", on_click=lambda: toast("¡Hola!", "success")),
+).run()
+```
+
+**Ves:** un botón; al pulsarlo sale un aviso pequeño abajo.
+
+**Qué es un handler.** `on_click=` recibe una función de Python. Puede ser una
+función con nombre (más cómoda de leer y de probar):
+
+```python
+def saludar() -> None:
+    toast("¡Hola!", "success")
+
+
+button("Saludar", on_click=saludar)
+```
+
+| Nombre | Cuándo se ejecuta |
+|---|---|
+| `on_click` | al pulsar |
+| `on_input` | al escribir en un campo |
+| `on_change` | al cambiar un valor (interruptor, desplegable) |
+| `on_submit` | al enviar un formulario |
+
+---
+
+## Paso 5 · Estado reactivo
+
+**Objetivo:** que la ventana se actualice sola cuando cambia un dato.
+
+```python
+from interui import window, button, state, text, title
+
+contador = state(0)          # una señal: 0 al empezar
+
+window(
+    "Contador",
+    title("Contador"),
+    text("Pulsaciones: ", contador),           # se repinta solo
+    button("Sumar una", on_click=contador.inc),
+    button("Reiniciar", variant="secondary", on_click=lambda: contador.set(0)),
+).run()
+```
+
+**Ves:** un número que sube al pulsar y vuelve a cero con **Reiniciar**.
+
+**Las señales** (`state`) son la memoria de la ventana. Tres formas de usarlas:
+
+| Quiero… | Escribo |
+|---|---|
+| leer el valor | `contador.get()` |
+| cambiarlo | `contador.set(5)` o `contador.inc()` |
+| que se actualice el texto | pasar la señal como hijo: `text("Pulsaciones: ", contador)` |
+
+También se pueden conectar a un campo de texto: escribir guarda el valor.
+
+```python
+from interui import window, input, state, text
+
+nombre = state("")
+
+window(
+    "Saludo",
+    input(value=nombre, label="Tu nombre", on_input=nombre),
+    text("Hola, ", nombre),
+).run()
+```
+
+---
+
+## Paso 6 · La rejilla de 12 columnas
+
+**Objetivo:** poner cosas una al lado de otra.
+
+```python
+from interui import window, card, col, row, text, title
+
+window(
+    "Rejilla",
+    title("Tres tarjetas"),
+    row(
+        card(text("1.240 €"), title="Ventas"),
+        card(text("38"), title="Clientes"),
+        card(text("5"), title="Pendientes"),
+    ),
+).run()
+```
+
+**Ves:** tres tarjetas iguales, una al lado de otra.
+
+| Pieza | Para qué |
+|---|---|
+| `row(...)` | reparte lo que le pases en columnas iguales |
+| `col(..., span=6)` | ocupa la mitad del ancho (6 de 12) |
+| `stack(...)` | apila en vertical con separación |
+
+```python
+row(
+    col(text("Ancho completo"), span=12),
+    col(text("Mitad"), span=6),
+    col(text("Mitad"), span=6),
+)
+```
+
+En ventanas estrechas, la rejilla pasa a una sola columna sin que hagas nada.
+
+👉 Columnas por tamaño de ventana y patrones: [rejilla.md](rejilla.md).
+
+---
+
+## Paso 7 · Varias vistas y navegación
+
+**Objetivo:** dos páginas en la misma ventana.
+
+```python
+from interui import App, Button, Container, Heading, Screen, Text, pad
+
+app = App("Varias vistas")
+
+
+@app.page("/", title="Inicio")
+def inicio():
+    return Screen(
+        Container(pad=pad.py_10)(
+            Heading("Inicio", level=1),
+            Text("Esta es la primera página."),
+            Button("Ir a ajustes", on_click=lambda: app.navigate("/ajustes")),
+        )
+    )
+
+
+@app.page("/ajustes", title="Ajustes")
+def ajustes():
+    return Screen(
+        Container(pad=pad.py_10)(
+            Heading("Ajustes", level=1),
+            Text("Y esta es la segunda."),
+            Button("Volver", variant="secondary", on_click=lambda: app.navigate("/")),
+        )
+    )
+
+
+app.run()
+```
+
+**Ves:** cambia el contenido de la ventana al pulsar los botones, sin abrir otra
+ventana. El título de la ventana también cambia.
+
+| Pieza | Qué hace |
+|---|---|
+| `@app.page("/ruta")` | registra la función que pinta esa página |
+| `title="..."` | el título de la ventana en esa página |
+| `app.navigate("/ruta")` | salta a otra página (desde tu código Python) |
+
+> Las rutas pueden llevar datos: `@app.page("/cliente/<int:id>")` y entonces tu
+> función recibe `id` como parámetro.
+
+---
+
+## Paso 8 · Formularios con validación
+
+**Objetivo:** recoger datos, comprobarlos en Python y avisar de los errores.
+
+```python
+from interui import (
+    App, Button, Card, Container, Input, Screen, Stack, ValidationSummary,
+    pad, state, toast,
 )
 
 app = App("Formulario")
 nombre = app.state("nombre", "")
 correo = app.state("correo", "")
-activo = app.state("activo", True)
 errores = app.state("errores", [])
-guardado = app.state("guardado", None)
 
 
 @app.page("/")
@@ -405,23 +417,18 @@ def index():
             problemas.append("El correo no parece válido.")
         errores.set(problemas)
         if not problemas:
-            guardado.set(f"{nombre.get()} <{correo.get()}>")
-            app.notify("Guardado", "success")
+            toast("Guardado", "success")
 
     return Screen(
-        Container(size="prose", pad=pad.py_10)(
+        Container(pad=pad.py_10)(
             Card(title="Datos de contacto")(
-                ValidationSummary(errores.get()) if errores.get() else None,
-                Input(nombre.get(), label="Nombre", required=True, icon=icons.user,
-                      on_input=lambda e: nombre.set(e.text)),
-                Input(correo.get(), label="Correo", required=True, icon=icons.mail,
-                      error=errores.get()[1] if len(errores.get()) > 1 else None,
-                      on_input=lambda e: correo.set(e.text)),
-                Switch("Activo", checked=activo.get(),
-                       on_change=lambda e: activo.set(bool(e.checked))),
-                Button("Guardar", icon=icons.check, on_click=guardar),
-                Text(f"Guardado: {guardado.get()}" if guardado.get() else "", size=size.sm, tone=tone.muted),
-            )
+                ValidationSummary(errores.get()),
+                Stack(gap=4)(
+                    Input(nombre.get(), label="Nombre", required=True, on_input=nombre),
+                    Input(correo.get(), label="Correo", required=True, on_input=correo),
+                ),
+                Button("Guardar", icon="check", on_click=guardar),
+            ),
         )
     )
 
@@ -429,60 +436,59 @@ def index():
 app.run()
 ```
 
-Controles de entrada más usados: «`Input`», «`Textarea`», «`Select`»,
-«`Checkbox`», «`Switch`», «`Slider`», «`DateInput`», «`FileInput`»…
+**Ves:** dos campos y un botón. Si dejas el nombre vacío y pulsas **Guardar**,
+aparece un recuadro rojo con la lista de problemas; si todo está bien, sale el
+aviso «Guardado».
 
-Para formularios grandes existe `Form(..., on_submit=...)`: recibe el evento con
-todos los campos en `evento.data["form"]`.
+**El patrón se repite siempre:**
+
+1. una señal por campo (`state`),
+2. el campo la escribe con `on_input=`,
+3. al guardar, se validan los valores en Python,
+4. los errores van a otra señal que se pinta con `ValidationSummary`.
+
+> Esto es un formulario **escrito a mano**. Cuando los datos ya son un modelo de
+> la base de datos, no hace falta: el paso 11 lo genera solo.
 
 ---
 
-## 8. Mostrar datos: tabla y búsqueda
+## Paso 9 · Mostrar datos: tabla y búsqueda
+
+**Objetivo:** una lista y un filtro que la reduce mientras escribes.
 
 ```python
-from interui import App, Badge, Container, DataTable, Input, Screen, Stack, Text, icons, size, tone, variant, pad
+from interui import (
+    App, Card, Container, Input, Screen, Table, Text, pad, state,
+)
 
 app = App("Tabla")
-filtro = app.state("filtro", "")
+filtro = state("")
 
-DATOS = [
-    {"id": 1, "nombre": "Ana Ruiz", "correo": "ana@ejemplo.com", "activo": True},
-    {"id": 2, "nombre": "Luis Paz", "correo": "luis@ejemplo.com", "activo": False},
+CLIENTES = [
+    ["Ana", "Madrid", "ana@correo.com"],
+    ["Luis", "Sevilla", "luis@correo.com"],
+    ["Marta", "Madrid", "marta@correo.com"],
 ]
 
 
 @app.page("/")
 def index():
-    termino = filtro.get().lower()
-    filas = [d for d in DATOS if termino in d["nombre"].lower() or termino in d["correo"].lower()]
-
+    texto = filtro.get().strip().lower()
+    filas = [
+        fila for fila in CLIENTES
+        if not texto or texto in " ".join(fila).lower()
+    ]
     return Screen(
-        Container(pad=pad.py_8)(
-            Stack(
-                Input(filtro.get(), placeholder="Buscar…", icon=icons.search, live=True,
-                      on_input=lambda e: filtro.set(e.text)),
-                DataTable(
-                    columns=[
-                        {"key": "nombre", "label": "Nombre", "sortable": True},
-                        {"key": "correo", "label": "Correo"},
-                        {
-                            "key": "activo",
-                            "label": "Estado",
-                            "render": lambda fila: Badge(
-                                "activo" if fila["activo"] else "inactivo",
-                                variant=variant.success if fila["activo"] else "neutral",
-                                size=size.sm,
-                            ),
-                        },
-                    ],
+        Container(pad=pad.py_10)(
+            Input(filtro.get(), label="Buscar", icon="search", on_input=filtro),
+            Text(f"{len(filas)} de {len(CLIENTES)}"),
+            Card(pad=pad.all_2)(
+                Table(
+                    headers=["Nombre", "Ciudad", "Correo"],
                     rows=filas,
-                    total=len(filas),
-                    page=1,
-                    page_size=max(1, len(filas)),
-                ),
-                Text(f"{len(filas)} resultados", size=size.sm, tone=tone.muted),
-                gap=3,
-            )
+                    empty="Nada coincide con la búsqueda",
+                )
+            ),
         )
     )
 
@@ -490,173 +496,165 @@ def index():
 app.run()
 ```
 
-- `render=` en una columna permite devolver un componente (badges, botones…).
-- `searchable=True` añade búsqueda propia a la tabla; `sortable` en la columna.
-- Para paginación real, usa `total`, `page` y `on_page`.
-- Si la lista está vacía, muestra un `EmptyState`.
+**Ves:** escribes en **Buscar** y la tabla se reduce al momento.
 
 ---
 
-## 9. Varias vistas y navegación
+## Paso 10 · Persistencia de datos
+
+**Objetivo:** que lo guardado siga ahí al cerrar y abrir la app.
+
+`app.data_dir` es la carpeta de datos de tu aplicación en cada sistema (macOS,
+Windows y Linux). Guarda ahí tus archivos:
 
 ```python
-from interui import App, Button, Container, Heading, NavLink, Navbar, Screen, Text, variant, pad
+import json
+from pathlib import Path
 
-app = App("Navegación")
+from interui import App, Button, Container, Screen, Text, pad
 
-
-@app.page("/")
-def inicio():
-    return Screen(
-        Navbar(NavLink("Inicio", href="/", active=True), NavLink("Ajustes", href="/ajustes"),
-               brand="Mi app"),
-        Container(pad=pad.py_8)(Heading("Inicio", level=1)),
-    )
+app = App("Persistencia")
+AJUSTES = Path(app.data_dir) / "ajustes.json"
 
 
-@app.page("/ajustes")
-def ajustes():
-    return Screen(
-        Navbar(NavLink("Inicio", href="/"), NavLink("Ajustes", href="/ajustes", active=True),
-               brand="Mi app"),
-        Container(pad=pad.py_8)(
-            Heading("Ajustes", level=1),
-            Button("Volver", variant=variant.outline, on_click=lambda: app.navigate("/")),
-        ),
-    )
+def cargar() -> dict:
+    try:
+        return json.loads(AJUSTES.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"visitas": 0}
 
 
-@app.page("/cliente/<int:cliente_id>")
-def cliente(cliente_id: int):
-    return Screen(Container(pad=pad.py_8)(Heading(f"Cliente #{cliente_id}", level=1)))
-
-
-app.run()
-```
-
-- Los enlaces internos (`href="/..."`) se interceptan: no recargan la ventana.
-- `app.navigate("/ruta")` cambia de vista desde Python.
-- Rutas con `<int:nombre>`, `<float:...>`, `<str:...>`, `<path:...>`.
-- Para un panel lateral permanente, usa `Sidebar` + `NavLink`.
-
----
-
-## 10. Diálogos, notificaciones y archivos
-
-### Diálogos dentro de la app
-
-```python
-from interui import dialog, window, text, button, state, toast, icons, variant
-
-nombre = state("")
-
-
-def pedir_nombre() -> None:
-    dialog.input(
-        "Nombre del proyecto",
-        title="Nuevo proyecto",
-        placeholder="Mi proyecto",
-        on_accept=lambda evento: toast(f"Creado: {evento.value}", "success"),
-    )
-
-
-def borrar() -> None:
-    dialog.confirm(
-        "Esta acción no se puede deshacer.",
-        title="¿Eliminar el proyecto?",
-        accept_label="Eliminar",
-        on_accept=lambda: dialog.success("Proyecto eliminado"),
-    )
-
-
-window(
-    "Diálogos",
-    text("Panel"),
-    button("Nuevo", icon=icons.plus, on_click=pedir_nombre),
-    button("Eliminar", variant=variant.danger, on_click=borrar),
-).run()
-```
-
-Tipos: `show`, `info`, `success`, `warning`, `error`, `critical`, `confirm`,
-`input`, `form` y `custom`. Detalles en [la guía de diálogos](dialogos.md).
-
-### Diálogos del sistema operativo
-
-```python
-from interui import App, Button, Card, Container, Modal, Screen, Stack, Text, icons, size, variant, pad
-
-app = App("Nativo")
+datos = app.state("datos", cargar())
 
 
 @app.page("/")
 def index():
-    def abrir_archivo() -> None:
-        resultado = app.native.read_text(file_types=("Texto (*.txt;*.md)",))
-        if resultado:
-            ruta, contenido = resultado
-            app.notify("Abierto", f"{ruta} ({len(contenido)} caracteres)")
-
-    def guardar_archivo() -> None:
-        ruta = app.native.save_text("nota.txt", "Hola desde interUI")
-        if ruta:
-            app.native.notify("Guardado", ruta)
-
-    def confirmar() -> None:
-        app.eval_js("interui.openDialog('borrar')")
+    def sumar() -> None:
+        nuevos = {"visitas": datos.get()["visitas"] + 1}
+        datos.set(nuevos)
+        AJUSTES.write_text(json.dumps(nuevos), encoding="utf-8")
 
     return Screen(
-        Container(pad=pad.py_8)(
-            Card(title="Sistema")(
-                Stack(
-                    Button("Abrir archivo…", icon=icons.folder, on_click=abrir_archivo),
-                    Button("Guardar como…", icon=icons.download, variant=variant.outline,
-                           on_click=guardar_archivo),
-                    Button("Copiar al portapapeles", variant=variant.soft,
-                           on_click=lambda: app.native.clipboard_write("texto")),
-                    Button("Eliminar…", variant=variant.danger, on_click=confirmar),
-                    direction="row", wrap=True, gap=2,
-                )
-            )
-        ),
-        Modal(
-            Stack(
-                Text("Esta acción no se puede deshacer."),
-                Stack(
-                    Button("Cancelar", variant=variant.outline,
-                           on_click=lambda: app.eval_js("interui.closeDialog('borrar')")),
-                    Button("Eliminar", variant=variant.danger,
-                           on_click=lambda: app.notify("Eliminado", "warning")),
-                    direction="row", gap=2, justify="end",
-                ),
-                gap=4,
-            ),
-            dialog_id="borrar",
-            title="¿Eliminar elemento?",
-            size=size.sm,
-        ),
+        Container(pad=pad.py_10)(
+            Text(f"Veces guardado: {datos.get()['visitas']}"),
+            Button("Guardar una visita", icon="check", on_click=sumar),
+        )
     )
 
 
 app.run()
 ```
 
-Métodos nativos: `open_file`, `read_text`, `save_text`, `save_bytes`,
-`pick_folder`, `notify`, `clipboard_write/read`, `set_title`, `minimize`,
-`toggle_maximize`, `toggle_fullscreen`, `set_always_on_top`, `close`,
-`open_external`.
+**Ves:** el número sigue donde lo dejaste al cerrar y volver a abrir.
 
-`app.eval_js("...")` ejecuta JavaScript en la ventana si necesitas algo muy
-puntual (`interui.toast("hola")`, `interui.openDialog("id")`).
+| Sistema | Dónde queda |
+|---|---|
+| macOS | `~/Library/Application Support/<app>` |
+| Windows | `%APPDATA%\<app>` |
+| Linux | `~/.local/share/<app>` |
+
+> Para tablas de verdad (varias filas, consultas, migraciones) no uses JSON: el
+> paso 11 conecta la app a SQLite con modelos.
 
 ---
 
-## 11. Tema claro y oscuro
+## Paso 11 · Formulario desde un modelo
 
-El tema es una propiedad de la app: cámbiala y todo se re-renderiza con las
-variantes `dark:`.
+**Objetivo:** que el formulario, la validación y el guardado salgan del modelo.
+
+Este paso ya es un **proyecto** (la base de datos y las migraciones necesitan
+carpeta propia). Créalo con el comando:
+
+```bash
+iui startproject agenda --no-input
+cd agenda
+python iui.py startapp contactos
+python iui.py makemigrations
+python iui.py migrate
+python main.py
+```
+
+**Lo que ya tienes, sin escribir nada:** la página `/contactos` con un formulario
+de alta, su validación y una tabla con lo guardado.
+
+Ahora mira los dos archivos que lo hacen posible:
+
+`contactos/models.py` — los campos:
 
 ```python
-from interui import App, Button, Container, Screen, Text, icons, pad
+class Contacto(ui.Model):
+    nombre = ui.Str(max_length=120)
+    email = ui.Email(max_length=120, unique=True)
+    pais = ui.Choice(choices=["es", "mx"], default="es")
+    activo = ui.Bool(default=True)
+
+    class Meta:
+        table = "contactos_contacto"
+```
+
+`contactos/forms.py` — el formulario, en su propio archivo:
+
+```python
+class ContactoForm(ui.ModelForm):
+    model = Contacto
+    title = "Nuevo contacto"
+```
+
+`contactos/views.py` — la vista solo lo coloca:
+
+```python
+def inicio() -> ui.Component:
+    return ui.Screen(ui.Container(pad=ui.pad.py_10)(
+        ui.Heading("Contactos", level=1),
+        ContactoForm(margin=ui.margin.t_6),
+    ))
+```
+
+**Cada tipo de campo elige su control solo:** `Str` → texto, `Email` → correo,
+`Choice` → desplegable, `Bool` → interruptor, `Date` → fecha, `LongText` → área
+de texto. Cambia el modelo, vuelve a migrar y el formulario se adapta.
+
+👉 Todo sobre formularios: [formularios.md](formularios.md).
+
+---
+
+## Paso 12 · De archivo suelto a proyecto
+
+**Objetivo:** entender qué hay dentro de la carpeta que crea `startproject`.
+
+```bash
+iui startproject mi_app      # sin nombre: pregunta base de datos, tema, etc.
+```
+
+| Archivo | Para qué |
+|---|---|
+| `main.py` | el punto de entrada: migra lo pendiente y abre la ventana |
+| `iui.py` | los comandos del proyecto (`startapp`, `makemigrations`, `migrate`…) |
+| `interui.json` | la configuración: nombre, ventana, base de datos, apps |
+| `mi_app/app.py` | crea la `App` y conecta las rutas |
+| `mi_app/views.py` | las páginas del proyecto |
+| `mi_app/urls.py` | qué vista responde a cada ruta |
+| `migrations/` | el historial de la base de datos (se versiona en git) |
+| `data/` | la base de datos y los archivos (no se versiona) |
+
+El ciclo de trabajo, siempre el mismo:
+
+```bash
+python iui.py startapp ventas     # añadir una app
+python iui.py makemigrations      # detectar cambios en los modelos
+python iui.py migrate             # aplicarlos a la base de datos
+python main.py                    # abrir la ventana
+```
+
+👉 Archivo por archivo: [proyecto.md](proyecto.md). Todos los comandos:
+[comandos.md](comandos.md).
+
+---
+
+## Extras: tema claro y oscuro
+
+```python
+from interui import App, Button, Container, Screen, Text, pad
 
 app = App("Tema")
 
@@ -664,9 +662,10 @@ app = App("Tema")
 @app.page("/")
 def index():
     return Screen(
-        Container(pad=pad.py_8)(
-            Text(f"Tema actual: {app.theme}"),
-            Button("Cambiar tema", icon=icons.moon, on_click=app.toggle_theme),
+        Container(pad=pad.py_10)(
+            Text("Pulsa para cambiar de tema"),
+            Button("Modo oscuro", on_click=lambda: app.set_theme("dark")),
+            Button("Modo claro", variant="secondary", on_click=lambda: app.set_theme("light")),
         )
     )
 
@@ -674,298 +673,94 @@ def index():
 app.run()
 ```
 
-`app.set_theme("dark")` hace lo mismo desde cualquier handler y `app.quit()`
-cierra la ventana (o detiene el servidor en modo navegador).
-
-Desde el cliente también puedes alternar con `data={"iui-theme": "dark"}` en
-cualquier elemento. El tema inicial se define en `App(theme="dark")`.
+También puedes arrancar ya en oscuro: `App("Tema", theme="dark")`, o dejarlo
+fijo en `interui.json` (`"theme": "dark"`).
 
 ---
 
-## 12. Barra de menús y menú contextual
-
-Una app de escritorio se reconoce por sus menús. `AppShell` coloca el armazón y
-`MenuBar` dibuja los menús de arriba:
+## Extras: diálogos y avisos
 
 ```python
-from interui import (
-    App, AppShell, Container, ContextItem, ContextMenu, Heading, MenuBar, Sidebar,
-    SidebarItem, StatusBar, Text, TitleBar, toast,
-    icons,
-    pad,
-)
+from interui import App, Button, Container, Screen, Text, dialog, pad, toast
 
-app = App("Mi app")
-
-
-def nuevo() -> None:
-    toast("Nuevo proyecto", level="success")
+app = App("Diálogos")
 
 
 @app.page("/")
 def index():
-    contexto = ContextMenu(
-        ContextItem("Abrir", icon=icons.folder, on_click=lambda: toast("Abrir")),
-        ContextItem("Eliminar", icon=icons.trash, danger=True, on_click=lambda: toast("Eliminar", level="warning")),
-    )
-    return AppShell(
-        Container(pad=pad.py_6)(contexto(Heading("Panel", level=2))),
-        title_bar=TitleBar("Mi app", icon=icons.layers),
-        header=MenuBar(
-            {
-                "Archivo": [
-                    ContextItem("Nuevo", icon=icons.plus, shortcut="Ctrl+N", on_click=nuevo),
-                    "-",
-                    ContextItem("Salir", icon=icons.power, danger=True, on_click=app.quit),
-                ],
-                "Ver": [ContextItem("Cambiar tema", icon=icons.moon, on_click=app.toggle_theme)],
-            },
-            brand="Mi app",
-        ),
-        sidebar=Sidebar(SidebarItem("Panel", icon=icons.grid, active=True)),
-        status=StatusBar(Text("Listo")),
-    )
-
-
-app.run()
-```
-
-Sin escribir JavaScript ya funciona: abrir/cerrar el menú con clic, cambiar de
-menú al pasar el ratón, cerrar con `Escape` o clic fuera, y el menú contextual
-con el botón derecho (se coloca en el puntero y no se sale de la ventana).
-
-Si prefieres no pasar tantos argumentos, arma el armazón por partes:
-
-```python
-shell = AppShell()
-shell.title_bar = TitleBar("Mi app", icon=icons.layers)
-shell.sidebar = Sidebar(SidebarItem("Panel", icon=icons.grid, active=True))
-shell.status = StatusBar(Text("Listo"))
-shell.add = Container(pad=pad.py_6)(Text("Contenido"))
-```
-
-Y en ventanas estrechas el sidebar se convierte en un panel deslizante con su
-propio botón: el contenido no se aplasta aunque la ventana baje a 400 px. Si
-prefieres que el menú esté siempre a la vista, pasa `collapsible=False`:
-
-```python
-shell = AppShell(collapsible=False)
-```
-
-También hay `MenuButton(...)` para un desplegable suelto, `CommandBar(...)` para
-un buscador con acciones y `NotificationButton(3, items=[...])` para la campana
-con contador. Todo el detalle está en [menús y armazón](menus.md).
-
----
-
-## 13. Iconos
-
-El set propio trae 202 iconos; no hace falta instalar nada ni tener conexión:
-
-```python
-from interui import ICON_NAMES, Icon, IconGrid, icons, colors
-
-Icon(icons.check, size=6, color=colors.emerald_600)
-len(ICON_NAMES)                                   # 202
-IconGrid(columns=10, searchable=True, on_pick=lambda nombre: print(nombre))
-```
-
-`IconGrid` es una galería buscable; con `on_pick` el nombre elegido llega a
-Python. La lista completa está en el [catálogo de iconos](iconos.md).
-
----
-
-## 14. Persistencia de datos
-
-`app.data_dir` apunta a la carpeta de datos de la aplicación en cada sistema.
-Guarda ahí tus archivos (JSON, SQLite, ajustes):
-
-```python
-import json
-from pathlib import Path
-
-from interui import App, Button, Container, Screen, Text, icons, pad
-
-app = App("Persistencia")
-STORE = Path(app.data_dir) / "ajustes.json"
-
-
-def cargar() -> dict:
-    try:
-        return json.loads(STORE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return {"visitas": 0}
-
-
-ajustes = app.state("ajustes", cargar())
-
-
-@app.page("/")
-def index():
-    def guardar() -> None:
-        datos = {"visitas": ajustes.get()["visitas"] + 1}
-        ajustes.set(datos)
-        STORE.write_text(json.dumps(datos), encoding="utf-8")
+    def preguntar() -> None:
+        dialog.confirm(
+            "¿Seguro que quieres continuar?",
+            on_accept=lambda: toast("Confirmado", "success"),
+        )
 
     return Screen(
-        Container(pad=pad.py_8)(
-            Text(f"Veces abierto: {ajustes.get()['visitas']}"),
-            Button("Guardar visita", icon=icons.check, on_click=guardar),
+        Container(pad=pad.py_10)(
+            Text("Tres formas de avisar:"),
+            Button("Aviso", on_click=lambda: toast("Listo", "info")),
+            Button("Info", variant="secondary", on_click=lambda: dialog.info("Todo correcto")),
+            Button("Preguntar", variant="secondary", on_click=preguntar),
         )
     )
-
-
-@app.on_close
-def _al_cerrar() -> None:
-    STORE.write_text(json.dumps(ajustes.get()), encoding="utf-8")
 
 
 app.run()
 ```
 
-| Sistema | Carpeta |
+| Quiero… | Uso |
 |---|---|
-| macOS | `~/Library/Application Support/<app>` |
-| Windows | `%APPDATA%\<app>` |
-| Linux | `~/.local/share/<app>` |
+| un aviso que se va solo | `toast("Guardado", "success")` |
+| un cartel con **Aceptar** | `dialog.info("…")` |
+| preguntar sí/no | `dialog.confirm("…", on_accept=…)` |
+| pedir un dato | `dialog.input("Nombre")` |
 
-Puedes sobreescribirla con `App(data_dir=...)` o `INTERUI_DATA_DIR`.
+👉 Diálogos con formulario y varios niveles: [dialogos.md](dialogos.md).
 
 ---
 
-## 15. Estructura recomendada del proyecto
-
-No la escribas a mano: `iui startproject` crea la estructura completa y, si no
-le das el nombre, te va preguntando la configuración inicial.
-
-```bash
-iui startproject mi_app
-cd mi_app
-pip install -r requirements.txt
-python iui.py startapp tareas   # opcional: una app dentro del proyecto
-python main.py                  # migra lo pendiente y abre la ventana
-```
-
-```
-mi_app/
-├── main.py             # punto de entrada: crea todo y abre la ventana
-├── iui.py              # comandos del proyecto
-├── interui.json        # configuración
-├── requirements.txt
-├── README.md
-├── .gitignore
-├── mi_app/             # el paquete del proyecto
-│   ├── __init__.py
-│   ├── app.py          # crea la App y registra las rutas
-│   ├── urls.py         # ruta → vista
-│   ├── views.py        # las páginas (una: «Hola mundo»)
-│   └── models.py       # modelos del ORM (vacío)
-├── tareas/             # una app, si la creas (`python iui.py startapp tareas`)
-│   ├── models.py       # modelos de la app
-│   ├── views.py        # páginas de la app
-│   └── urls.py         # sus rutas (se registran solas)
-├── migrations/         # migraciones generadas
-└── data/               # SQLite o archivos (se crea al migrar)
-```
-
-| Pieza | Qué hace |
-|---|---|
-| `main.py` | punto de entrada: crea todo y abre la ventana |
-| `iui.py` | comandos del proyecto (`startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check`) |
-| `interui.json` | configuración |
-| `mi_app/urls.py` | `urlpatterns` + `register(app)` |
-| `mi_app/views.py` | cada vista devuelve un componente |
-| `models.py` de cada app | tablas del ORM, creadas por las migraciones |
-| `migrations/*.json` | historial del esquema |
-
-Reglas prácticas:
-
-- Las **vistas** solo describen la interfaz; la lógica va en funciones normales.
-- Los **handlers** deben ser rápidos: para trabajo largo, lanza un hilo y
-  actualiza el estado al terminar (`app.set_state`), lo que refresca la vista.
-- Un archivo `models.py` sin importar `interui` se puede probar con pytest sin
-  abrir ventanas.
-
----
-
-## 16. Empaquetar y distribuir
+## Extras: empaquetar y distribuir
 
 ```bash
 pip install pyinstaller
-interui build app.py --name MiApp          # macOS: dist/MiApp.app
-interui build app.py --name MiApp --onefile
+iui build                    # dentro del proyecto
 ```
 
-El comando incluye automáticamente los recursos de interUI (CSS, JS, shell) y los
-binarios de `pywebview`. Antes de empaquetar:
+Queda un `.app` en macOS, un `.exe` en Windows y un binario en Linux, con la
+ventana nativa y sin necesidad de Python instalado.
+
+👉 Detalles y firma de código: [escritorio.md](escritorio.md#6-empaquetado).
+
+---
+
+## Errores frecuentes
+
+| Síntoma | Causa y solución |
+|---|---|
+| `DesktopError: falta pywebview` | `pip install "interui[desktop]"`. Sin él no hay ventana nativa |
+| La ventana se abre en blanco | la vista devolvió `None`; devuelve un control (aunque sea `Text("")`) |
+| `LookupError: Ruta no registrada` | falta `@app.page("/")` o la ruta no coincide |
+| `AttributeError: module 'interui' has no attribute 'Xxx'` | ese control no existe con ese nombre: busca en [controles.md](controles.md) |
+| El texto no se actualiza | pasaste `contador.get()` en vez de `contador` como hijo |
+| `TypeError: state() takes ...` | la firma es `state(valor, name="clave")`, no `state("clave", valor)` |
+| La tabla dice «Todavía no hay registros» | falta `python iui.py migrate` |
+| Un formulario no guarda y no dice nada | míralo en la consola: los errores de tus handlers salen ahí |
+
+Si algo se queda colgado, ejecuta con más información:
 
 ```bash
-interui doctor
+python mi_app.py --debug      # o: iui run mi_app.py --debug
 ```
-
-Requisitos por plataforma en [la guía de escritorio](escritorio.md).
 
 ---
 
-## 17. Errores frecuentes
+## Dónde seguir
 
-| Síntoma | Causa | Solución |
-|---|---|---|
-| `RuntimeError: Registra al menos una página` | No has puesto `@app.page("/")` | Añade una vista. |
-| La ventana abre sin estilos | Falta `interui/static/app.css` | `interui assets` (requiere Node). |
-| `AttributeError: 'NoneType' has no attribute...` | Un handler devolvió `None` donde se esperaba algo, o usaste `e` sin parámetro | Revisa la firma: `def f()` o `def f(evento)`. |
-| El texto no se actualiza al escribir | Usaste `value=` fijo sin `on_input` | Añade `on_input=lambda e: estado.set(e.text)`. |
-| Un `Col` no responde a `md` | `Col` fuera de `Row` | Envuelve en `Row`. |
-| `app.native` lanza `DesktopError` | La app corre en modo navegador | Abre con `app.run()` (ventana) o instala `interui[desktop]`. |
-| La ventana no abre en Linux | Faltan GTK/WebKitGTK | `sudo apt install libgtk-3-0 libwebkit2gtk-4.1-0`. |
-| Cambié estilos y no se ven | CSS sin recompilar | `interui assets` y reinicia. |
-
----
-
-## 18. Mantener interUI actualizado
-
-Al arrancar, la app comprueba en segundo plano si hay una versión más nueva de
-interUI y, si la hay, muestra un aviso con el comando exacto para actualizar
-(también en el log y en `app.update_available`). No tienes que programar nada.
-
-Desde la terminal:
-
-```bash
-interui update        # ¿hay versión nueva? muestra el comando
-interui update --run  # y la ejecuta
-```
-
-Si quieres reaccionar en tu interfaz:
-
-```python
-from interui import App, Badge, Container, Screen, heading, variant, pad
-
-app = App("Mi app")
-
-
-@app.page("/")
-def index():
-    aviso = Badge(f"Nueva versión {app.update.latest}", variant=variant.warning) if app.update_available else None
-    return Screen(Container(pad=pad.py_6)(heading("Hola"), aviso))
-
-
-app.run()
-```
-
-Se desactiva con `App("Mi app", check_updates=False)` o
-`INTERUI_NO_UPDATE_CHECK=1`. Detalle completo en
-[actualizar interUI](actualizar.md).
-
----
-
-## Siguiente paso
-
-- [Referencia de controles](controles.md) — firma y ejemplo de cada control.
-- [Actualizar interUI](actualizar.md) — versiones, comandos y aviso en la app.
-- [Menús, barras y armazón](menus.md) — `AppShell`, barra de menús y menú contextual.
-- [Catálogo de iconos](iconos.md) — los 202 iconos incluidos.
-- [Guía de la rejilla](rejilla.md) — patrones responsive.
-- [Guía de escritorio](escritorio.md) — ventana, puente nativo y empaquetado.
-- [Instalación y publicación](publicar.md) — PyPI.
-- [`examples/05_crud.py`](../examples/05_crud.py) — app completa de referencia.
-- [`examples/06_app_moderna.py`](../examples/06_app_moderna.py) — armazón, menús, iconos y tema.
+| Quiero… | Documento |
+|---|---|
+| ver todos los controles | [controles.md](controles.md) |
+| formularios y modelos | [formularios.md](formularios.md) |
+| base de datos y consultas | [datos.md](datos.md) |
+| menús, barras y armazón | [menus.md](menus.md) |
+| la ventana, multiventana y empaquetado | [escritorio.md](escritorio.md) |
+| todos los comandos | [comandos.md](comandos.md) |
+| el índice completo | [indice.md](indice.md) |

@@ -229,7 +229,7 @@ def frame(*content, title: str = "Mi app", active: str = "/") -> ui.AppShell:
 ```
 
 Está explicado en [menús y armazón](menus.md) y en el
-[tutorial](guia.md#12-barra-de-menús-y-menú-contextual).
+[tutorial](guia.md#paso-3-poner-un-menú).
 
 ---
 

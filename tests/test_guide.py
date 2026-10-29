@@ -1,8 +1,9 @@
 """La guía se ejecuta: cada ejemplo completo de `docs/*.md` debe arrancar y renderizar.
 
 Los bloques ```python de la documentación se compilan siempre y, si son
-aplicaciones completas (`app.run()`), se ejecutan sustituyendo `app.run()` por
-una no-op para poder renderizar sus vistas sin abrir ventanas.
+aplicaciones completas (`app.run()` o `window(...).run()`), se ejecutan
+sustituyendo el `.run()` por una no-op para poder renderizar sus vistas sin
+abrir ventanas.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import re
 import pytest
 
 import interui as ui
+import interui.simple as simple
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DOCS = [
@@ -78,6 +80,35 @@ def test_guide_apps_render(path: pathlib.Path, block: str, monkeypatch, tmp_path
             assert "None</" not in html
 
 
+COMPACT = [
+    (path, block)
+    for path, block in PY_BLOCKS
+    if ").run()" in block and "app.run()" not in block
+]
+
+
+def test_guide_has_compact_windows() -> None:
+    assert len(COMPACT) >= 5, (
+        f"solo {len(COMPACT)} ejemplos con `window(...)`; el tutorial empieza por ahí"
+    )
+
+
+@pytest.mark.parametrize("path,block", COMPACT, ids=[_ids(b) for _p, b in COMPACT])
+def test_compact_windows_render(path: pathlib.Path, block: str, monkeypatch) -> None:
+    """`window(...).run()`: se ejecuta sin abrir ventana y su página se pinta."""
+    monkeypatch.setattr(simple, "_DEFAULT_APP", None)
+    source = block.replace(").run()", ")")
+    exec(compile(source, str(path), "exec"), {"__name__": "guia"})  # noqa: S102
+
+    application = simple._DEFAULT_APP
+    assert application is not None, f"{path.name}: el ejemplo no crea la ventana"
+    title, html, _bindings = application.render_page("/")
+    assert title
+    assert html.startswith('<div id="iui-root"')
+    assert len(html) >= 40, f"{path.name}: render vacío"
+    assert "Traceback" not in html and "None</" not in html
+
+
 GUIDE = ROOT / "docs" / "guia.md"
 
 
@@ -85,18 +116,22 @@ def test_guide_covers_the_full_journey() -> None:
     """La guía debe ir de la ventana vacía a la app completa."""
     text = GUIDE.read_text(encoding="utf-8")
     milestones = [
-        "La ventana más pequeña posible",
-        "Añadir contenido y jerarquía",
-        "La rejilla de 12 columnas",
-        "Botones y eventos",
-        "Estado reactivo",
-        "Formularios con validación",
-        "tabla y búsqueda",
-        "Varias vistas",
-        "Diálogos, notificaciones y archivos",
-        "Tema claro y oscuro",
-        "Persistencia de datos",
-        "Empaquetar y distribuir",
+        "Paso 1 · La ventana más pequeña posible",
+        "Paso 2 · Añadir contenido y jerarquía",
+        "Paso 3 · Poner un menú",
+        "Paso 4 · Botones y eventos",
+        "Paso 5 · Estado reactivo",
+        "Paso 6 · La rejilla de 12 columnas",
+        "Paso 7 · Varias vistas y navegación",
+        "Paso 8 · Formularios con validación",
+        "Paso 9 · Mostrar datos: tabla y búsqueda",
+        "Paso 10 · Persistencia de datos",
+        "Paso 11 · Formulario desde un modelo",
+        "Paso 12 · De archivo suelto a proyecto",
+        "tema claro y oscuro",
+        "diálogos y avisos",
+        "empaquetar y distribuir",
+        "Errores frecuentes",
     ]
     for milestone in milestones:
         assert milestone in text, f"falta la sección: {milestone}"

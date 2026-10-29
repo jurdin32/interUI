@@ -828,8 +828,8 @@ class TitleBar(Component):
 
     def __init__(
         self,
-        *children: Any,
         title: Any = None,
+        *children: Any,
         icon: str | None = None,
         controls: bool = True,
         **props: Any,

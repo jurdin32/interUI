@@ -48,7 +48,8 @@ __all__ = [
 
 _DEFAULT_APP: App | None = None
 _VIEW: Callable[[], Component] | None = None
-_REGISTERED = False
+#: App que ya tiene registrada la página `/` de `window(...)`.
+_REGISTERED: App | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -95,13 +96,16 @@ def window(
         return body
 
     _VIEW = build
-    if not _REGISTERED:
+    # `App.page()` sustituye la ruta si ya existe, así que llamar a `window()`
+    # otra vez solo cambia el contenido. Se registra una vez por app: crear otra
+    # ventana (o recargar un ejemplo) no debe quedarse sin la página `/`.
+    if _REGISTERED is not application:
         @application.page("/")
         def _index() -> Component:
             assert _VIEW is not None
             return _VIEW()
 
-        _REGISTERED = True
+        _REGISTERED = application
     return application
 
 

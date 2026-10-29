@@ -84,7 +84,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 - [Actualizar interUI](#actualizar-interui)
 - [Instalación](#instalación)
 - [Por qué el editor marca errores](#por-qué-el-editor-marca-errores-y-el-programa-funciona)
-- [Guía paso a paso](#guía-paso-a-paso)
+- [Tutorial paso a paso](#tutorial-paso-a-paso)
 - [Inicio rápido](#inicio-rápido)
 - [Cómo funciona una app](#cómo-funciona-una-app)
 - [Rejilla de 12 columnas](#rejilla-de-12-columnas)
@@ -245,25 +245,28 @@ app y problemas frecuentes): [`docs/actualizar.md`](docs/actualizar.md).
 
 ---
 
-## Guía paso a paso
+## Tutorial paso a paso
 
-El recorrido completo, desde una ventana vacía hasta una app con formularios,
-tabla, búsqueda, validación, persistencia y diálogos nativos está en
-**[docs/guia.md](docs/guia.md)**:
+El recorrido completo está en **[docs/guia.md](docs/guia.md)**: doce pasos en
+orden, cada uno un archivo que se ejecuta tal cual, desde una ventana vacía
+hasta la app con base de datos.
 
-| Paso | Qué aprendes |
+| Paso | Qué consigues |
 |---|---|
-| 1–2 | Instalar y abrir la ventana más pequeña posible |
-| 3–4 | Jerarquía de componentes y rejilla de 12 columnas |
-| 5–6 | Botones, eventos y estado reactivo |
-| 7 | Formularios con validación hecha en Python |
-| 8 | Tablas, búsqueda, filtrado y estados vacíos |
-| 9 | Varias vistas y navegación |
-| 10 | Diálogos nativos, notificaciones, portapapeles y archivos |
-| 11–12 | Tema claro/oscuro y persistencia en `app.data_dir` |
-| 13–15 | Estructura de proyecto, empaquetado y errores frecuentes |
+| 1 | Una ventana vacía |
+| 2 | Texto y tarjetas dentro |
+| 3 | Un menú (Archivo, Ayuda) en la ventana |
+| 4 | Que un botón ejecute tu código |
+| 5 | Que la ventana se actualice sola (estado) |
+| 6 | Ordenar todo en columnas |
+| 7 | Varias páginas en la misma ventana |
+| 8 | Un formulario que valida |
+| 9 | Una tabla con búsqueda |
+| 10 | Guardar entre sesiones |
+| 11 | Un formulario hecho solo desde el modelo |
+| 12 | El proyecto completo, con apps |
 
-Cada bloque de código de la guía se compila y se ejecuta en las pruebas
+Cada bloque de código del tutorial se compila y se ejecuta en las pruebas
 ([`tests/test_guide.py`](tests/test_guide.py)), así que no puede quedarse
 obsoleto.
 
@@ -1288,7 +1291,7 @@ El mapa completo está en **[docs/indice.md](docs/indice.md)**.
 
 **Primeros pasos**
 
-- [Tutorial](docs/guia.md) — de la ventana vacía a la app completa, paso a paso.
+- [Tutorial paso a paso](docs/guia.md) — de la ventana vacía a la app completa, en 12 pasos.
 - [Anatomía de un proyecto](docs/proyecto.md) — qué es `main.py`, qué es `iui.py`,
   dónde van los modelos y cómo encajan las apps.
 - [Configuración](docs/configuracion.md) — cada clave de `interui.json`.

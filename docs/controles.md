@@ -1782,7 +1782,7 @@ Alias en minúsculas: `ui.title_bar`
 Barra de título propia para ventanas sin marco.
 
 ```text
-ui.TitleBar(*children, title=None, icon=None, controls=True)
+ui.TitleBar(title=None, *children, icon=None, controls=True)
 ```
 
 ```python
