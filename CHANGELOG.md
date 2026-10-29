@@ -173,6 +173,13 @@ etiqueta como `vX.Y.Z`.
 
 ### Corregido
 
+- **`ui.RecordPage(MiForm)` acepta la clase** del formulario, no solo la
+  instancia (antes fallaba al pedir las columnas). Igual que `RecordTable`.
+- **La tarjeta del formulario y su cabecera se configuran desde `forms.py`**:
+  `bg`, `rounded`, `border`, `shadow`, `ring`, `pad`, `radius`, `header_bg`,
+  `header_color`, `header_border`, `header_pad`, `header_font` y `footer_bg`
+  declarados en la clase llegan a la `Card` (antes se ignoraban: solo se miraba
+  `card_options`). `Card` gana además `header_font`.
 - **El pie de la tabla ya no se desborda**: el `<select>` de filas por página se
   estiraba con el `w-full` de los campos y empujaba el paginador fuera de la
   tarjeta. Ahora `width="w-16"` se aplica de verdad (antes se colaba como

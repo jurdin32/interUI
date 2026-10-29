@@ -783,7 +783,8 @@ class RecordPage(Component):
                 "RecordPage necesita un formulario o una tabla: "
                 "`ui.RecordPage(PersonaForm())` o `ui.RecordPage(PersonaTable)`."
             )
-        self.form = form
+        # Vale la clase (`RecordPage(PersonaForm)`) o una instancia.
+        self.form = _form_of(form)
         self.page_title = title
         self.show_counter = counter
         self.show_table = table

@@ -573,3 +573,42 @@ def test_el_boton_nuevo_usa_el_modal_declarado(tmp_path) -> None:
     )
     handler()  # los handlers sin argumentos se llaman así
     assert abiertos == ["nuevo"]
+
+
+def test_record_page_acepta_la_clase_del_formulario(tmp_path) -> None:
+    """`RecordPage(MiForm)` funciona igual que `RecordPage(MiForm())`."""
+
+    class Formulario(ui.ModelForm):
+        model = Persona
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(Formulario, title="Personas"), app)
+    assert "Persona 1" in html
+    assert "registros guardados" in html
+
+
+def test_la_cabecera_del_formulario_se_declara_en_forms(tmp_path) -> None:
+    """Los colores de la tarjeta y de su cabecera van en la clase del formulario."""
+
+    class Formulario(ui.ModelForm):
+        model = Persona
+        title = "Nueva persona"
+        bg = ui.colors.slate_50
+        header_bg = ui.colors.indigo_600
+        header_color = ui.colors.white
+        header_pad = ui.pad.p_6
+        header_font = ui.font.xl.bold
+        footer_bg = ui.colors.slate_100
+        rounded = "xl"
+
+    app = _app(tmp_path)
+    html = _html(Formulario(), app)
+    for clase in (
+        "bg-slate-50", "bg-indigo-600", "text-white", "p-6", "text-xl",
+        "font-bold", "bg-slate-100", "rounded-xl",
+    ):
+        assert clase in html, f"falta {clase}"
+
+    # Y por el otro camino: la página con el formulario.
+    html_pagina = _html(ui.RecordPage(Formulario), app)
+    assert "bg-indigo-600" in html_pagina

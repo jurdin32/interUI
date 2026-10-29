@@ -54,6 +54,7 @@ class Card(Component):
         header_color: Any = None,
         header_border: Any = None,
         header_pad: Any = None,
+        header_font: Any = None,
         footer_bg: Any = None,
         **props: Any,
     ) -> None:
@@ -62,6 +63,7 @@ class Card(Component):
         self.header_color = header_color
         self.header_border = header_border
         self.header_pad = header_pad
+        self.header_font = header_font
         self.footer_bg = footer_bg
         self.description = description
         self.footer = footer
@@ -113,7 +115,9 @@ class Card(Component):
                     for i, (label, handler, variant) in enumerate(_action_tuples(self.actions))
                 )
             titulo_clases = tw(
-                "truncate text-base font-semibold",
+                "truncate",
+                "text-base font-semibold" if not self.header_font else "",
+                _clase("font", self.header_font),
                 _clase("text", self.header_color) or "text-slate-900 dark:text-white",
             )
             titles = titles.replace(

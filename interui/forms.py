@@ -172,6 +172,14 @@ def _control(
 # ---------------------------------------------------------------------------
 # formulario
 # ---------------------------------------------------------------------------
+#: Opciones que van a la tarjeta del formulario (y a su cabecera y pie).
+_CARD_KEYS = (
+    "bg", "border", "rounded", "shadow", "ring", "pad", "radius", "elevated",
+    "header_bg", "header_color", "header_border", "header_pad", "header_font",
+    "footer_bg",
+)
+
+
 def gap_value(value: Any) -> Any:
     """`field_gap`: un número (``3``), un token de `gap` o una clase ``gap-4``."""
     if value is None:
@@ -267,9 +275,17 @@ class ModelForm(Component):
         self.field_gap = (
             field_gap if field_gap is not None else getattr(type(self), "field_gap", None)
         )
+        # Todo lo que afecta a la tarjeta y a su cabecera se puede declarar
+        # directamente en la clase: `header_bg = ui.colors.slate_100` en forms.py.
         self.card_options: dict[str, Any] = dict(
             card_options or getattr(type(self), "card_options", None) or {}
         )
+        for nombre in _CARD_KEYS:
+            declarado = getattr(type(self), nombre, None)
+            if declarado is not None:
+                self.card_options.setdefault(nombre, declarado)
+            if nombre in props:
+                self.card_options.setdefault(nombre, props.pop(nombre))
         for nombre in ("bg", "border", "rounded", "shadow", "ring"):
             if nombre in props:
                 self.card_options.setdefault(nombre, props.pop(nombre))

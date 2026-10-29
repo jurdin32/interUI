@@ -370,6 +370,36 @@ class ClienteTable(ui.RecordTable):
 Sin ninguna de estas opciones la página se ve como siempre: título grande,
 contador debajo y el botón a la derecha.
 
+### La tarjeta del formulario y su cabecera
+
+`ModelForm` dibuja los campos dentro de una tarjeta. Su aspecto se declara en el
+propio `forms.py`, sin tocar la vista:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    title = "Nuevo cliente"
+
+    bg = ui.colors.slate_50             # fondo de la tarjeta
+    rounded = "xl"                      # esquinas ("none" = rectas)
+    header_bg = ui.colors.indigo_600    # franja del título
+    header_color = ui.colors.white
+    header_border = ui.colors.indigo_700
+    header_pad = ui.pad.p_6
+    header_font = ui.font.xl.bold
+    footer_bg = ui.colors.slate_100     # (el formulario no tiene pie; lo usa `Card`)
+    field_gap = 3                       # separación entre campos
+```
+
+| Opción | Qué cambia |
+|---|---|
+| `bg`, `border`, `rounded`, `shadow`, `ring`, `pad`, `radius` | la tarjeta |
+| `header_bg`, `header_color`, `header_border`, `header_pad`, `header_font` | su cabecera (título incluido) |
+| `field_gap` | separación entre campos |
+| `card_options` | atajo para pasar todo lo anterior de golpe |
+
+Sin ninguna de ellas el formulario se ve como siempre.
+
 ### Colores, cebra y encabezado
 
 Todo el aspecto se configura con los mismos tokens de estilo del resto del
