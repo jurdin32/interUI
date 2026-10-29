@@ -1158,8 +1158,8 @@ Publicación automática: [`.github/workflows/publish.yml`](.github/workflows/pu
 usa *Trusted Publishing* (OIDC, sin tokens en el repo) al crear un release.
 Solo hay que registrar el proyecto en
 [PyPI → Publishing](https://pypi.org/manage/account/publishing/) con
-`owner=jurdin32`, `repo=interUI`, `workflow=publish.yml`, `environment=pypi` y
-crear la etiqueta:
+`proyecto=interui`, `owner=jurdin32`, `repo=interUI`, `workflow=publish.yml`,
+`environment=pypi` y crear la etiqueta:
 
 ```bash
 git tag -a v0.5.0 -m "interui 0.5.0"

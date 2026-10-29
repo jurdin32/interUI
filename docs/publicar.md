@@ -234,6 +234,14 @@ repositorio. Después, al publicar un **release** en GitHub, el workflow constru
 valida y sube el paquete automáticamente. También puedes lanzarlo a mano
 (Actions → publish → Run workflow) eligiendo TestPyPI.
 
+Los tres campos en los que casi todo el mundo falla:
+
+| Si PyPI dice… | Revisa |
+|---|---|
+| `invalid-publisher` con el nombre del proyecto | que el **PyPI Project Name** sea `interui`, en minúsculas |
+| `invalid-publisher` con el workflow | que **Workflow name** sea el nombre del archivo (`publish.yml`), no una descripción |
+| *environment mismatch* | que **Environment name** (`pypi`) sea el mismo que `environment:` del workflow, y que el environment exista en Settings → Environments |
+
 ---
 
 ## 6. Publicar una versión nueva

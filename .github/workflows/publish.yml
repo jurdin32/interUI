@@ -1,12 +1,17 @@
 name: publish
 
-# Publica en PyPI al crear un release (o manualmente desde Actions).
-# Requiere configurar el "Trusted Publisher" en PyPI:
-#   Project: interui
-#   Owner:   jurdin32
-#   Repo:    interUI
-#   Workflow: publish.yml
-#   Environment: pypi
+# Publica en PyPI al publicar un release (o a mano desde Actions).
+#
+# Antes del primer envío, da de alta el "Trusted Publisher" en
+# https://pypi.org/manage/account/publishing/ ("Add a new pending publisher"):
+#   PyPI Project Name: interui      (minúsculas, como en pyproject.toml)
+#   Owner:             jurdin32
+#   Repository name:   interUI
+#   Workflow name:     publish.yml  (solo el nombre del archivo)
+#   Environment name:  pypi         (el mismo de este workflow)
+#
+# Para ensayar antes, repite el alta en
+# https://test.pypi.org/manage/account/publishing/ con environment `testpypi`.
 on:
   release:
     types: [published]
