@@ -146,7 +146,7 @@ python main.py
 | `dialogs.py` | `VentaModal(ui.FormModal)`: el alta y la edición en modal, con sus colores y espaciados. |
 | `tables.py` | `VentaTable(ui.RecordTable)`: columnas, colores, cebra, clic, doble clic y menú contextual. |
 | `estilos.py` | el tema de esta app (colores, tamaños, espaciados), con el catálogo completo comentado. |
-| `views.py` | `inicio()`: `ui.RecordPage(VentaTable)`, en una línea. |
+| `views.py` | `inicio()`: `ui.RecordPage(VentaForm, VentaTable)`, en una línea. |
 | `urls.py` | `urlpatterns = [ui.path("ventas", inicio, name="ventas")]`. |
 
 Solo tienes que cambiar los campos del modelo: el formulario y la tabla se

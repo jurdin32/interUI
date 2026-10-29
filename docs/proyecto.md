@@ -224,7 +224,7 @@ La vista más corta que existe:
 ```python
 # ventas/views.py
 def inicio() -> ui.Component:
-    return ui.RecordPage(VentaForm(), title="Ventas")
+    return ui.RecordPage(VentaForm, VentaTable, title="Ventas")
 ```
 
 Y el armazón (barra de título, menú, barra de estado) se pone una sola vez en

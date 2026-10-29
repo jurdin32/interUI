@@ -332,7 +332,7 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `main.py` | abre la app: aplica migraciones, construye la `App` y muestra la ventana |
 | `iui.py` | comandos que nunca abren ventana: `startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check` |
 | `interui.json` | configuración: identidad, ventana, base de datos, apps y migraciones |
-| `<app>/views.py` | qué se pinta en cada página (una línea: `ui.RecordPage(MiTabla)`) |
+| `<app>/views.py` | qué se pinta en cada página (una línea: `ui.RecordPage(MiForm, MiTabla)`) |
 | `<app>/urls.py` | qué vista responde a cada ruta |
 | `<app>/forms.py` | formularios: un control por campo del modelo |
 | `<app>/tables.py` | la tabla: columnas, colores, cebra, clic, doble clic y menú |

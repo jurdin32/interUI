@@ -298,7 +298,8 @@ def test_recordtable_sin_base_de_datos_avisa(tmp_path) -> None:
 
 def test_recordpage_pinta_la_pagina_completa(app) -> None:
     """`RecordPage` es título + contador + formulario + tabla en una llamada."""
-    app.page("/pagina")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), title="Personas")))
+    pagina = ui.RecordPage(ui.ModelForm(Persona), table=True, title="Personas")
+    app.page("/pagina")(lambda: ui.Screen(pagina))
     _title, html, _bindings = app.render_page("/pagina")
     assert "Personas" in html
     assert "0 registros guardados" in html
@@ -306,7 +307,7 @@ def test_recordpage_pinta_la_pagina_completa(app) -> None:
     assert "Todavía no hay registros" in html
 
     # Sin `title`, el plural del modelo.
-    app.page("/auto")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona))))
+    app.page("/auto")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), table=True)))
     assert "Personas" in app.render_page("/auto")[1]
 
 
@@ -449,7 +450,9 @@ def test_form_dialog_abre_el_formulario_en_un_modal(app) -> None:
 def test_recordpage_sin_formulario_en_la_pagina(app) -> None:
     """`form_mode="none"` deja solo el contador y la tabla."""
     app.page("/solo")(
-        lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), title="Personas", form_mode="none"))
+        lambda: ui.Screen(
+            ui.RecordPage(ui.ModelForm(Persona), title="Personas", form_mode="none", table=True)
+        )
     )
     _title, html, _bindings = app.render_page("/solo")
     assert "Personas" in html
@@ -551,7 +554,7 @@ def _tabla(page: ui.Component, app) -> ui.Component:
 
 def test_tabla_pagina_de_10_en_10(tmp_path) -> None:
     app = _tabla_app(tmp_path)
-    page = ui.RecordPage(ui.ModelForm(Persona), title="Personas", search=True, page_size=10)
+    page = ui.RecordPage(ui.ModelForm(Persona), title="Personas", search=True, page_size=10, table=True)
     _tabla(page, app)
 
     _title, html, _bindings = app.render_page("/tabla")
@@ -569,7 +572,7 @@ def test_tabla_pagina_de_10_en_10(tmp_path) -> None:
 
 def test_tabla_pagina_configurable(tmp_path) -> None:
     app = _tabla_app(tmp_path)
-    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=15), app)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=15, table=True), app)
 
     app.render_page("/tabla")
     app._signals["tabla_form_personas_tamano"].set(15)
@@ -580,7 +583,7 @@ def test_tabla_pagina_configurable(tmp_path) -> None:
 
 def test_tabla_busca_en_las_columnas(tmp_path) -> None:
     app = _tabla_app(tmp_path)
-    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True), app)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, table=True), app)
     app.render_page("/tabla")
 
     app._signals["tabla_form_personas_busqueda"].set("Persona 07")
@@ -594,7 +597,7 @@ def test_tabla_busca_en_las_columnas(tmp_path) -> None:
 def test_tabla_muestra_el_pie_aunque_quepan_todas_las_filas(tmp_path) -> None:
     """El pie y el selector de filas no deben desaparecer al filtrar."""
     app = _tabla_app(tmp_path, total=6)
-    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=10), app)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=10, table=True), app)
 
     _title, html, _bindings = app.render_page("/tabla")
     assert "Mostrando 1–6 de 6" in html
@@ -607,7 +610,11 @@ def test_tabla_busca_solo_en_las_columnas_indicadas(tmp_path) -> None:
     app = _tabla_app(tmp_path)
     _tabla(
         ui.RecordPage(
-            ui.ModelForm(Persona), search=True, search_columns=["email"], columns=["nombre"]
+            ui.ModelForm(Persona),
+            search=True,
+            search_columns=["email"],
+            columns=["nombre"],
+            table=True,
         ),
         app,
     )
@@ -621,7 +628,7 @@ def test_tabla_busca_solo_en_las_columnas_indicadas(tmp_path) -> None:
 
 def test_tabla_ordena_por_columna(tmp_path) -> None:
     app = _tabla_app(tmp_path)
-    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True), app)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, table=True), app)
 
     _title, html, _bindings = app.render_page("/tabla")
     assert 'aria-label="Ordenar por Nombre"' in html
@@ -642,7 +649,7 @@ def test_tabla_sin_ordenacion_ni_busqueda(tmp_path) -> None:
     app = _tabla_app(tmp_path)
     _tabla(
         ui.RecordPage(
-            ui.ModelForm(Persona), search=False, sort=False, page_size=None
+            ui.ModelForm(Persona), search=False, sort=False, page_size=None, table=True
         ),
         app,
     )

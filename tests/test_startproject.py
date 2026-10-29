@@ -517,7 +517,7 @@ def test_la_vista_generada_delega_en_tables(proyecto: pathlib.Path, monkeypatch)
     assert cli.main(["startapp", "personas"]) == 0
 
     vista = (proyecto / "personas" / "views.py").read_text(encoding="utf-8")
-    assert "return ui.RecordPage(PersonaTable)" in vista
+    assert "return ui.RecordPage(PersonaForm, PersonaTable)" in vista
     assert "header_bg" not in vista and "on_row_dblclick" not in vista
 
     tabla = (proyecto / "personas" / "tables.py").read_text(encoding="utf-8")

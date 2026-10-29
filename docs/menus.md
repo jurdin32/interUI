@@ -163,7 +163,7 @@ def create_app() -> ui.App:
 ```python
 # persona/views.py: solo el contenido de la página
 def inicio() -> ui.Component:
-    return ui.RecordPage(PersonaForm(), title="Personas")
+    return ui.RecordPage(PersonaForm, PersonaTable, title="Personas")
 ```
 
 | Ventaja | Por qué |

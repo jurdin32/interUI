@@ -8,6 +8,13 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **La página del registro se arma con piezas sueltas**: `RecordPage` pinta
+  **solo lo que le pasas**, en ese orden. `ui.RecordPage(PersonaForm)` es la
+  página de alta (solo el formulario), `ui.RecordPage(PersonaTable)` el listado
+  (solo la tabla), `ui.RecordPage(PersonaForm, PersonaTable)` las dos y
+  `ui.RecordPage(PersonaTable, form_mode="modal")` la tabla con el botón
+  **Nuevo** abriendo el formulario en un diálogo. Acepta la clase o la
+  instancia, y `table=True` para la tabla generada desde el formulario.
 - **Tema global en `estilos.py`**: `iui startproject` y `iui startapp` generan
   un `estilos.py` con un diccionario `TEMA` (`"*"` para todos los controles, o
   el nombre de un control) y el catálogo completo comentado, un renglón por
@@ -224,6 +231,12 @@ etiqueta como `vX.Y.Z`.
 
 ### Cambiado
 
+- **`RecordPage` ya no añade la tabla sola**: `ui.RecordPage(PersonaForm)`
+  pinta **solo el formulario** (antes añadía debajo la tabla generada). Para
+  tener las dos piezas se pasan las dos (`RecordPage(PersonaForm,
+  PersonaTable)`) o se pide la tabla generada con `table=True`.
+  `RecordPage(PersonaTable)` sigue siendo el listado, y el `views.py` que genera
+  `startapp` pasa ahora el formulario y la tabla.
 - **El proyecto que crea `startproject` es mínimo**: una ventana con una
   etiqueta centrada que dice «Hola mundo». Antes traía un armazón con menú
   lateral, dos páginas y un modelo `Tarea` de ejemplo; ahora no hay `layout.py`,

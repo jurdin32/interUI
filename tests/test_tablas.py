@@ -234,6 +234,7 @@ def test_record_page_acepta_opciones_de_tabla(tmp_path) -> None:
         ui.RecordPage(
             ui.ModelForm(Persona),
             title="Personas",
+            table=True,
             actions=False,
             table_options=dict(
                 striped=True,
@@ -582,7 +583,7 @@ def test_record_page_acepta_la_clase_del_formulario(tmp_path) -> None:
         model = Persona
 
     app = _app(tmp_path)
-    html = _html(ui.RecordPage(Formulario, title="Personas"), app)
+    html = _html(ui.RecordPage(Formulario, title="Personas", table=True), app)
     assert "Persona 1" in html
     assert "registros guardados" in html
 
@@ -612,3 +613,73 @@ def test_la_cabecera_del_formulario_se_declara_en_forms(tmp_path) -> None:
     # Y por el otro camino: la página con el formulario.
     html_pagina = _html(ui.RecordPage(Formulario), app)
     assert "bg-indigo-600" in html_pagina
+
+
+# --- la página pinta solo las piezas que recibe ---------------------------
+def test_la_pagina_con_solo_el_formulario(tmp_path) -> None:
+    """`RecordPage(MiForm)` deja la página con el formulario y nada más."""
+
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaForm, title="Personas"), app)
+    assert "Guardar" in html
+    assert "<thead" not in html, "sin tabla no hay encabezados"
+    assert "Mostrando" not in html, "ni pie de paginación"
+
+
+def test_la_pagina_con_el_formulario_y_la_tabla(tmp_path) -> None:
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+
+    class PersonaTable(ui.RecordTable):
+        form = PersonaForm
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaForm, PersonaTable), app)
+    assert "Guardar" in html
+    assert "Persona 1" in html
+    assert html.index("Guardar") < html.index("<thead"), "el formulario va arriba"
+
+
+def test_la_pagina_respeta_el_orden_de_las_piezas(tmp_path) -> None:
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+
+    class PersonaTable(ui.RecordTable):
+        form = PersonaForm
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable, PersonaForm), app)
+    assert html.index("<thead") < html.index("Guardar"), "primero la tabla"
+
+
+def test_la_pagina_con_solo_la_tabla(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert "Persona 1" in html
+    assert "Guardar" not in html, "la tabla sola no lleva formulario"
+    assert "Nuevo" not in html, "ni botón: sin `form_mode='modal'` no hay alta"
+
+
+def test_la_pagina_con_la_tabla_y_el_formulario_en_un_modal(tmp_path) -> None:
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+
+    class PersonaTable(ui.RecordTable):
+        form = PersonaForm
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable, form_mode="modal", new_label="Añadir"), app)
+    assert "Persona 1" in html
+    assert "Añadir" in html, "el botón de alta"
+    assert "Guardar" not in html, "el formulario vive en el diálogo"
+
+
+def test_la_pagina_rechaza_piezas_que_no_conoce(tmp_path) -> None:
+    with pytest.raises(TypeError, match="RecordPage acepta formularios y tablas"):
+        ui.RecordPage("PersonaTable")

@@ -479,12 +479,17 @@ La tabla (columnas, colores, acciones) vive en `tables.py` y el formulario en
 
 import interui as ui
 
+from {app}.forms import {Model}Form
 from {app}.tables import {Model}Table
 
 
 def inicio() -> ui.Component:
-    """La página de {App}; el armazón lo pone `app.layout`."""
-    return ui.RecordPage({Model}Table)
+    """La página de {App}; el armazón lo pone `app.layout`.
+
+    El formulario y la tabla son piezas sueltas: quita una y la página muestra
+    solo la otra. Con `form_mode="modal"` el formulario pasa al botón «Nuevo».
+    """
+    return ui.RecordPage({Model}Form, {Model}Table)
 '''
 
 APP_URLS_PY = '''"""Rutas de la app {app}.
@@ -521,7 +526,7 @@ App del proyecto **{project}**, creada con `iui startapp` y **lista para usar**.
 | `forms.py` | formulario `{Model}Form`, generado a partir del modelo. |
 | `dialogs.py` | los modales (alta y edición): colores, esquinas, cabecera y espaciados. |
 | `tables.py` | la tabla: columnas, colores, clic/doble clic y menú contextual. |
-| `views.py` | la página, en una línea: `ui.RecordPage({Model}Table)`. |
+| `views.py` | la página, en una línea: `ui.RecordPage({Model}Form, {Model}Table)`. |
 | `urls.py` | la ruta `/{app}`. |
 
 ## Probarlo

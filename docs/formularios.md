@@ -151,10 +151,11 @@ todo:
 import interui as ui
 
 from ventas.forms import ClienteForm
+from ventas.tables import ClienteTable
 
 
 def lista() -> ui.Component:
-    return ui.RecordPage(ClienteForm(), title="Clientes")
+    return ui.RecordPage(ClienteForm, ClienteTable, title="Clientes")
 ```
 
 Eso pinta el título, el contador, el formulario y la tabla. Y si prefieres
@@ -175,7 +176,7 @@ def lista() -> ui.Component:
 
 | Pieza | Qué pinta |
 |---|---|
-| `ui.RecordPage(form, title=…)` | la página entera: título + contador + formulario + tabla |
+| `ui.RecordPage(…piezas)` | lo justo para la página: título + contador + lo que le pases |
 | `ClienteForm(...)` | la tarjeta con los campos y el botón |
 | `ui.RecordTable(form)` | la tabla con lo guardado, con las columnas y nombres del formulario |
 | `ui.RecordCounter(form)` | el contador (`0 registros guardados`, `1 registro guardado`…) |
@@ -184,18 +185,35 @@ Sin `title`, el título es el plural del modelo (`Persona` → «Personas»). La
 columnas de la tabla se pueden acortar sin tocar el formulario:
 `ui.RecordTable(form, columns=["nombre", "email"])`.
 
-### Elegir qué se ve: formulario dentro, en modal o ninguno
+### Elegir qué se ve: el formulario, la tabla o las dos
 
-| `form_mode` | La página muestra |
+Las piezas son **sueltas**: la página pinta solo las que le pasas, y en ese
+orden. Así una misma página sirve de alta, de listado o de las dos cosas:
+
+| Llamada | Qué se ve |
 |---|---|
-| `"inline"` (por defecto) | el formulario dentro de la página, y la tabla debajo |
-| `"modal"` | solo el contador y la tabla, con un botón **Nuevo** que abre el formulario en un diálogo |
-| `"none"` | solo el contador y la tabla (sin botón) |
+| `ui.RecordPage(PersonaForm)` | **solo el formulario** |
+| `ui.RecordPage(PersonaTable)` | **solo la tabla** (de `tables.py`) |
+| `ui.RecordPage(PersonaForm, PersonaTable)` | el formulario y debajo la tabla |
+| `ui.RecordPage(PersonaTable, PersonaForm)` | la tabla y debajo el formulario |
+| `ui.RecordPage(PersonaForm, table=True)` | el formulario y debajo la tabla generada del formulario |
+| `ui.RecordPage(PersonaTable, form_mode="modal")` | la tabla con un botón **Nuevo** que abre el formulario en un diálogo |
+
+`RecordPage` acepta la clase (`PersonaForm`) o una instancia
+(`PersonaForm(title="…")`); con una tabla manda ella y la página toma de ahí el
+formulario, las columnas y las opciones.
+
+`form_mode` decide dónde vive lo que sea formulario:
+
+| `form_mode` | Qué hace |
+|---|---|
+| `"inline"` (por defecto) | el formulario se pinta dentro de la página |
+| `"modal"` | el formulario **no** se pinta: un botón **Nuevo** lo abre en un diálogo |
+| `"none"` | ni formulario ni botón: solo el contador y la tabla |
 
 ```python
-ui.RecordPage(PersonaForm(), title="Personas", form_mode="modal")
-ui.RecordPage(PersonaForm(), title="Personas", form_mode="none")
-ui.RecordPage(PersonaForm(), title="Personas", table=False)   # solo el formulario
+ui.RecordPage(PersonaTable, form_mode="modal")   # tabla + botón «Nuevo»
+ui.RecordPage(PersonaForm, form_mode="none")     # la página sin formulario
 ```
 
 El botón se cambia con `new_label="Nueva persona"` y `new_icon=ui.icons.plus`. El
@@ -210,6 +228,7 @@ configuran desde la vista:
 ```python
 ui.RecordPage(
     PersonaForm(),
+    table=True,                  # el formulario y la tabla generada
     title="Personas",
     search=True,                 # buscador arriba de la tabla
     page_size=10,                # 10, 15 o 20 (selector en el pie)
@@ -408,6 +427,7 @@ framework (`ui.colors.*`), en `tables.py` o al crear la tabla:
 ```python
 ui.RecordPage(
     PersonaForm(),
+    table=True,
     table_options=dict(
         striped=True,                          # filas alternas (cebra)
         zebra=ui.colors.amber_50,              # color de la fila alterna
@@ -446,6 +466,7 @@ se maneja con el ratón:
 ```python
 ui.RecordPage(
     PersonaForm(),
+    table=True,
     actions=False,                 # sin botones por fila
     table_options=dict(
         selectable=True,                    # el clic marca la fila
@@ -491,6 +512,7 @@ def eliminar(registro: Persona) -> None:
 def inicio() -> ui.Component:
     return ui.RecordPage(
         PersonaForm(),
+        table=True,
         title="Personas",
         columns=["cedula", "nombres", "email", "activo"],   # menos columnas, más sitio
         actions=[

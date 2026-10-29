@@ -241,7 +241,8 @@ Y en la vista solo aparece una vez:
 
 ```python
 def inicio() -> ui.Component:
-    return ui.RecordPage(ClienteTable)     # la tabla trae `new_modal = ClienteModal`
+    # la tabla trae `new_modal = ClienteModal`; `form_mode="modal"` pone el botón
+    return ui.RecordPage(ClienteTable, form_mode="modal")
 ```
 
 | Opción | Qué cambia | Por defecto |

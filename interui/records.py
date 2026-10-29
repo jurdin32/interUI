@@ -247,6 +247,13 @@ def _es_tabla(valor: Any) -> bool:
     return isinstance(valor, type) and issubclass(valor, RecordTable)
 
 
+def _es_formulario(valor: Any) -> bool:
+    """¿Es un formulario de modelo (la clase de ``forms.py`` o una instancia)?"""
+    if isinstance(valor, ModelForm):
+        return True
+    return isinstance(valor, type) and issubclass(valor, ModelForm)
+
+
 def _form_of(form: Any) -> Any:
     """El formulario, ya instanciado (acepta la clase o la instancia)."""
     if form is None:
@@ -710,18 +717,23 @@ class RecordTable(Component):
 
 
 class RecordPage(Component):
-    """La página de un registro, con lo que pidas.
+    """La página de un registro: pinta **solo las piezas que le pasas**.
 
     ```python
-    ui.RecordPage(PersonaForm(), title="Personas")                  # todo
-    ui.RecordPage(PersonaTable)                                     # la tabla de `tables.py`
-    ui.RecordPage(PersonaForm(), form_mode="modal")                 # tabla + botón «Nuevo»
-    ui.RecordPage(PersonaForm(), form_mode="none")                  # solo la tabla
-    ui.RecordPage(PersonaForm(), table=False)                       # solo el formulario
+    ui.RecordPage(PersonaForm)                 # solo el formulario
+    ui.RecordPage(PersonaTable)                # solo la tabla de `tables.py`
+    ui.RecordPage(PersonaForm, PersonaTable)   # el formulario y debajo la tabla
+    ui.RecordPage(PersonaTable, PersonaForm)   # la tabla y debajo el formulario
     ```
 
-    Con una tabla declarada en `tables.py` basta pasarla: la página toma de ahí
-    el formulario y todas las opciones (columnas, colores, clic, menú…).
+    Las piezas se colocan **en el orden en que se pasan**, así que decides tú
+    qué se ve en cada página. Se admiten formularios (la clase o una instancia)
+    y tablas declaradas en `tables.py`; con una tabla, la página toma de ahí el
+    formulario y todas sus opciones (columnas, colores, clic, menú…).
+
+    Con `table=True` se añade al final la tabla que sale del formulario (sin
+    declararla en `tables.py`), y `form_mode="modal"` cambia el formulario por
+    un botón **Nuevo** que lo abre en un diálogo.
 
     | `form_mode` | Qué se ve |
     |---|---|
@@ -736,11 +748,11 @@ class RecordPage(Component):
 
     def __init__(
         self,
+        *parts: Any,
         form: Any = None,
-        *,
         title: Any = None,
         counter: bool = True,
-        table: Any = True,
+        table: Any = None,
         columns: Sequence[str] | None = None,
         actions: Literal[False] | Sequence[RowAction] | None = None,
         search: bool = False,
@@ -775,34 +787,66 @@ class RecordPage(Component):
             raise ValueError(
                 f"form_mode desconocido: {form_mode!r}; usa 'inline', 'modal' o 'none'"
             )
-        # La primera pieza puede ser el formulario o la tabla declarada; también
-        # se admite `table=MiTabla` (en vez del `True` de «hay tabla»).
-        declarada = None
-        for candidato in (form, table):
-            if _es_tabla(candidato):
-                declarada = candidato
-                break
-        if declarada is not None:
-            if form is declarada:
-                form = None
-            if table is declarada:
-                table = True
-        if form is None and declarada is not None:
-            tabla = declarada if isinstance(declarada, RecordTable) else declarada()
-            self.table_component = tabla
-            form = tabla.form
-        else:
-            self.table_component = None
-        if form is None:
+        # -- las piezas de la página, en el orden en que se pasan ---------
+        piezas: list[tuple[str, Any]] = []
+        for parte in parts:
+            if _es_tabla(parte):
+                piezas.append(("tabla", parte))
+            elif _es_formulario(parte):
+                piezas.append(("formulario", parte))
+            else:
+                raise TypeError(
+                    "RecordPage acepta formularios y tablas declaradas; recibió "
+                    f"{type(parte).__name__}: `ui.RecordPage(PersonaForm, PersonaTable)`."
+                )
+        if form is not None:
+            if _es_tabla(form):
+                piezas.insert(0, ("tabla", form))
+            elif _es_formulario(form):
+                piezas.insert(0, ("formulario", form))
+            else:
+                raise TypeError(
+                    f"form= espera un formulario o una tabla, no {type(form).__name__}."
+                )
+        if table is True:
+            piezas.append(("tabla", True))
+        elif table not in (None, False):
+            if not _es_tabla(table):
+                raise TypeError(
+                    f"table= espera una tabla declarada o True, no {type(table).__name__}."
+                )
+            piezas.append(("tabla", table))
+
+        #: Piezas que se pintan, ya resueltas: `("formulario", MiForm())` y
+        #: `("tabla", MiTabla())`; `("tabla", True)` es la tabla del formulario.
+        resueltas: list[tuple[str, Any]] = []
+        for tipo, valor in piezas:
+            if tipo == "tabla" and valor is not True and not isinstance(valor, RecordTable):
+                valor = valor()
+            resueltas.append((tipo, valor))
+        self.piezas = resueltas
+        #: Tabla declarada de la página (la primera que se haya pasado). Manda
+        #: ella: de ahí salen el formulario y todas sus opciones.
+        self.table_component = next(
+            (valor for tipo, valor in resueltas if tipo == "tabla" and valor is not True),
+            None,
+        )
+        # El formulario de la página: el que se pasa o el de la tabla declarada.
+        primera_forma = next((valor for tipo, valor in resueltas if tipo == "formulario"), None)
+        if primera_forma is None and self.table_component is not None:
+            primera_forma = self.table_component.form
+        if primera_forma is None:
             raise TypeError(
                 "RecordPage necesita un formulario o una tabla: "
-                "`ui.RecordPage(PersonaForm())` o `ui.RecordPage(PersonaTable)`."
+                "`ui.RecordPage(PersonaForm)`, `ui.RecordPage(PersonaTable)` o "
+                "`ui.RecordPage(PersonaForm, PersonaTable)`. Si pasas solo una tabla, "
+                "declara su `form` en `tables.py`."
             )
         # Vale la clase (`RecordPage(PersonaForm)`) o una instancia.
-        self.form = _form_of(form)
+        self.form = _form_of(primera_forma)
         self.page_title = title
         self.show_counter = counter
-        self.show_table = table
+        self.show_table = any(tipo == "tabla" for tipo, _ in resueltas)
         self.columns = list(columns) if columns is not None else None
         self.actions = [] if actions is False else list(actions or ())
         self.table_options: dict[str, Any] = {
@@ -943,13 +987,15 @@ class RecordPage(Component):
             header = Stack(cabecera, pad=self.title_pad, class_=franja)
 
         pieces: list[Any] = [header]
-        if self.form_mode == "inline":
-            pieces.append(form)
-        if self.show_table:
-            if self.table_component is not None:
-                # Tabla declarada en `tables.py`: manda ella, la página no la pisa.
-                pieces.append(self.table_component)
-            else:
+        for tipo, valor in self.piezas:
+            if tipo == "formulario":
+                # En `modal` el formulario vive en el diálogo del botón «Nuevo»;
+                # en `none` no se pinta en ningún sitio.
+                if self.form_mode == "inline":
+                    pieces.append(_form_of(valor))
+                continue
+            if valor is True:
+                # La tabla que sale del formulario, sin declararla en `tables.py`.
                 pieces.append(
                     RecordTable(
                         form,
@@ -958,6 +1004,9 @@ class RecordPage(Component):
                         **self.table_options,
                     )
                 )
+            else:
+                # Tabla declarada en `tables.py`: manda ella, la página no la pisa.
+                pieces.append(valor)
         # Separación uniforme entre franja, contador, formulario y tabla.
         contenido = Stack(*pieces, gap=gap_value(self.page_gap))
         if pieces and self.title_full_width and self.title_bg:
