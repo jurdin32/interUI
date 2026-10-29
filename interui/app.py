@@ -142,6 +142,7 @@ class App:
         self._signals: dict[str, Signal] = {}
         self._bindings: dict[str, dict[str, dict[str, Callable[..., Any]]]] = {}
         self._client_pages: dict[str, str] = {}
+        self._greeted: set[str] = set()
         self._lock = threading.RLock()
         self._refresh_pending = False
         self._refresh_thread: threading.Thread | None = None
@@ -378,7 +379,11 @@ class App:
         )
 
     def _push_render(self, ws: WebSocket) -> None:
-        route = self._client_pages.get(ws.id, "/")
+        with self._lock:
+            if ws.id not in self._greeted:
+                # Todavía no envió ``hello``: no se sabe qué página quiere.
+                return
+            route = self._client_pages.get(ws.id, "/")
         try:
             title, body, bindings = self.render_page(route)
         except Exception as exc:  # noqa: BLE001
@@ -402,6 +407,9 @@ class App:
                 "theme": self.theme,
             }
         )
+        if self._desktop is not None:
+            # La ventana se creó oculta: se muestra con el primer render listo.
+            self._desktop.reveal_when_ready()
 
     def refresh(self) -> None:
         """Re-renderiza todas las vistas conectadas."""
@@ -420,17 +428,16 @@ class App:
         with self._lock:
             self._client_pages.setdefault(ws.id, route)
         ws.send_json({"t": "ready", "app": self.title, "theme": self.theme})
-        self._push_render(ws)
+        # El render lo pide el cliente con ``hello``: empujarlo aquí le
+        # devolvería a la página de inicio al recargar una ruta cualquiera.
         if self.update is not None and self.update.available:
             ws.send_json(self.update.to_payload())
-        if self._desktop is not None:
-            # La ventana se creó oculta: se muestra con el primer render listo.
-            self._desktop.reveal_when_ready()
 
     def on_client_disconnect(self, ws: WebSocket) -> None:
         with self._lock:
             self._bindings.pop(ws.id, None)
             self._client_pages.pop(ws.id, None)
+            self._greeted.discard(ws.id)
 
     def handle_message(self, ws: WebSocket, message: dict[str, Any]) -> None:
         self._local.ws = ws
@@ -444,6 +451,7 @@ class App:
         if kind == "hello":
             with self._lock:
                 self._client_pages[ws.id] = message.get("page") or "/"
+                self._greeted.add(ws.id)
             self._push_render(ws)
             return
         if kind == "nav":
@@ -453,6 +461,7 @@ class App:
                 return
             with self._lock:
                 self._client_pages[ws.id] = target
+                self._greeted.add(ws.id)
             self._push_render(ws)
             return
         if kind == "ping":

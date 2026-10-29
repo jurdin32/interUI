@@ -25,10 +25,7 @@ class FakeClient:
 def _bind(app: ui.App) -> FakeClient:
     """Registra un cliente falso y su primer render (como hace el WebSocket)."""
     client = FakeClient()
-    app._client_pages[client.id] = "/"
-    _title, _html, bindings = app.render_page("/")
-    app._bindings[client.id] = bindings
-    app._push_render(client)
+    app.handle_message(client, {"t": "hello", "page": "/"})
     return client
 
 

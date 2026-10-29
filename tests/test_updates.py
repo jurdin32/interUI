@@ -240,7 +240,6 @@ def test_app_avisa_al_conectarse_si_hay_version_nueva(tmp_path) -> None:
     ws = FakeSocket()
     app.on_client_connect(ws)
     kinds = [message["t"] for message in ws.sent]
-    assert "render" in kinds
     assert "update" in kinds
     update_msg = next(message for message in ws.sent if message["t"] == "update")
     assert update_msg["latest"] == "0.4.0"

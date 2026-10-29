@@ -75,7 +75,7 @@ def test_bootstrap_html_injects_config_and_assets(tmp_path):
 def test_dispatch_updates_state_and_rerenders(tmp_path):
     app = make_app(tmp_path)
     ws = FakeSocket()
-    app._client_pages[ws.id] = "/"
+    app.handle_message(ws, {"t": "hello", "page": "/"})
     _t, _b, bindings = app.render_page("/")
     app._bindings[ws.id] = bindings
 
@@ -115,6 +115,39 @@ def test_navigation_switches_page(tmp_path):
     app.handle_message(ws, {"t": "nav", "path": "/item/9"})
     assert app._client_pages[ws.id] == "/item/9"
     assert "item 9" in ws.sent[-1]["html"]
+
+
+def test_el_render_lo_pide_el_cliente_con_hello(tmp_path):
+    """Al conectar solo se saluda: el render llega cuando el cliente dice qué página quiere."""
+    app = make_app(tmp_path)
+    ws = FakeSocket()
+    app.on_client_connect(ws)
+    assert [message["t"] for message in ws.sent] == ["ready"]
+
+    app.handle_message(ws, {"t": "hello", "page": "/item/9"})
+    assert ws.sent[-1]["t"] == "render"
+    assert ws.sent[-1]["page"] == "/item/9"
+    assert "item 9" in ws.sent[-1]["html"]
+
+
+def test_refrescar_no_devuelve_a_inicio_antes_del_hello(tmp_path):
+    """Un cliente recién conectado no recibe renders de una página que no pidió."""
+    app = make_app(tmp_path)
+    ws = FakeSocket()
+    app.on_client_connect(ws)
+
+    class Servidor:
+        def clients_snapshot(self):
+            return [ws]
+
+    app.server = Servidor()
+    app.refresh()
+    assert [message["t"] for message in ws.sent] == ["ready"]
+
+    app.handle_message(ws, {"t": "hello", "page": "/item/9"})
+    app.refresh()
+    assert ws.sent[-1]["t"] == "render"
+    assert ws.sent[-1]["page"] == "/item/9"
 
 
 def test_signal_triggers_render(tmp_path):
