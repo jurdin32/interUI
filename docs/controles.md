@@ -1272,7 +1272,7 @@ Alias en minúsculas: `ui.table`
 Tabla estática.
 
 ```text
-ui.Table(headers=None, rows=None, caption=None, striped=False, zebra=None, hover=True, hover_bg=None, compact=False, bordered=False, footer=None, align=None, empty="Sin datos", header_bg=None, header_color=None, cell_colors=None, column_bg=None, selected=None, selected_bg=None, on_row_click=None, on_row_dblclick=None, on_row_context=None, context_menu=None, context_width="12rem")
+ui.Table(headers=None, rows=None, caption=None, striped=False, zebra=None, hover=True, hover_bg=None, compact=False, bordered=False, footer=None, align=None, empty="Sin datos", header_bg=None, header_color=None, cell_colors=None, column_bg=None, selected=None, selected_bg=None, on_row_click=None, on_row_dblclick=None, on_row_context=None, context_menu=None, context_width="12rem", surface=True)
 ```
 
 ```python
@@ -1544,7 +1544,7 @@ Alias en minúsculas: `ui.card`
 Tarjeta con cabecera, cuerpo y pie.
 
 ```text
-ui.Card(*children, title=None, description=None, footer=None, icon=None, actions=None, padding=True, hover=False, radius="md", elevated=True)
+ui.Card(*children, title=None, description=None, footer=None, icon=None, actions=None, padding=True, hover=False, radius="md", elevated=True, header_bg=None, header_color=None, header_border=None, header_pad=None, footer_bg=None)
 ```
 
 ```python

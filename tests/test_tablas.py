@@ -413,3 +413,62 @@ def test_contador_y_alineacion_configurables(tmp_path) -> None:
         ui.RecordPage(ui.ModelForm(Persona), title_align="center", form_mode="modal"), app
     )
     assert "items-center" in centrado
+
+
+# --- fondo de la tarjeta y de las cabeceras -------------------------------
+def test_el_fondo_de_la_tabla_va_a_la_tarjeta(tmp_path) -> None:
+    """`bg=` colorea lo que se ve (la tarjeta), no un div tapado por ella."""
+    app = _app(tmp_path)
+    html = _html(ui.RecordTable(ui.ModelForm(Persona), bg=ui.colors.slate_800), app)
+
+    assert "bg-slate-800" in html
+    assert 'class="w-full overflow-x-auto"' in html, (
+        "la caja blanca interna se apaga si hay tarjeta"
+    )
+
+
+def test_card_options_para_la_tarjeta_de_la_tabla(tmp_path) -> None:
+    app = _app(tmp_path)
+    html = _html(
+        ui.RecordTable(ui.ModelForm(Persona), card_options=dict(bg=ui.colors.slate_100)),
+        app,
+    )
+    assert "bg-slate-100" in html
+
+
+def test_la_tabla_suelta_conserva_su_caja(tmp_path) -> None:
+    app = _app(tmp_path)
+    html = _html(ui.RecordTable(ui.ModelForm(Persona), card=False), app)
+    assert "overflow-x-auto rounded-xl border border-slate-200 bg-white" in html, (
+        "sin tarjeta, la tabla se dibuja con su superficie"
+    )
+
+
+def test_la_cabecera_de_la_tarjeta_se_colorea() -> None:
+    html = ui.render(
+        ui.Card(
+            "cuerpo",
+            title="Personas",
+            header_bg=ui.colors.indigo_600,
+            header_color=ui.colors.white,
+            header_border=ui.colors.indigo_700,
+            header_pad=ui.pad.p_6,
+            footer="pie",
+            footer_bg=ui.colors.slate_100,
+        )
+    )
+    assert "bg-indigo-600" in html
+    assert "border-indigo-700" in html
+    assert "text-white" in html
+    assert "p-6" in html
+    assert "bg-slate-100" in html, "el pie también"
+
+
+def test_el_formulario_colorea_su_tarjeta(tmp_path) -> None:
+    class Formulario(ui.ModelForm):
+        model = Persona
+        card_options = {"bg": ui.colors.slate_50}
+
+    app = _app(tmp_path)
+    html = _html(Formulario(), app)
+    assert "bg-slate-50" in html

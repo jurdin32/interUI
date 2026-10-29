@@ -357,6 +357,7 @@ class ClienteTable(ui.RecordTable):
 | `counter_color` | color del contador | `slate-500` |
 | `new_label` / `new_icon` | texto e icono del botón | `"Nuevo"` / `plus` |
 | `new_variant` / `new_size` | estilo del botón | `primary` / `md` |
+| `card_options` | opciones de la tarjeta de la tabla (`bg`, `border`, `pad`…) | tarjeta blanca |
 
 Sin ninguna de estas opciones la página se ve como siempre: título grande,
 contador debajo y el botón a la derecha.

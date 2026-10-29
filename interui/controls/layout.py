@@ -9,7 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
-from ..theme import utility
+from ..theme import Color, Token, utility
 from .buttons import Button
 
 __all__ = [
@@ -19,6 +19,18 @@ __all__ = [
 ]
 
 RADII = {"none": "rounded-none", "sm": "rounded-lg", "md": "rounded-xl", "lg": "rounded-2xl", "xl": "rounded-3xl"}
+
+
+def _clase(prefix: str, value: Any) -> str:
+    """``_clase("bg", colors.slate_100)`` → ``bg-slate-100`` (o ``""``)."""
+    if value is None or value == "":
+        return ""
+    if isinstance(value, Token):
+        return str(value)
+    text = str(value)
+    if isinstance(value, Color) or not (text.startswith(prefix) or text.startswith(f"{prefix}-")):
+        text = f"{prefix}-{text}"
+    return text
 
 
 class Card(Component):
@@ -38,9 +50,19 @@ class Card(Component):
         hover: bool = False,
         radius: str = "md",
         elevated: bool = True,
+        header_bg: Any = None,
+        header_color: Any = None,
+        header_border: Any = None,
+        header_pad: Any = None,
+        footer_bg: Any = None,
         **props: Any,
     ) -> None:
         self.card_title = title
+        self.header_bg = header_bg
+        self.header_color = header_color
+        self.header_border = header_border
+        self.header_pad = header_pad
+        self.footer_bg = footer_bg
         self.description = description
         self.footer = footer
         self.icon = icon
@@ -90,9 +112,23 @@ class Card(Component):
                     Button(label, variant=variant, size="sm", on_click=handler).render(ctx, f"{path}-a{i}")
                     for i, (label, handler, variant) in enumerate(_action_tuples(self.actions))
                 )
+            titulo_clases = tw(
+                "truncate text-base font-semibold",
+                _clase("text", self.header_color) or "text-slate-900 dark:text-white",
+            )
+            titles = titles.replace(
+                'class="truncate text-base font-semibold text-slate-900 dark:text-white"',
+                f'class="{titulo_clases}"',
+            )
+            cabecera_clases = tw(
+                "flex items-start gap-3",
+                "border-b" if self.header_border or True else "",
+                _clase("border", self.header_border) or "border-slate-100 dark:border-slate-800",
+                _clase("bg", self.header_bg),
+                self.header_pad or "px-4 py-3",
+            )
             head = (
-                f'<div class="flex items-start gap-3 border-b border-slate-100 px-4 py-3 '
-                f'dark:border-slate-800">{icon}{titles}'
+                f'<div class="{cabecera_clases}">{icon}{titles}'
                 f'<div class="ml-auto flex items-center gap-2">{action_html}</div></div>'
             )
         body = render_children(self.children, ctx, path)
@@ -100,9 +136,13 @@ class Card(Component):
         body = f'<div class="{body_pad} flex flex-col gap-3">{body}</div>' if body else ""
         foot = ""
         if self.footer is not None:
+            pie_clases = tw(
+                "flex items-center gap-2 border-t border-slate-100 px-4 py-3 text-sm "
+                "dark:border-slate-800",
+                _clase("bg", self.footer_bg) or "bg-slate-50/60 dark:bg-slate-800/40",
+            )
             foot = (
-                '<div class="flex items-center gap-2 border-t border-slate-100 bg-slate-50/60 px-4 py-3 '
-                'text-sm dark:border-slate-800 dark:bg-slate-800/40">'
+                f'<div class="{pie_clases}">'
                 + (
                     self.footer.render(ctx, path + "-ft")
                     if isinstance(self.footer, Component)

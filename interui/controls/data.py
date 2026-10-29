@@ -106,6 +106,7 @@ class Table(Component):
         on_row_context: Any = None,
         context_menu: Any = None,
         context_width: str = "12rem",
+        surface: bool = True,
         **props: Any,
     ) -> None:
         self.headers = list(headers or [])
@@ -131,6 +132,9 @@ class Table(Component):
         self.on_row_context = on_row_context
         self.context_menu = context_menu
         self.context_width = context_width
+        #: `surface=False` quita la caja blanca (cuando ya hay una tarjeta
+        #: alrededor, como en `RecordTable`, y el color lo pone ella).
+        self.surface = bool(surface)
         self.row_events: dict[str, Any] = {}
         if on_row_click is not None:
             self.row_events["click"] = on_row_click
@@ -140,7 +144,9 @@ class Table(Component):
             self.row_events["contextmenu"] = on_row_context
         props["base_class"] = tw(
             "w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm "
-            "dark:border-slate-800 dark:bg-slate-900",
+            "dark:border-slate-800 dark:bg-slate-900"
+            if surface
+            else "w-full overflow-x-auto",
             props.get("base_class"),
         )
         super().__init__(**props)

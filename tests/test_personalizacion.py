@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import re
 
 import pytest
 
@@ -32,6 +33,9 @@ GROUPS = [
     "interui.controls.advanced",
     "interui.controls.tags",
     "interui.icons",
+    # Piezas de alto nivel: también deben poder recolorearse.
+    "interui.records",
+    "interui.forms",
 ]
 
 #: Controles cuyo primer argumento es obligatorio.
@@ -47,6 +51,17 @@ ARGS: dict[str, tuple] = {
     "TimelineItem": ("Título",),
     "TreeNode": ("Nodo",),
 }
+
+
+def _modelo() -> type:
+    """Modelo mínimo para los controles que piden un formulario."""
+    class Sonda(ui.Model):
+        nombre = ui.Str(max_length=40)
+
+        class Meta:
+            table = "sonda_personalizacion"
+
+    return Sonda
 
 ESTILO = dict(
     bg=ui.colors.indigo_500,
@@ -71,16 +86,66 @@ def _catalogo() -> list[tuple[str, type[Component]]]:
 CATALOGO = _catalogo()
 
 
+@pytest.fixture(autouse=True)
+def base_de_datos(tmp_path):
+    """`ModelForm`/`RecordTable` necesitan una tabla real para dibujarse."""
+    from interui import db
+    from interui.config import Config
+
+    db.reset()
+    db.configure(
+        Config(
+            {"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "sonda.db")}}}
+        )
+    )
+    db.backend().create_table("sonda_personalizacion", _modelo().columns())
+    yield
+    db.reset()
+
+
 def test_el_catalogo_no_esta_vacio() -> None:
     assert len(CATALOGO) > 180, "¿se rompió el descubrimiento de controles?"
+
+
+def _args(nombre: str) -> tuple:
+    """Argumentos obligatorios; los formularios piden un modelo."""
+    if nombre == "ModelForm":
+        return (_modelo(),)
+    if nombre in ("RecordCounter", "RecordPage", "RecordTable"):
+        return (ui.ModelForm(_modelo()),)
+    return ARGS.get(nombre, ())
 
 
 @pytest.mark.parametrize("nombre,cls", CATALOGO, ids=[name for name, _cls in CATALOGO])
 def test_cada_control_acepta_estilos(nombre: str, cls: type[Component]) -> None:
     """`bg`, `pad`, `font` y `class_` funcionan en los 200+ controles."""
-    html = ui.render(cls(*ARGS.get(nombre, ()), **ESTILO))
+    html = ui.render(cls(*_args(nombre), **ESTILO))
     faltan = [token for token in ESPERADO if token not in html]
     assert not faltan, f"{nombre} ignora {faltan}"
+
+
+#: Utilidades `bg-*` que no son un color de fondo.
+_NO_ES_COLOR = re.compile(
+    r"^bg-(none|cover|contain|auto|fixed|local|scroll|repeat|no-repeat|repeat-x|"
+    r"repeat-y|repeat-round|repeat-space|clip-|origin-|gradient-|blend-|\[)"
+)
+_CLASES = re.compile(r'class="([^"]*)"')
+
+
+@pytest.mark.parametrize("nombre,cls", CATALOGO, ids=[name for name, _cls in CATALOGO])
+def test_el_fondo_gana_en_todos_los_controles(nombre: str, cls: type[Component]) -> None:
+    """`bg=` no compite con el color de fondo que trae el control: lo sustituye."""
+    html = ui.render(cls(*_args(nombre), bg=ui.colors.red_500))
+    grupos = [grupo.split() for grupo in _CLASES.findall(html) if "bg-red-500" in grupo.split()]
+    assert grupos, f"{nombre} no aplica bg-red-500"
+
+    for grupo in grupos:
+        sobrantes = [
+            clase
+            for clase in grupo
+            if clase.startswith("bg-") and clase != "bg-red-500" and not _NO_ES_COLOR.match(clase)
+        ]
+        assert not sobrantes, f"{nombre} deja competir {sobrantes} con bg-red-500"
 
 
 def test_utilidades_sueltas_llegan_al_html() -> None:

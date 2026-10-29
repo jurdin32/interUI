@@ -8,6 +8,17 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **El fondo (`bg=`) se puede cambiar en los 219 controles**, también en las
+  cabeceras: `Card(header_bg=…, header_color=…, header_border=…, header_pad=…,
+  footer_bg=…)`, `Table(header_bg=…)`, `RecordPage(title_bg=…)` y `bg=` en
+  cualquier otro control. `bg=` **sustituye** el color de fábrica (una prueba
+  recorre el catálogo entero y comprueba que no queda ninguna clase de fondo
+  compitiendo).
+- **En los controles con tarjeta el color va a la tarjeta** (la superficie que
+  se ve): `RecordTable`/`ModelForm`/`RecordPage` mandan `bg=`, `border=`,
+  `rounded=`, `shadow=` y `ring=` a su `Card`, aceptan `card_options={…}` y la
+  caja blanca interior de la tabla se apaga (`Table(surface=False)`) para que no
+  tape el fondo.
 - **La franja de la página también se configura desde `tables.py`**: `title`,
   `title_font`, `title_color`, `title_bg`, `title_pad`, `title_border`,
   `title_align`, `counter`/`counter_color` y `new_label`/`new_icon`/

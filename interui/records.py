@@ -315,6 +315,11 @@ class RecordTable(Component):
     new_variant: str | None = None
     new_size: str | None = None
 
+    # -- la tarjeta que envuelve la tabla --------------------------------
+    #: Opciones de `ui.Card` (`bg`, `border`, `pad`, `class_`…). Los colores
+    #: pasados a la propia tabla se añaden aquí solos.
+    card_options: dict[str, Any] | None = None
+
     def __init__(
         self,
         form: Any = None,
@@ -384,6 +389,13 @@ class RecordTable(Component):
         self.sortable = list(ordenables) if ordenables else list(self.columns)
         self.order_by = self._opcion("order_by", order_by) or ""
         self.prefix = self._opcion("prefix", prefix)
+        # `card_options` se pasa tal cual a la tarjeta; además, los colores que
+        # se pongan en la propia tabla (`bg=`, `border=`…) van a la tarjeta, que
+        # es la superficie que se ve (el envoltorio queda detrás).
+        self.card_options: dict[str, Any] = dict(self._opcion("card_options") or {})
+        for nombre in ("bg", "border", "rounded", "shadow", "ring"):
+            if nombre in props:
+                self.card_options.setdefault(nombre, props.pop(nombre))
         super().__init__(**props)
 
     def _opcion(self, nombre: str, valor: Any = _FALTA) -> Any:
@@ -632,6 +644,7 @@ class RecordTable(Component):
             headers=headers,
             rows=rows,
             empty=self.empty if total == 0 else "Ningún resultado para la búsqueda",
+            surface=not self.card,
             striped=self.striped,
             zebra=self.zebra,
             hover_bg=self.hover_bg,
@@ -648,7 +661,8 @@ class RecordTable(Component):
         contenido: list[Any] = [*controles, table, *piezas]
         if not self.card:
             return Stack(*contenido, gap=0).render(ctx, f"{path}-tabla")
-        return Card(*contenido, pad=pad.all_2).render(ctx, f"{path}-tabla")
+        tarjeta = Card(*contenido, pad=pad.all_2, **self.card_options)
+        return tarjeta.render(ctx, f"{path}-tabla")
 
 
 class RecordPage(Component):

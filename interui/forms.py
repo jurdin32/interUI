@@ -202,6 +202,9 @@ class ModelForm(Component):
     show_title: bool = True
     #: `False` dibuja los campos sin la tarjeta que los envuelve.
     card: bool = True
+    #: Opciones de `ui.Card` cuando hay tarjeta (`bg`, `border`, `pad`…).
+    #: Los colores pasados al propio formulario se añaden aquí solos.
+    card_options: dict[str, Any] | None = None
     submit_label: str = "Guardar"
     title: Any = None
     prefix: str | None = None
@@ -244,6 +247,11 @@ class ModelForm(Component):
         self.submit_label = submit_label or getattr(type(self), "submit_label", "Guardar")
         self.prefix = prefix or getattr(type(self), "prefix", None)
         self.on_saved = on_saved if on_saved is not None else getattr(type(self), "on_saved", None)
+        # El color de fondo del formulario va a su tarjeta, que es lo que se ve.
+        self.card_options: dict[str, Any] = dict(getattr(type(self), "card_options", None) or {})
+        for nombre in ("bg", "border", "rounded", "shadow", "ring"):
+            if nombre in props:
+                self.card_options.setdefault(nombre, props.pop(nombre))
         super().__init__(**props)
 
     # -- campos ----------------------------------------------------------
@@ -401,6 +409,7 @@ class ModelForm(Component):
             title=(self.form_title or f"Nuevo {model.__name__.lower()}")
             if self.show_title
             else None,
+            **self.card_options,
         )
         return card.render(ctx, f"{path}-card")
 

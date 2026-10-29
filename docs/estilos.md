@@ -303,6 +303,37 @@ Input("", width="w-40", label="Código")
 El valor es una clase de ancho de Tailwind y **sustituye** el `w-full` del
 control (no se suma a él), así que no hay que pelearse con la clase por defecto.
 
+### Fondo: siempre el que tú digas
+
+`bg=` funciona en **todos** los controles y **sustituye** el color que traen de
+fábrica (no se suma: `ui.Card("x", bg=ui.colors.slate_900)` es oscura, no blanca
+con una clase de más). Lo mismo con `border=`, `ring=`, `rounded=` y `shadow=`:
+
+```python
+ui.Button("Guardar", bg=ui.colors.emerald_600, color=ui.colors.white)
+ui.Badge("Nuevo", bg=ui.colors.amber_100, color=ui.colors.amber_800)
+ui.Table(headers=["A"], rows=[["1"]], header_bg=ui.colors.slate_200)
+ui.H2("Sección", bg=ui.colors.slate_100, pad=ui.pad.p_2)
+ui.Card("cuerpo", title="Personas", header_bg=ui.colors.indigo_600,
+        header_color=ui.colors.white, footer="pie", footer_bg=ui.colors.slate_50)
+```
+
+En los controles que se dibujan **dentro de una tarjeta** (`Card`, `RecordTable`,
+`ModelForm`, `RecordPage`), el color va a la tarjeta, que es la superficie que se
+ve:
+
+```python
+ui.RecordTable(MiForm(), bg=ui.colors.slate_50, border=ui.colors.slate_300)
+ui.RecordTable(MiForm(), card_options=dict(bg=ui.colors.slate_50, pad=ui.pad.p_4))
+```
+
+| Pieza | Cómo se colorea |
+|---|---|
+| `Card` | `bg=` la tarjeta; `header_bg`, `header_color`, `header_border`, `header_pad` su cabecera; `footer_bg` el pie |
+| `RecordTable` | `bg=` la tarjeta; `header_bg`/`header_color` la fila de encabezados; `striped`/`zebra` las filas; `cell_colors`/`column_bg` por columna; `selected_bg` la fila elegida |
+| `ModelForm` | `bg=` la tarjeta; `card_options` el resto |
+| `RecordPage` | `title_bg`, `title_color`, `title_border`, `title_pad` la franja del título; `counter_color` el contador |
+
 ---
 
 ## 5. Colores personalizados, degradados y medidas exactas
