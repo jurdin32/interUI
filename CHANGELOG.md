@@ -8,6 +8,15 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **La franja de la página también se configura desde `tables.py`**: `title`,
+  `title_font`, `title_color`, `title_bg`, `title_pad`, `title_border`,
+  `title_align`, `counter`/`counter_color` y `new_label`/`new_icon`/
+  `new_variant`/`new_size`. `RecordPage(MiTabla)` los toma de la tabla, y sin
+  ninguna opción la página se ve como siempre.
+- **`actions = True`**: pone los botones de la fila con las **mismas** acciones
+  del menú contextual (sin repetir la lista). Un valor raro avisa con un
+  `TypeError` que dice qué se esperaba, en vez de reventar al renderizar.
+- **`Component(tag="h1", …)`**: cualquier etiqueta HTML suelta con sus clases.
 - **`tables.py`: la tabla de cada app en su archivo**. `iui startapp` genera
   ahora un `tables.py` con la tabla declarada como clase
   (`class PersonaTable(ui.RecordTable)` con `form`, `columns`, colores, cebra,

@@ -39,7 +39,7 @@ from .html import escape
 from .orm import Model
 from .simple import state as _state
 from .style import tw
-from .theme import gap, margin, pad, tone
+from .theme import Color, Token, gap, margin, pad, tone
 
 __all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
 
@@ -189,6 +189,44 @@ class RowAction:
 _FALTA = object()
 
 
+def _acciones(acciones: Any, menu: Any, clase: type) -> list[Any]:
+    """Normaliza `actions`: lista, `False`/`None` (ninguna) o `True` (las del menú)."""
+    if acciones is None or acciones is False:
+        return []
+    if acciones is True:
+        # «Ponme los botones de las acciones que ya declaré en el menú».
+        if isinstance(menu, (list, tuple)) and menu:
+            return list(menu)
+        raise TypeError(
+            f"{clase.__name__}: `actions = True` usa las acciones del menú "
+            "contextual, pero `context_menu` está vacío. Declara "
+            "`context_menu = [ui.RowAction(...)]` o pasa "
+            "`actions = [ui.RowAction(...)]`."
+        )
+    if not isinstance(acciones, (list, tuple)):
+        raise TypeError(
+            f"{clase.__name__}: `actions` debe ser una lista de ui.RowAction, "
+            f"`False` (sin botones) o `True` (los del menú); llegó {acciones!r}."
+        )
+    return list(acciones)
+
+
+def _util(prefix: str, value: Any) -> str:
+    """``_util("bg", colors.slate_100)`` → ``bg-slate-100`` (vacío si no hay).
+
+    Un token completo (``ui.font.xl.bold`` = ``text-xl font-bold``) se usa tal
+    cual; un color de la paleta recibe el prefijo del argumento.
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, Token):
+        return str(value)
+    text = str(value)
+    if isinstance(value, Color) or not (text.startswith(prefix) or text.startswith(f"{prefix}-")):
+        text = f"{prefix}-{text}"
+    return text
+
+
 def _es_tabla(valor: Any) -> bool:
     """¿Es una tabla declarada (la clase de ``tables.py`` o una instancia)?"""
     if isinstance(valor, RecordTable):
@@ -261,6 +299,22 @@ class RecordTable(Component):
     order_by: str | None = None
     prefix: str | None = None
 
+    # -- franja de la página (título, contador y botón «Nuevo») ----------
+    # `RecordPage(MiTabla)` los toma de aquí, así la vista no los repite.
+    title: Any = None
+    title_bg: Any = None
+    title_color: Any = None
+    title_font: Any = None
+    title_border: Any = None
+    title_pad: Any = None
+    title_align: str | None = None
+    counter: bool | None = None
+    counter_color: Any = None
+    new_label: Any = None
+    new_icon: Any = None
+    new_variant: str | None = None
+    new_size: str | None = None
+
     def __init__(
         self,
         form: Any = None,
@@ -305,8 +359,7 @@ class RecordTable(Component):
         self.empty = self._opcion("empty", empty)
         self.card = bool(self._opcion("card", card))
         acciones = self._opcion("actions", actions)
-        #: `actions=False` esconde la columna de botones.
-        self.actions = [] if acciones is False else list(acciones or ())
+        self.actions = _acciones(acciones, self._opcion("context_menu", context_menu), type(self))
         self.actions_header = self._opcion("actions_header", actions_header)
         self.selectable = bool(self._opcion("selectable", selectable))
         self.selected_bg = self._opcion("selected_bg", selected_bg)
@@ -640,8 +693,17 @@ class RecordPage(Component):
         sortable: Sequence[str] | None = None,
         order_by: str | None = None,
         form_mode: str = "inline",
-        new_label: Any = "Nuevo",
-        new_icon: str | None = "plus",
+        new_label: Any = None,
+        new_icon: str | None = None,
+        new_variant: str | None = None,
+        new_size: str | None = None,
+        title_bg: Any = None,
+        title_color: Any = None,
+        title_font: Any = None,
+        title_border: Any = None,
+        title_pad: Any = None,
+        title_align: str | None = None,
+        counter_color: Any = None,
         pad_: Any = None,
         table_options: dict[str, Any] | None = None,
         **props: Any,
@@ -693,8 +755,34 @@ class RecordPage(Component):
             **(table_options or {}),
         }
         self.form_mode = modo
-        self.new_label = new_label
-        self.new_icon = new_icon
+
+        # Franja de la página: lo que no se pasa se toma de la tabla declarada
+        # (`tables.py`), para que la vista no repita ni el título ni el botón.
+        declarada_tabla = type(self.table_component) if self.table_component is not None else None
+
+        def heredado(nombre: str, valor: Any) -> Any:
+            if valor is not None:
+                return valor
+            return getattr(declarada_tabla, nombre, None) if declarada_tabla else None
+
+        self.new_label = heredado("new_label", new_label) or "Nuevo"
+        self.new_icon = heredado("new_icon", new_icon) or "plus"
+        self.new_variant = heredado("new_variant", new_variant) or "primary"
+        self.new_size = heredado("new_size", new_size) or "md"
+        self.title_bg = heredado("title_bg", title_bg)
+        self.title_color = heredado("title_color", title_color)
+        self.title_font = heredado("title_font", title_font)
+        self.title_border = heredado("title_border", title_border)
+        self.title_pad = heredado("title_pad", title_pad)
+        self.title_align = heredado("title_align", title_align) or "left"
+        self.counter_color = heredado("counter_color", counter_color)
+        # `counter` es booleano y su valor por defecto es `True`: si la tabla lo
+        # declara, manda ella.
+        declarado_counter = getattr(declarada_tabla, "counter", None) if declarada_tabla else None
+        if declarado_counter is not None:
+            self.show_counter = bool(declarado_counter)
+        if self.page_title is None and declarada_tabla is not None:
+            self.page_title = heredado("title", None)
         self.page_pad = pad_ if pad_ is not None else pad.py_8
         super().__init__(**props)
 
@@ -704,24 +792,70 @@ class RecordPage(Component):
         if titulo is None:
             titulo = _plural(_model_of(form).__name__)
 
-        header: Any = Heading(titulo, level=1)
-        if self.form_mode == "modal":
-            header = Stack(
-                header,
-                Button(
-                    self.new_label,
-                    icon=self.new_icon,
-                    on_click=self._abrir_alta,
-                ),
+        # -- franja: título, contador y botón «Nuevo» --------------------
+        centrado = self.title_align == "center"
+        # El título se construye aquí (no con `Heading`) para que `title_font` y
+        # `title_color` manden de verdad: las utilidades de Tailwind no se pisan
+        # por orden de escritura, así que no se mezclan dos tamaños ni dos colores.
+        titulo_clases = tw(
+            "font-sans tracking-tight",
+            _util("font", self.title_font) if self.title_font else "text-4xl font-bold sm:text-5xl",
+            _util("text", self.title_color) if self.title_color else "text-slate-900 dark:text-slate-100",
+        )
+        contador: Any = None
+        if self.show_counter:
+            contador = (
+                Component(
+                    tag="p",
+                    base_class=tw("text-sm leading-relaxed", _util("text", self.counter_color)),
+                )(RecordCounter(form))
+                if self.counter_color
+                else Muted(RecordCounter(form))
+            )
+        cabecera = Stack(
+            Component(tag="h1", base_class=titulo_clases)(titulo),
+            *( [contador] if contador is not None else [] ),
+            gap=1,
+            align="center" if centrado else "start",
+        )
+        nuevo = (
+            Button(
+                self.new_label,
+                icon=self.new_icon,
+                variant=self.new_variant,
+                size=self.new_size,
+                on_click=self._abrir_alta,
+            )
+            if self.form_mode == "modal"
+            else None
+        )
+        if nuevo is not None and not centrado:
+            cabecera = Stack(
+                cabecera,
+                nuevo,
                 direction="row",
                 justify="between",
                 align="center",
                 gap=3,
+                class_="w-full",
             )
+        elif nuevo is not None:
+            cabecera = Stack(cabecera, nuevo, gap=3, align="center")
+
+        franja = tw(
+            _util("bg", self.title_bg),
+            "border-b" if self.title_border else "",
+            _util("border", self.title_border),
+            _util("rounded", "xl") if self.title_bg else "",
+            self.title_pad or "",
+        )
+        header: Any = (
+            Stack(cabecera, pad=self.title_pad, class_=franja)
+            if franja
+            else cabecera
+        )
 
         pieces: list[Any] = [header]
-        if self.show_counter:
-            pieces.append(Muted(RecordCounter(form)))
         if self.form_mode == "inline":
             pieces.append(form)
         if self.show_table:

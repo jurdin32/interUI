@@ -84,6 +84,10 @@ class Component:
 
     def __init__(self, *children: Any, **props: Any) -> None:
         self.children: list[Any] = flatten(children)
+        # `Component(tag="h1", …)` sirve para cualquier etiqueta suelta.
+        etiqueta = props.pop("tag", None)
+        if etiqueta:
+            self.tag = str(etiqueta)
         self.explicit_id: str | None = props.pop("id", None)
         self.key: Any = props.pop("key", None)
         self.class_: Any = props.pop("class_", None)

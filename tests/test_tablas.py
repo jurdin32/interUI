@@ -324,3 +324,92 @@ def test_los_atributos_de_la_clase_se_pueden_pisar(tmp_path) -> None:
     app = _app(tmp_path)
     html = _html(ui.RecordPage(PersonaTable(page_size=1)), app)
     assert "Mostrando 1–1 de 3" in html
+
+
+def test_actions_true_usa_las_acciones_del_menu(tmp_path) -> None:
+    """«Quiero los botones» sin repetir la lista: se toman del menú contextual."""
+
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        actions = True
+        context_menu = [
+            ui.RowAction("Editar", icon="edit", on_click=lambda r: None),
+            ui.RowAction("Eliminar", icon="trash", danger=True, on_click=lambda r: None),
+        ]
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert "Editar" in html and "Eliminar" in html, "los botones de la fila"
+    assert html.count('aria-label="Editar"') == 3, "uno por registro"
+    assert html.count("data-iui-context-panel") == 3, "y el menú sigue ahí"
+
+
+def test_actions_true_sin_menu_avisa_claro() -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        actions = True
+
+    with pytest.raises(TypeError, match="context_menu"):
+        PersonaTable()
+
+
+def test_actions_con_un_valor_raro_avisa_claro() -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        actions = "editar"
+
+    with pytest.raises(TypeError, match="RowAction"):
+        PersonaTable()
+
+
+# --- franja de la página (título, contador y botón) -----------------------
+def test_la_franja_se_configura_desde_la_tabla(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        title = "Mi listado"
+        title_bg = ui.colors.indigo_600
+        title_color = ui.colors.white
+        title_font = ui.font.xl.bold
+        title_border = ui.colors.indigo_700
+        title_pad = ui.pad.p_6
+        counter_color = ui.colors.indigo_100
+        new_label = "Añadir persona"
+        new_variant = "secondary"
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable, form_mode="modal"), app)
+
+    assert "Mi listado" in html
+    assert "bg-indigo-600" in html
+    assert "text-white" in html
+    assert "text-xl" in html and "font-bold" in html
+    assert "border-b" in html and "border-indigo-700" in html
+    assert "p-6" in html
+    assert "text-indigo-100" in html, "el contador tiene su color"
+    assert "Añadir persona" in html
+
+
+def test_la_franja_sin_estilos_queda_como_siempre(tmp_path) -> None:
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(ui.ModelForm(Persona), title="Personas"), app)
+    assert "<h1" in html
+    assert "text-4xl font-bold sm:text-5xl text-slate-900" in html
+    assert "registros guardados" in html
+    assert 'class="flex flex-col gap-1 items-start justify-start"' in html, (
+        "sin estilos, la cabecera es la de siempre (sin franja)"
+    )
+
+
+def test_contador_y_alineacion_configurables(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        counter = False
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert "registros guardados" not in html
+
+    centrado = _html(
+        ui.RecordPage(ui.ModelForm(Persona), title_align="center", form_mode="modal"), app
+    )
+    assert "items-center" in centrado

@@ -318,6 +318,49 @@ La página toma de la tabla **el formulario y todas las opciones**, así que
 `views.py` queda en una línea. Cualquier atributo se puede pisar al vuelo cuando
 hace falta una variante: `ClienteTable(page_size=50)`.
 
+### La franja de la página: título, contador y botón
+
+La cabecera del listado (título + contador + botón **Nuevo**) también se declara
+en `tables.py`:
+
+```python
+class ClienteTable(ui.RecordTable):
+    form = ClienteForm
+
+    title = "Registro de clientes"        # por defecto, el plural del modelo
+    title_font = ui.font.xl.bold          # tamaño y peso
+    title_color = ui.colors.white         # color del texto
+    title_bg = ui.colors.indigo_600       # fondo de la franja
+    title_pad = ui.pad.p_6                # aire alrededor
+    title_border = ui.colors.indigo_700   # línea inferior
+    title_align = "center"                # "left" (por defecto) o "center"
+
+    counter_color = ui.colors.indigo_100  # color del «25 registros guardados»
+    counter = False                       # o esconder el contador
+
+    new_label = "Nueva persona"           # el botón
+    new_icon = "plus"
+    new_variant = "primary"               # primary, secondary, outline, ghost…
+    new_size = "md"                       # sm, md, lg
+```
+
+| Opción | Qué cambia | Por defecto |
+|---|---|---|
+| `title` | el texto del título | plural del modelo |
+| `title_font` | tamaño y peso (`ui.font.xl.bold`) | `text-4xl bold` |
+| `title_color` | color del título | `slate-900` |
+| `title_bg` | fondo de la franja (con esquinas redondeadas) | sin fondo |
+| `title_pad` | padding de la franja | sin padding |
+| `title_border` | línea inferior de la franja | sin línea |
+| `title_align` | `"left"` o `"center"` | `"left"` |
+| `counter` | mostrar el contador | `True` |
+| `counter_color` | color del contador | `slate-500` |
+| `new_label` / `new_icon` | texto e icono del botón | `"Nuevo"` / `plus` |
+| `new_variant` / `new_size` | estilo del botón | `primary` / `md` |
+
+Sin ninguna de estas opciones la página se ve como siempre: título grande,
+contador debajo y el botón a la derecha.
+
 ### Colores, cebra y encabezado
 
 Todo el aspecto se configura con los mismos tokens de estilo del resto del
@@ -379,7 +422,7 @@ ui.RecordPage(
 
 | Opción | Qué hace |
 |---|---|
-| `actions` | los iconos al final de la fila; `False` los esconde |
+| `actions` | los iconos al final de la fila; `False` los esconde y `True` pone los mismos del menú contextual |
 | `selectable` | el clic selecciona la fila y la deja resaltada con `selected_bg` |
 | `on_row_click` | handler del clic; recibe **el registro** |
 | `on_row_dblclick` | handler del doble clic; recibe **el registro** |
