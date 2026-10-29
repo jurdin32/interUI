@@ -105,8 +105,10 @@ Archivo por archivo: [proyecto.md](proyecto.md).
 
 ## `startapp`
 
-Crea una app dentro del proyecto (una carpeta con `models.py`, `views.py`,
-`urls.py` y `README.md`) y la registra sola.
+Crea una app dentro del proyecto y la registra sola: una carpeta con
+`models.py`, `forms.py`, `views.py`, `urls.py` y `README.md`, todos **listos
+para usar**. La página `/ventas` ya funciona: formulario de alta, validación y
+tabla con lo guardado.
 
 ```bash
 cd mi_app
@@ -123,7 +125,7 @@ iui startapp ventas --config ruta/interui.json
 
 Qué hace exactamente:
 
-1. escribe `ventas/__init__.py`, `models.py`, `views.py`, `urls.py` y `README.md`;
+1. escribe `ventas/__init__.py`, `models.py`, `forms.py`, `views.py`, `urls.py` y `README.md`;
 2. añade `"ventas"` a `apps` en `interui.json`;
 3. añade `ventas/models.py` a `migrations.models`.
 
@@ -134,6 +136,16 @@ python iui.py makemigrations
 python iui.py migrate
 python main.py
 ```
+
+| Archivo | Qué trae |
+|---|---|
+| `models.py` | `Venta` con `nombre`, `descripcion` y `activo`. |
+| `forms.py` | `VentaForm(ui.ModelForm)`: un control por campo, obligatorios y `unique`. |
+| `views.py` | `inicio()`: el formulario, el aviso si falta la base de datos y la tabla. |
+| `urls.py` | `urlpatterns = [ui.path("ventas", inicio, name="ventas")]`. |
+
+Solo tienes que cambiar los campos del modelo: el formulario y la tabla se
+adaptan. Los detalles están en [Formularios](formularios.md).
 
 ---
 

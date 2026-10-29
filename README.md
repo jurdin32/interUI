@@ -313,7 +313,8 @@ mi_app/
 ```
 
 Cuando necesites más, `python iui.py startapp tareas` añade una app con sus
-modelos, vistas y rutas.
+modelos, sus formularios, sus vistas y sus rutas; la página `/tareas` ya
+funciona (alta de registros y tabla con lo guardado).
 
 `main.py` y `iui.py` se reparten el trabajo: `main.py` es el punto de entrada
 (aplica las migraciones pendientes, crea la `App` y abre la ventana) e `iui.py`
@@ -328,10 +329,11 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `interui.json` | configuración: identidad, ventana, base de datos, apps y migraciones |
 | `urls.py` | qué vista responde a cada ruta |
 | `views.py` | qué se pinta en cada página |
+| `forms.py` | formularios de la app: un control por campo del modelo |
 | `models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
 | `migrations/` | historial del esquema, en JSON legible y versionado |
 | `data/` | base de datos y archivos de la app (fuera de git) |
-| `<app>/` | apps del proyecto: modelos, vistas y rutas que se registran solas |
+| `<app>/` | apps del proyecto: modelos, formularios, vistas y rutas que se registran solas |
 
 `iui` y `interui` son el mismo comando (`iui startproject`, `iui run`, `iui db
 migrate`…). Si solo quieres un archivo suelto: `interui new mi_app`.
@@ -1071,9 +1073,10 @@ python iui.py shell             # consola con tus modelos cargados
 python iui.py check             # revisa interui.json y la base de datos
 ```
 
-`iui startapp` crea `models.py`, `views.py`, `urls.py` y `README.md`, añade la
-app a `apps` de `interui.json` y su `models.py` a la lista de migraciones: sus
-rutas se registran solas y un solo `migrate` pone al día todas las apps.
+`iui startapp` crea `models.py`, `forms.py`, `views.py`, `urls.py` y
+`README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
+de migraciones: sus rutas se registran solas, un solo `migrate` pone al día
+todas las apps y el formulario de alta ya viene hecho.
 
 `python -m interui ...` funciona igual si no quieres el script en el PATH.
 
@@ -1299,6 +1302,8 @@ El mapa completo está en **[docs/indice.md](docs/indice.md)**.
 - [Diálogos](docs/dialogos.md) — avisos, confirmaciones, formularios y ventanas propias.
 - [Rejilla de 12 columnas](docs/rejilla.md) — columnas, breakpoints y patrones.
 - [Estilos](docs/estilos.md) — tokens, variantes, hex y degradados.
+- [Formularios](docs/formularios.md) — `forms.py` en la app, `ui.ModelForm`,
+  validación y `ui.state()` en las vistas.
 - [Datos](docs/datos.md) — modelos, ORM, migraciones, motores y recetas.
 - [Iconos](docs/iconos.md) — los 204 iconos incluidos.
 

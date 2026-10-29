@@ -198,7 +198,7 @@ def test_startapp_crea_la_app_y_la_registra(proyecto: pathlib.Path, monkeypatch)
     monkeypatch.chdir(proyecto)
     assert cli.main(["startapp", "Tareas"]) == 0
 
-    for esperado in ("__init__.py", "models.py", "views.py", "urls.py", "README.md"):
+    for esperado in ("__init__.py", "models.py", "forms.py", "views.py", "urls.py", "README.md"):
         assert (proyecto / "tareas" / esperado).is_file(), f"falta tareas/{esperado}"
 
     data = json.loads((proyecto / "interui.json").read_text(encoding="utf-8"))
@@ -231,6 +231,50 @@ def test_startapp_registra_las_rutas_sin_tocar_urls(proyecto: pathlib.Path, monk
     title, html, _bindings = app.render_page("/clientes")
     assert title == "clientes"
     assert "clientes" in html
+
+
+def test_la_app_generada_guarda_desde_su_formulario(proyecto: pathlib.Path, monkeypatch) -> None:
+    """``startapp`` deja el formulario listo: se rellenan señales y se guarda."""
+    monkeypatch.chdir(proyecto)
+    assert cli.main(["startapp", "clientes"]) == 0
+    assert cli.main(["db", "makemigrations"]) == 0
+    assert cli.main(["db", "migrate"]) == 0
+    monkeypatch.syspath_prepend(str(proyecto))
+    _fresh_modules("tienda", "clientes")
+
+    from tienda.app import create_app
+
+    app = create_app()
+    title, html, bindings = app.render_page("/clientes")
+    assert "ClienteForm" in (proyecto / "clientes" / "forms.py").read_text(encoding="utf-8")
+    assert title == "clientes"
+
+    from interui.events import UIEvent, invoke
+
+    def señales():
+        return {
+            name: signal
+            for name, signal in app._signals.items()
+            if name.startswith("form_clientes_")
+        }
+
+    for name, signal in señales().items():
+        if name.endswith("_nombre"):
+            signal.set("ACME")
+
+    handler = next(
+        handler
+        for handlers in bindings.values()
+        for event, handler in handlers.items()
+        if event == "click"
+    )
+    invoke(handler, UIEvent(id="x", event="click"))
+
+    from clientes.models import Cliente
+
+    assert Cliente.objects.count() == 1
+    assert Cliente.objects.first().nombre == "ACME"
+    assert "ACME" in app.render_page("/clientes")[1]
 
 
 def test_startapp_no_duplica_apps_ni_rutas(proyecto: pathlib.Path, monkeypatch) -> None:

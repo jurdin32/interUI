@@ -56,6 +56,7 @@ así. Se leen en cualquier orden.
 
 | Documento | Contenido |
 |---|---|
+| [Formularios](formularios.md) | `forms.py` en la app, `ui.ModelForm`, validación, `ui.state()` en las vistas. |
 | [Datos](datos.md) | `interui.json`, modelos, consultas, migraciones, motores soportados, recetas. |
 | [Configuración](configuracion.md) | Referencia completa de `interui.json`. |
 
@@ -68,6 +69,7 @@ así. Se leen en cualquier orden.
 | [Comandos](comandos.md) | `iui`, `interui`, `iui.py` y `python -m interui`: todas las opciones. |
 | [Configuración](configuracion.md) | Cada clave de `interui.json`, con su valor por defecto. |
 | [Controles](controles.md) | Firma y ejemplos de cada componente. |
+| [Formularios](formularios.md) | Un formulario por modelo, listo en tres líneas. |
 | [Iconos](iconos.md) | Nombres disponibles. |
 
 ---

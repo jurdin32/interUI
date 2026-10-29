@@ -267,20 +267,28 @@ class App:
             raise LookupError(f"Ruta no registrada: {route}")
         func, params, title = resolved
         ctx = RenderContext(self, page=route)
-        result = func(**params)
-        page_title = title or self.title
-        if isinstance(result, tuple) and len(result) == 2:
-            page_title, result = str(result[0]), result[1]
-        if isinstance(result, Component):
-            html = result.render(ctx, "app")
-        elif result is None:
-            html = ""
-        else:
-            html = escape(result)
-        if self._dialogs:
-            from .dialogs import DialogHost
+        # La app que pinta es la app activa: así `ui.state()`, `ui.toast()` y
+        # compañía funcionan dentro de cualquier vista, también en un proyecto.
+        # Cubre la función y el render de sus componentes (un `ui.ModelForm`
+        # crea sus señales al dibujarse, no al construirse).
+        token = _ACTIVE_APP.set(self)
+        try:
+            result = func(**params)
+            page_title = title or self.title
+            if isinstance(result, tuple) and len(result) == 2:
+                page_title, result = str(result[0]), result[1]
+            if isinstance(result, Component):
+                html = result.render(ctx, "app")
+            elif result is None:
+                html = ""
+            else:
+                html = escape(result)
+            if self._dialogs:
+                from .dialogs import DialogHost
 
-            html += DialogHost(*self._dialogs).render(ctx, "dlg")
+                html += DialogHost(*self._dialogs).render(ctx, "dlg")
+        finally:
+            _ACTIVE_APP.reset(token)
         return page_title, f'<div id="iui-root" data-iui-page="{escape(route)}">{html}</div>', ctx.bindings
 
     def error_html(self, exc: BaseException) -> str:

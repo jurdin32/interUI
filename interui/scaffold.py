@@ -32,7 +32,7 @@ from typing import Any
 
 from .config import CONFIG_NAME, DEFAULT_CONFIG, ENGINES
 
-__all__ = ["create_app_module", "create_project", "package_name"]
+__all__ = ["create_app_module", "create_project", "model_name", "package_name"]
 
 
 def package_name(raw: str) -> str:
@@ -366,29 +366,93 @@ APP_MODELS_PY = '''"""Modelos de {app}.
 
 import interui as ui
 
-# class Nota(ui.Model):
-#     titulo = ui.Str(max_length=120)
-#     creada = ui.DateTime(auto_now_add=True)
-#
-#     class Meta:
-#         table = "{app}_notas"
-#         order = ["-creada"]
+
+class {Model}(ui.Model):
+    nombre = ui.Str(max_length=120)
+    descripcion = ui.LongText(null=True)
+    activo = ui.Bool(default=True)
+    creado = ui.DateTime(auto_now_add=True)
+
+    class Meta:
+        table = "{table}"
+        order = ["nombre"]
 '''
 
-APP_VIEWS_PY = '''"""Vistas de {app}: cada función devuelve la página que se pinta en la ventana."""
+APP_FORMS_PY = '''"""Formularios de la app {app}.
+
+Aquí se declaran; la vista solo los usa (`from {app}.forms import {Model}Form`).
+"""
 
 import interui as ui
 
+from {app}.models import {Model}
+
+
+class {Model}Form(ui.ModelForm):
+    """Alta de {Model}: cada campo del modelo se convierte en su control."""
+
+    model = {Model}
+    fields = ["nombre", "descripcion", "activo"]
+    title = "Nuevo registro"
+'''
+
+APP_VIEWS_PY = '''"""Vistas de {app}: el formulario y lo que ya está guardado."""
+
+import interui as ui
+
+from {app}.forms import {Model}Form
+from {app}.models import {Model}
+
+
+def _registros() -> list:
+    """Sin migraciones la tabla no existe; la página abre igual."""
+    try:
+        return list({Model}.objects.all())
+    except ui.db.DatabaseError:
+        return []
+
+
+def _avisos() -> ui.Component | None:
+    try:
+        {Model}.objects.exists()
+    except ui.db.DatabaseError:
+        return ui.Alert(
+            "Falta la base de datos. Ejecuta `python iui.py migrate` y vuelve a abrir.",
+            title="Sin base de datos",
+            level=ui.tone.warning,
+            margin=ui.margin.t_6,
+        )
+    return None
+
+
+def _contador(total: int) -> str:
+    if total == 1:
+        return "1 registro guardado"
+    return f"{total} registros guardados"
+
 
 def inicio() -> ui.Component:
+    registros = _registros()
+    filas = [
+        [
+            registro.nombre,
+            registro.descripcion or "—",
+            ui.Badge("activo" if registro.activo else "inactivo"),
+        ]
+        for registro in registros
+    ]
     return ui.Screen(
         ui.Container(pad=ui.pad.py_10)(
-            ui.Heading("{app}", level=1),
-            ui.Muted("Página de la app «{app}», servida dentro de la ventana nativa."),
-            ui.Alert(
-                "Declara tus modelos en models.py y ejecuta `python iui.py makemigrations`.",
-                level=ui.tone.info,
-                margin=ui.margin.t_6,
+            ui.Heading("{App}", level=1),
+            ui.Muted(_contador(len(registros))),
+            _avisos(),
+            {Model}Form(margin=ui.margin.t_6),
+            ui.Card(pad=ui.pad.all_2, margin=ui.margin.t_6)(
+                ui.Table(
+                    headers=["Nombre", "Descripción", "Estado"],
+                    rows=filas,
+                    empty="Todavía no hay registros",
+                )
             ),
         )
     )
@@ -419,17 +483,32 @@ def register(app: Any) -> None:
 
 APP_README = """# {app}
 
-App del proyecto **{project}**, creada con `iui startapp`.
+App del proyecto **{project}**, creada con `iui startapp` y **lista para usar**.
 
 | Archivo | Para qué |
 |---|---|
-| `models.py` | modelos del ORM de esta app (los migra `python iui.py migrate`). |
-| `views.py` | las páginas de la app. |
-| `urls.py` | qué vista responde a cada ruta. |
+| `models.py` | modelo `{Model}` (tabla `{table}`); lo migra `python iui.py migrate`. |
+| `forms.py` | formulario `{Model}Form`, generado a partir del modelo. |
+| `views.py` | la página: el formulario y la tabla de lo guardado. |
+| `urls.py` | la ruta `/{app}`. |
+
+## Probarlo
+
+```bash
+python iui.py makemigrations
+python iui.py migrate
+python main.py          # abre la ventana; la app está en /{app}
+```
 
 Ya está declarada en `apps` de `interui.json`, así que sus rutas se registran
-solas al abrir la ventana. Las migraciones son del proyecto (`migrations/`),
-para que un solo `migrate` ponga al día todas las apps.
+solas. Las migraciones son del proyecto (`migrations/`), para que un solo
+`migrate` ponga al día todas las apps.
+
+## Cambiarla
+
+- Campos del modelo: `models.py` y vuelve a migrar.
+- Campos del formulario: `fields` en `forms.py`.
+- Qué se ve: `views.py`.
 """
 
 
@@ -467,6 +546,14 @@ def register_app(config_path: Path, package: str) -> Path:
     return Path(config_path)
 
 
+def model_name(name: str) -> str:
+    """``personas`` → ``Persona``: nombre de clase del modelo de una app nueva."""
+    base = package_name(name)
+    if len(base) > 3 and base.endswith("s") and base[-2] in "aeiou":
+        base = base[:-1]
+    return "".join(part[:1].upper() + part[1:] for part in base.split("_"))
+
+
 def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Path]:
     """Crea una app dentro del proyecto.
 
@@ -488,11 +575,20 @@ def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Pat
 
     data = json.loads(config_path.read_text(encoding="utf-8"))
     project = str((data.get("app") or {}).get("name") or root.name)
-    values = {"app": package, "project": project}
+    model = model_name(package)
+    values = {
+        "app": package,
+        "App": package.replace("_", " ").capitalize(),
+        "project": project,
+        "Model": model,
+        "model_lower": model.lower(),
+        "table": f"{package}_{model.lower()}s",
+    }
 
     files: dict[Path, str] = {
         folder / "__init__.py": _fill(APP_INIT_PY, **values),
         folder / "models.py": _fill(APP_MODELS_PY, **values),
+        folder / "forms.py": _fill(APP_FORMS_PY, **values),
         folder / "views.py": _fill(APP_VIEWS_PY, **values),
         folder / "urls.py": _fill(APP_URLS_PY, **values),
         folder / "README.md": _fill(APP_README, **values),

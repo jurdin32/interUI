@@ -1417,7 +1417,8 @@ class ValidationSummary(Component):
             "dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-200",
             props.get("base_class"),
         )
-        super().__init__(**props)
+        # `title` es el encabezado del resumen: lo guarda `Component`.
+        super().__init__(title=title, **props)
 
     def content(self, ctx: RenderContext, path: str) -> str:
         if not self.errors:

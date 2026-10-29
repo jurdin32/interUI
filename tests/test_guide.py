@@ -22,6 +22,7 @@ DOCS = [
     ROOT / "docs" / "actualizar.md",
     ROOT / "docs" / "estilos.md",
     ROOT / "docs" / "datos.md",
+    ROOT / "docs" / "formularios.md",
     ROOT / "README.md",
 ]
 BLOCK = re.compile(r"```python\n(.*?)```", re.S)

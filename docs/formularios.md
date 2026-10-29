@@ -1,0 +1,264 @@
+# Formularios
+
+Un formulario es un archivo más de la app: se declara en `forms.py` y la vista
+solo lo coloca en la página. No hay que construir los campos a mano, ni escribir
+la validación, ni acordarse de guardar: `ui.ModelForm` lo hace mirando el modelo.
+
+```text
+mi_app/
+└── ventas/
+    ├── models.py     ← las tablas
+    ├── forms.py      ← los formularios
+    ├── views.py      ← las páginas (usan los formularios)
+    └── urls.py       ← qué vista responde a cada ruta
+```
+
+`startapp` ya crea los tres archivos conectados y funcionando: si ejecutas
+`makemigrations`, `migrate` y abres `/ventas`, tienes un alta de registros con
+su tabla. Esta página explica cómo cambiar esos campos y qué más se puede hacer.
+
+---
+
+## 1. El modelo primero
+
+El formulario sale del modelo, así que empieza por ahí:
+
+```python
+# ventas/models.py
+import interui as ui
+
+
+class Cliente(ui.Model):
+    nombre = ui.Str(max_length=120)
+    email = ui.Str(max_length=120, unique=True)
+    telefono = ui.Str(max_length=30, null=True)
+    activo = ui.Bool(default=True)
+
+    class Meta:
+        table = "clientes"
+```
+
+| Campo | Se convierte en |
+|---|---|
+| `Str` | campo de texto (o de correo, si el nombre lleva `email`, `correo` o `mail`) |
+| `LongText` | área de texto |
+| `Int`, `Float` | campo numérico |
+| `Date`, `DateTime` | selector de fecha / fecha y hora |
+| `Bool` | interruptor |
+| `Json` | área de texto |
+
+Los campos automáticos (`Auto`) y las claves primarias no aparecen: los pone la
+base de datos.
+
+---
+
+## 2. El formulario
+
+```python
+# ventas/forms.py
+import interui as ui
+
+from ventas.models import Cliente
+
+
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    fields = ["nombre", "email", "telefono", "activo"]
+    title = "Nuevo cliente"
+```
+
+Eso es todo. Un control por campo, con su etiqueta, la validación de
+obligatorios hecha en Python y el botón **Guardar** conectado.
+
+| Atributo | Para qué | Por defecto |
+|---|---|---|
+| `model` | el modelo del que salen los campos | obligatorio |
+| `fields` | qué campos se muestran y en qué orden | todos los editables |
+| `exclude` | qué campos dejar fuera | `()` |
+| `title` | título de la tarjeta | «Nuevo cliente» |
+| `submit_label` | texto del botón | `"Guardar"` |
+| `on_saved` | función que recibe el registro guardado | `None` |
+
+Si el modelo tiene muchos campos y solo quieres cambiar un par, usa `exclude`:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    exclude = ["telefono"]
+```
+
+### Sin declarar clase
+
+Para un formulario suelto, dentro de una vista o de un ejemplo:
+
+```python
+ui.ModelForm(Cliente)
+```
+
+Es el mismo formulario con los valores por defecto.
+
+> El nombre empieza por mayúscula porque es un componente. `ui.Form` (y su
+> alias `ui.form`) son otra cosa: la etiqueta HTML `<form>`.
+
+---
+
+## 3. La vista
+
+La vista no sabe nada de campos ni de validación; solo coloca el formulario:
+
+```python
+# ventas/views.py
+import interui as ui
+
+from ventas.forms import ClienteForm
+from ventas.models import Cliente
+
+
+def lista() -> ui.Component:
+    return ui.Screen(
+        ui.Container(pad=ui.pad.py_10)(
+            ui.Heading("Clientes", level=1),
+            ClienteForm(margin=ui.margin.t_6),
+            ui.Table(
+                headers=["Nombre", "Correo"],
+                rows=[[cliente.nombre, cliente.email] for cliente in Cliente.objects.all()],
+                empty="Todavía no hay clientes",
+            ),
+        )
+    )
+```
+
+```python
+# ventas/urls.py
+from ventas import views
+
+urlpatterns = [
+    ("/clientes", views.lista, "Clientes"),
+]
+
+
+def register(app) -> None:
+    for path, view, title in urlpatterns:
+        app.page(path, title=title)(view)
+```
+
+Al pulsar **Guardar** pasan tres cosas: se validan los campos, se crea el
+registro con `Cliente.objects.create(...)` y la página se repinta sola para
+mostrarlo en la tabla. Si algo falta, los errores salen en la tarjeta y no se
+guarda nada; en cuanto corriges un campo, el aviso desaparece.
+
+---
+
+## 4. Dónde viven los valores
+
+Los valores de los campos son **señales** de la app en la que se está pintando
+el formulario. Por eso el usuario puede escribir sin que el texto desaparezca
+cuando la página se repinta, y por eso el formulario puede vivir en su propio
+archivo sin recibir nada de la vista.
+
+Cada formulario usa una clave por campo:
+
+```text
+form_clientes_nombre
+form_clientes_email
+form_clientes_errores
+```
+
+Si necesitas dos formularios del mismo modelo en la misma página, dale un
+`prefix` distinto a cada uno para que no compartan claves:
+
+```python
+ClienteForm(prefix="principal")
+ClienteForm(prefix="rapido")
+```
+
+---
+
+## 5. Guardar y hacer algo más
+
+`on_saved` recibe el registro recién creado. Sirve para avisar, navegar o
+rellenar otra parte de la pantalla:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+
+    def on_saved(self, cliente) -> None:
+        ui.toast(f"{cliente.nombre} añadido", "success")
+        ui.current_app().navigate("/clientes")
+```
+
+También puedes pasarlo sin declarar clase:
+
+```python
+ClienteForm = ui.ModelForm(Cliente, on_saved=lambda cliente: ui.toast(cliente.nombre, "success"))
+```
+
+---
+
+## 6. Validar más de lo que dice el modelo
+
+`ModelForm` ya comprueba lo obligatorio y los campos `unique`. Para reglas
+propias, sobrescribe `guardar()` o valida antes con `ui.state`. Lo más simple es
+añadir la comprobación al modelo con un método y llamarlo desde la vista:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+
+    def on_saved(self, cliente) -> None:
+        if not cliente.email.endswith("@empresa.com"):
+            ui.toast("Correo externo: revísalo", "warning")
+```
+
+Si necesitas un formulario que **no** salga de un modelo (una búsqueda, unos
+ajustes), no uses `ModelForm`: compón los controles y guarda los valores en
+señales con `ui.state`.
+
+---
+
+## 7. `ui.state()` en las vistas
+
+Dentro de una vista puedes crear señales con `ui.state` igual que en un ejemplo
+de un solo archivo:
+
+```python
+def buscador() -> ui.Component:
+    filtro = ui.state("")
+
+    return ui.Screen(
+        ui.Input(filtro.get(), label="Buscar", on_input=filtro),
+        ui.Text(lambda: f"Buscando: {filtro.get()}", size=ui.size.sm, tone=ui.tone.muted),
+    )
+```
+
+La señal pertenece a la app del proyecto (no a una app implícita), así que se
+mantiene entre repintados y navegaciones. El valor inicial solo se aplica la
+primera vez: si vuelves a llamar a `ui.state("")` sobre una señal ya creada, no
+la reinicia.
+
+| Forma | Cuándo |
+|---|---|
+| `ui.state(valor)` | señal suelta dentro de una vista |
+| `ui.state(valor, name="clave")` | cuando quieres un nombre fijo y legible |
+| `app.state("clave", valor)` | en `main.py` o en un archivo de un solo uso |
+
+---
+
+## 8. Errores frecuentes
+
+| Síntoma | Causa |
+|---|---|
+| `AttributeError: module 'interui' has no attribute 'Email'` | no hay campo `Email`: usa `ui.Str(max_length=120, unique=True)` (el control de correo lo elige el nombre del campo) |
+| `TypeError: ModelForm necesita un modelo` | falta `model = ...` en la clase |
+| La tabla dice «Todavía no hay registros» tras guardar | falta `python iui.py migrate`: la tabla no existe |
+| Dos formularios se pisan el texto | comparten `prefix`; dale uno distinto a cada uno |
+| `ui.state("x", "")` falla | la firma es `ui.state(valor, name="x")` |
+
+---
+
+## Siguiente paso
+
+- [Datos](datos.md): consultas, filtros y migraciones.
+- [Controles](controles.md): todos los campos disponibles y sus opciones.
+- [Anatomía de un proyecto](proyecto.md): dónde va cada archivo.

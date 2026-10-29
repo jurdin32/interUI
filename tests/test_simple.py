@@ -280,3 +280,34 @@ def test_menubar_admite_menus_por_corchetes() -> None:
     assert [title for title, _items in bar.menus] == ["Archivo"]
     assert bar["Archivo"][0].label == "Cerrar"
     assert "Cerrar" in ui.render(bar)
+
+
+def test_state_sin_nombre_es_estable_dentro_de_una_vista() -> None:
+    """`state("")` en una vista conserva su señal entre repintados."""
+    import interui as ui
+    from interui.events import UIEvent, invoke
+
+    app = ui.App("Vista")
+
+    @app.page("/")
+    def buscador() -> ui.Component:
+        filtro = ui.state("")
+        return ui.Screen(
+            ui.Input(filtro.get(), label="Buscar", on_input=filtro),
+            ui.Text(lambda: f"Buscando: {filtro.get()}"),
+        )
+
+    _title, html, bindings = app.render_page("/")
+    assert "Buscando: " in html
+    campo = next(
+        (cid, handler)
+        for cid, handlers in bindings.items()
+        for event, handler in handlers.items()
+        if event == "input"
+    )
+    invoke(campo[1], UIEvent(id=campo[0], event="input", value="hola"))
+
+    claves = [name for name in app._signals if name.startswith("s_")]
+    assert len(claves) == 1, claves
+    _title, html, _bindings = app.render_page("/")
+    assert "Buscando: hola" in html, "el texto escrito se perdió al repintar"

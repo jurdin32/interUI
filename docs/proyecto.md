@@ -20,8 +20,9 @@ mi_app/
 │   ├── views.py            ← las páginas (al empezar, «Hola mundo»)
 │   └── models.py           ← modelos propios del proyecto (vacío)
 ├── ventas/                 ← una app del proyecto (`iui.py startapp ventas`)
-│   ├── models.py
-│   ├── views.py
+│   ├── models.py           ← sus tablas
+│   ├── forms.py            ← sus formularios
+│   ├── views.py            ← sus páginas (formulario + tabla)
 │   ├── urls.py
 │   └── README.md
 ├── migrations/             ← migraciones (se versionan en git)
@@ -234,8 +235,9 @@ Está explicado en [menús y armazón](menus.md) y en el
 
 ## 5. Las apps: módulos que se enchufan solas
 
-Una app es una carpeta con `models.py`, `views.py` y `urls.py`. Se crea con un
-comando y **no hay que registrarla a mano**:
+Una app es una carpeta con `models.py` (tablas), `forms.py` (formularios),
+`views.py` (páginas) y `urls.py` (rutas). Se crea con un comando y **no hay que
+registrarla a mano**:
 
 ```bash
 python iui.py startapp ventas
@@ -243,7 +245,8 @@ python iui.py startapp ventas
 
 Ese comando:
 
-1. crea `ventas/` con los tres archivos y un `README.md`;
+1. crea `ventas/` con los cuatro archivos y un `README.md`, todos listos para
+   usar: la página `/ventas` ya trae formulario de alta y tabla de lo guardado;
 2. añade `"ventas"` a la lista `apps` de `interui.json`;
 3. añade `ventas/models.py` a `migrations.models`.
 
@@ -254,6 +257,25 @@ Si prefieres controlar el orden, cada app puede exponer su propio
 **Cuándo crear una app y cuándo no.** Una app agrupa un dominio con sus modelos
 y sus páginas (por ejemplo, «ventas» o «inventario»). Si tu proyecto tiene una
 sola pantalla, no hace falta: escribe las vistas en el paquete del proyecto y ya.
+
+### `forms.py`
+
+Cada app trae su archivo de formularios, separado de las vistas: se declaran
+allí y la vista solo los coloca en la página. Se explica entero en
+[formularios](formularios.md).
+
+```python
+# ventas/forms.py
+class VentaForm(ui.ModelForm):
+    model = Venta
+    fields = ["nombre", "descripcion", "activo"]
+```
+
+```python
+# ventas/views.py
+def inicio() -> ui.Component:
+    return ui.Screen(VentaForm())
+```
 
 ---
 

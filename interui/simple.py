@@ -31,7 +31,9 @@ Reglas de la API compacta:
 
 from __future__ import annotations
 
+import hashlib
 import re
+import sys
 from typing import Any, Callable, Sequence
 
 from .app import App
@@ -151,12 +153,33 @@ def wrap(
 # ---------------------------------------------------------------------------
 # estado implícito
 # ---------------------------------------------------------------------------
+def _key_for_caller(frame: Any) -> str:
+    """Nombre estable para ``state()`` sin ``name``: el sitio donde se escribió.
+
+    Se calcula con el archivo, la función, la línea y la instrucción, así que
+    dos llamadas distintas nunca chocan y la misma llamada conserva su señal
+    entre repintados (que es lo que espera una vista).
+    """
+    code = frame.f_code
+    raw = f"{code.co_filename}|{code.co_qualname}|{frame.f_lineno}|{frame.f_lasti}"
+    digest = hashlib.sha1(raw.encode("utf-8")).hexdigest()[:10]
+    return f"s_{code.co_name}_{digest}"
+
+
 def state(initial: Any = None, *, name: str | None = None) -> Signal:
-    """Crea una señal ligada a la ventana implícita: ``count = state(0)``."""
+    """Crea (o recupera) una señal de la ventana activa: ``count = state(0)``.
+
+    Si la señal ya existe se devuelve la misma: el valor inicial solo se aplica
+    la primera vez, así llamarla dentro de una vista no borra lo que escribió el
+    usuario en el repintado siguiente. Sin ``name`` la señal se identifica por
+    el lugar del código donde se llama, de modo que ``state("")`` dentro de una
+    vista siempre devuelve la misma señal.
+    """
     application = recipient_app()
-    key = name or f"s{len(application._signals) + 1}"
+    key = name or _key_for_caller(sys._getframe(1))
+    nueva = key not in application._signals
     signal = application.state(key, initial)
-    if initial is not None:
+    if nueva and initial is not None:
         signal.set(initial)
     return signal
 

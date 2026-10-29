@@ -58,6 +58,7 @@ from .simple import (  # API compacta (minúsculas, ventana implícita)
     alias_names, column, current_app, row, snake_case, state, subtitle, title, toast,
     view, window,
 )
+from .forms import ModelForm  # formularios a partir de un modelo
 
 __all__ = [
     "App", "Component", "Fragment", "RenderContext", "UIEvent", "Attachment",
@@ -74,6 +75,7 @@ __all__ = [
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names", "updates",
+    "ModelForm",
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",
     "AspectRatio", "ScrollArea", "Grid", "Screen",
     *_controls_all,

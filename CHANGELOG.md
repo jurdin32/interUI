@@ -19,9 +19,24 @@ etiqueta como `vX.Y.Z`.
   ([`docs/comandos.md`](docs/comandos.md)) y de configuración
   ([`docs/configuracion.md`](docs/configuracion.md)). Una prueba comprueba que
   los enlaces y las anclas de toda la documentación existen.
+- **Formularios por modelo**: `ui.ModelForm` genera el alta completa de un
+  modelo (un control por campo, etiquetas, obligatorios, `unique`, guardado en la
+  base de datos y repintado de la página). Se declara como clase en el
+  `forms.py` de cada app y la vista solo lo coloca:
+  `VentaForm(ui.ModelForm)` con `model`, `fields`, `title`, `submit_label`,
+  `exclude`, `prefix` y `on_saved`. El atajo `ui.ModelForm(Modelo)` crea uno sin
+  declarar clase. Documentado en [`docs/formularios.md`](docs/formularios.md).
+- **`ui.state()` funciona dentro de las vistas** de un proyecto: la señal se
+  crea en la app activa, no en la app implícita de la API compacta, así que
+  conserva lo que escribe el usuario entre repintados. Sin `name`, la señal se
+  identifica por el lugar del código donde se llama (archivo, función, línea e
+  instrucción), de modo que dos `state()` distintos nunca comparten clave y el
+  mismo `state()` siempre devuelve la misma señal.
 - **`iui startapp <app>`** (también `python iui.py startapp <app>`): crea una app
-  dentro del proyecto con `models.py`, `views.py`, `urls.py` y `README.md`, la
-  apunta en `apps` de `interui.json` y añade su `models.py` a las migraciones.
+  dentro del proyecto con `models.py`, `forms.py`, `views.py`, `urls.py` y
+  `README.md` **listos para usar** (formulario de alta, aviso si falta la base de
+  datos y tabla con lo guardado), la apunta en `apps` de `interui.json` y añade
+  su `models.py` a las migraciones.
   Sus rutas se registran solas (`App.from_config()` importa `<app>/urls.py`), sin
   registrar nada a mano; un solo `migrate` pone al día todas las apps.
   `Config.model_paths()`, `Config.installed_apps()` y `migrations.models` aceptan
@@ -43,6 +58,8 @@ etiqueta como `vX.Y.Z`.
   contenedor con `overflow` los oculta.
 - **`AppShell(collapsible=False)`**: el sidebar se queda siempre visible aunque
   la ventana sea estrecha (antes pasaba siempre a panel deslizante).
+- **`ValidationSummary` ya muestra su título**: el texto de `title=` se pintaba
+  vacío porque el componente base se quedaba con el atributo.
 
 ### Cambiado
 
