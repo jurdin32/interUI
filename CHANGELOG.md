@@ -13,6 +13,11 @@ etiqueta como `vX.Y.Z`.
   (`interui[desktop] @ git+https://…`); ahora es `interui[desktop]>=0.5.1`.
 - La documentación deja de presentar la instalación desde GitHub como la vía
   normal (`README`, `docs/publicar.md`, `docs/actualizar.md`, `docs/guia.md`).
+- **Fuera las menciones a Tailwind** del resumen del paquete (lo que se ve en
+  PyPI), del `README`, de la documentación, de los ejemplos, de las ayudas del
+  CLI y de los docstrings: ahora se habla de «CSS», «utilidades CSS» y «el
+  compilador de CSS». En `frontend/` sigue el compilador real, que es
+  herramienta de desarrollo y no se publica en el wheel.
 
 ## [0.5.0] — 2026-10-29, publicado en PyPI
 

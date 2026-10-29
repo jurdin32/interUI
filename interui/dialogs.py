@@ -357,7 +357,7 @@ class Dialog(Component):
             box(badge)
         if self.dialog_title:
             # El título se compone aquí para que `title_font`/`header_color`
-            # manden de verdad (sin mezclar dos tamaños/colores de Tailwind).
+            # manden de verdad (sin mezclar dos tamaños ni dos colores CSS).
             titulo_color, titulo_estilo = paint("color", self.header_color)
             title = _Tag(
                 "h2",

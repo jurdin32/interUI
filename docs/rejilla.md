@@ -1,8 +1,8 @@
 # Guía de la rejilla
 
 `interui` incluye una rejilla de **12 columnas responsive** construida con las
-utilidades de Tailwind (`grid-cols-12`, `col-span-*`, `md:col-span-*`…). No hay
-CSS propio: todo son clases que Tailwind compila, así que puedes mezclar la
+utilidades de CSS (`grid-cols-12`, `col-span-*`, `md:col-span-*`…). No hay
+CSS propio: todo son clases que el compilador genera, así que puedes mezclar la
 rejilla con cualquier utilidad.
 
 ## Conceptos
@@ -12,7 +12,7 @@ rejilla con cualquier utilidad.
 | `Row` | `grid grid-cols-12` | Contenedor de columnas. |
 | `Col` | `col-span-*` + variantes | Ancho de cada columna por breakpoint. |
 | `Container` | `mx-auto max-w-*` + padding | Centra y limita el ancho del contenido. |
-| `Grid` | `grid grid-cols-N` | Rejilla nativa de Tailwind (filas homogéneas). |
+| `Grid` | `grid grid-cols-N` | Rejilla nativa de CSS (filas homogéneas). |
 | `Stack` | `flex flex-col/row` | Apilado con separación (no es rejilla). |
 
 ## Breakpoints
@@ -127,5 +127,5 @@ ui.Col(span=12, md=6, class_="md:col-span-4")   # md:col-span-4 sustituye a md:c
 - **Olvidar `min-w-0` en columnas con textos largos**: `Col` ya lo incluye; si usas
   un `div` propio, añádelo para permitir el truncado.
 - **Contenedores anidados sin `w-full`**: `Row` ya es `w-full`.
-- **Esperar 12 columnas dentro de `Grid`**: `Grid` es la rejilla nativa de Tailwind
+- **Esperar 12 columnas dentro de `Grid`**: `Grid` es la rejilla nativa de CSS
   (`grid-cols-N`), no la de 12.

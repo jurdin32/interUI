@@ -256,7 +256,7 @@ def section_forms() -> ui.Component:
                     ui.Col(span=12, md=6)(ui.Dropzone(label="Suelta archivos aquí")),
                 ),
                 ui.Divider("etiquetas"),
-                ui.TagInput(["python", "tailwind"], label="Etiquetas"),
+                ui.TagInput(["python"], label="Etiquetas"),
             )
         ),
     )
@@ -533,7 +533,7 @@ def section_overlays() -> ui.Component:
                 ui.Accordion(
                     [
                         ("¿Qué es interui?", ui.Text("Un framework declarativo de UI.")),
-                        ("¿Necesito Node?", ui.Text("Solo para recompilar Tailwind.")),
+                        ("¿Necesito Node?", ui.Text("Solo para recompilar CSS.")),
                         ("¿Funciona sin internet?", ui.Text("Sí, todo es local.")),
                     ]
                 ),
@@ -769,7 +769,7 @@ def index() -> ui.Component:
         ui.Navbar(
             ui.Stack(
                 ui.Badge("0.1.0", variant=ui.variant.primary),
-                ui.Text("Python · HTML · Tailwind · JS", size=ui.size.sm, tone=ui.tone.muted),
+                ui.Text("Python · HTML · CSS · JS", size=ui.size.sm, tone=ui.tone.muted),
                 ui.Button("Tema", variant=ui.variant.outline, size=ui.size.sm, icon=ui.icons.moon, on_click=toggle_theme),
                 direction="row",
                 align="center",

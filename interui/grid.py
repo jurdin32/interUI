@@ -1,7 +1,7 @@
-"""Sistema de rejilla de 12 columnas sobre Tailwind CSS.
+"""Sistema de rejilla de 12 columnas sobre CSS.
 
 La rejilla es *responsive*: cada ``Col`` declara cuántas columnas ocupa en cada
-breakpoint y Tailwind genera las utilidades ``sm:col-span-6``, ``lg:col-span-4``…
+breakpoint y CSS genera las utilidades ``sm:col-span-6``, ``lg:col-span-4``…
 """
 
 from __future__ import annotations
@@ -217,7 +217,7 @@ class ScrollArea(Component):
 
 
 class Grid(Component):
-    """Rejilla nativa de Tailwind (número de columnas por breakpoint)."""
+    """Rejilla nativa de CSS (número de columnas por breakpoint)."""
 
     def __init__(
         self,

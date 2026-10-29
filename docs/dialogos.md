@@ -414,7 +414,7 @@ Hay dos familias y conviene no confundirlas:
 
 | | `dialog.*` (este documento) | `app.native.*` |
 |---|---|---|
-| Aspecto | HTML + Tailwind, dentro de tu app | Ventana del sistema operativo |
+| Aspecto | HTML + CSS, dentro de tu app | Ventana del sistema operativo |
 | Uso | Avisos, formularios, confirmaciones | Abrir/guardar archivos, notificaciones |
 | Ejemplo | `dialog.input(...)` | `app.native.read_text()`, `app.native.notify()` |
 

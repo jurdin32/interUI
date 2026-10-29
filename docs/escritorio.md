@@ -154,7 +154,7 @@ Y desde HTML, sin escribir JS:
 ```python
 ui.Button("Cerrar", data={"iui-native": "close"})
 ui.Button("Pantalla completa", data={"iui-native": "fullscreen"})
-ui.Link("Documentación", href="https://tailwindcss.com", )  # se abre fuera de la app
+ui.Link("Documentación", href="https://example.com", )  # se abre fuera de la app
 ui.Button("Guardar copia", data={"iui-download": "copia.txt|contenido"})
 ```
 

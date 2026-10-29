@@ -1,6 +1,6 @@
 """Tokens visuales compartidos por todos los controles.
 
-Todas las clases son literales para que Tailwind pueda detectarlas al escanear
+Todas las clases son literales para que el compilador de CSS pueda detectarlas al escanear
 el código Python.
 """
 

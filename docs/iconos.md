@@ -5,7 +5,7 @@ interUI incluye su propio set de iconos vectoriales (trazo 24×24, `stroke-width
 igual en macOS, Windows y Linux, dentro del ejecutable empaquetado.
 
 Cada icono tiene su nombre con puntos: `icons.car`, `icons.edit`,
-`icons.chevron_down`. Los guiones de Tailwind se escriben con `_`.
+`icons.chevron_down`. Los guiones de las utilidades CSS se escriben con `_`.
 
 ```python
 import interui as ui

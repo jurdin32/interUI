@@ -100,7 +100,7 @@ así. Se leen en cualquier orden.
 | [Empaquetar en un ejecutable](escritorio.md#6-empaquetado) | `iui build`: `.app` en macOS, `.exe` en Windows, binario en Linux. |
 | [Actualizar interUI](actualizar.md) | Comprobar la versión, actualizar la instalación y el aviso dentro de la app. |
 | [Publicar el paquete](publicar.md) | Construir el wheel, probarlo en TestPyPI y publicar en PyPI. |
-| [Estilos con Tailwind](estilos.md#8-si-añades-tokens-nuevos) | Recompilar el CSS cuando añades clases nuevas (`iui assets`). |
+| [Recompilar el CSS](estilos.md#8-si-añades-tokens-nuevos) | Recompilar el CSS cuando añades clases nuevas (`iui assets`). |
 
 ---
 

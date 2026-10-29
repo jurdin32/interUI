@@ -48,7 +48,7 @@ DESCRIPTIONS: dict[str, str] = {
     "Row": "Fila de la rejilla de 12 columnas.",
     "Col": "Columna responsive (`span`, `sm`, `md`, `lg`, `xl`, `xxl`).",
     "Stack": "Apila hijos en vertical u horizontal con separación uniforme.",
-    "Grid": "Rejilla nativa de Tailwind (columnas por breakpoint).",
+    "Grid": "Rejilla nativa de CSS (columnas por breakpoint).",
     "Center": "Centra el contenido en ambos ejes.",
     "Spacer": "Empuja el contenido en un flexbox.",
     "Divider": "Separador con etiqueta opcional.",
@@ -293,7 +293,7 @@ SNIPPETS: dict[str, str] = {
     "CodeBlock": 'ui.CodeBlock("print(\'hola\')", language="python", filename="demo.py")',
     "Kbd": 'ui.Stack(ui.Kbd("Ctrl"), ui.Kbd("K"), direction="row", gap=1)',
     "Label": 'ui.Label("Correo electrónico", for_="campo", required=True)',
-    "Link": 'ui.Link("Documentación", href="https://tailwindcss.com")',
+    "Link": 'ui.Link("Documentación", href="https://example.com")',
     "Badge": 'ui.Badge("nuevo", variant=ui.variant.success, dot=True)',
     "Chip": 'ui.Chip("python", variant=ui.variant.primary)',
     "Blockquote": 'ui.Blockquote("La simplicidad es la máxima sofisticación.", cite="Leonardo")',
@@ -357,7 +357,7 @@ SNIPPETS: dict[str, str] = {
     "SegmentedControl": 'ui.SegmentedControl([("d", "Día"), ("s", "Semana")], value="s", label="Vista")',
     "ToggleGroup": 'ui.ToggleGroup([("b", "Negrita"), ("i", "Cursiva")], values=["b"])',
     "Rating": 'ui.Rating(4, label="Valoración", on_change=lambda e: None)',
-    "TagInput": 'ui.TagInput(["python", "tailwind"], label="Etiquetas")',
+    "TagInput": 'ui.TagInput(["python"], label="Etiquetas")',
     "OtpInput": 'ui.OtpInput(6, label="Código de verificación")',
     "ColorInput": 'ui.ColorInput("#4f46e5", label="Color de marca")',
     "FileInput": 'ui.FileInput(label="Adjuntar", accept=".pdf,.txt", multiple=True)',
@@ -635,7 +635,7 @@ ui.Card(title="Hola", bg=ui.colors.white, rounded=ui.radius.xxl, shadow=ui.shado
 | `rounded`, `shadow`, `font` | token | `ui.radius.lg`, `ui.shadow.md`, `ui.font.sm.medium`. |
 | `variant`, `tone`, `size`, `layer`, `side` | token | `ui.variant.primary`, `ui.tone.danger`, `ui.size.lg`. |
 | `icon` | token | `ui.icons.check` (los 204 iconos, ver [iconos](iconos.md)). |
-| `class_` | `str` | Escape: clases Tailwind extra; sustituyen a las del control cuando chocan. |
+| `class_` | `str` | Escape: clases CSS extra; sustituyen a las del control cuando chocan. |
 | `id` | `str` | Identificador estable (por defecto se genera por posición). |
 | `key` | `Any` | Sufijo estable del `id` dentro de listas. |
 | `visible` / `when` | `bool` / `callable` | No renderiza el control. |
@@ -693,7 +693,7 @@ interUI incluye su propio set de iconos vectoriales (trazo 24×24, `stroke-width
 igual en macOS, Windows y Linux, dentro del ejecutable empaquetado.
 
 Cada icono tiene su nombre con puntos: `icons.car`, `icons.edit`,
-`icons.chevron_down`. Los guiones de Tailwind se escriben con `_`.
+`icons.chevron_down`. Los guiones de las utilidades CSS se escriben con `_`.
 
 ```python
 import interui as ui

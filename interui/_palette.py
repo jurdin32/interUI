@@ -1,11 +1,11 @@
-"""Valores CSS de la paleta de Tailwind v4.
+"""Valores CSS de la paleta de colores (oklch).
 
 Se usa para resolver ``colors.red_500`` y los degradados a valores CSS reales
 cuando no basta con una clase (por ejemplo ``background-image`` con un
 ``linear-gradient``). Los valores son ``oklch()``, el espacio de color nativo de
-Tailwind v4, soportado por WebKit, WebView2 y WebKitGTK.
+La notación oklch está soportada por WebKit, WebView2 y WebKitGTK.
 
-Archivo generado desde ``frontend/node_modules/tailwindcss/theme.css``.
+Archivo generado desde ``frontend/node_modules/csscss/theme.css``.
 """
 
 from __future__ import annotations

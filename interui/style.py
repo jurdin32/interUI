@@ -1,4 +1,4 @@
-"""Mezcla inteligente de clases Tailwind.
+"""Mezcla inteligente de clases CSS.
 
 ``tw()`` resuelve conflictos de utilidades (``p-2`` + ``p-6`` -> ``p-6``) para que
 puedas sobreescribir el estilo de cualquier control pasando ``class_="..."``
@@ -94,7 +94,7 @@ def _is_length(value: str) -> bool:
 
 
 def _utility_key(util: str) -> str:
-    """Devuelve la clave de conflicto de una utilidad Tailwind."""
+    """Devuelve la clave de conflicto de una utilidad CSS."""
     if util in _DISPLAY:
         return "display"
     if util == "sr-only":
@@ -252,7 +252,7 @@ def _key(util: str) -> str:
 
 
 def tw(*classes: Any) -> str:
-    """Combina clases Tailwind; la última aparición de cada utilidad gana."""
+    """Combina clases CSS; la última aparición de cada utilidad gana."""
     collected: list[str] = []
     for item in classes:
         if not item:

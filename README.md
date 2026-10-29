@@ -1,11 +1,11 @@
 # interUI
 
-**Framework para crear aplicaciones de escritorio en Python con HTML, Tailwind CSS y JavaScript.**
+**Framework para crear aplicaciones de escritorio en Python con HTML, CSS y JavaScript.**
 
 No es un framework web: cada app se abre en una **ventana nativa** del sistema
 operativo (WebKit en macOS, WebView2 en Windows, WebKitGTK en Linux) sin barra de
 direcciones, sin navegador y sin conexión a internet. El HTML se genera en Python,
-Tailwind lo compila Vite, y JavaScript solo transporta eventos.
+CSS lo compila Vite, y JavaScript solo transporta eventos.
 
 ```python
 from interui import window, text, button, state
@@ -106,7 +106,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 - [CLI](#cli)
 - [Empaquetado en ejecutable](#empaquetado-en-ejecutable)
 - [Publicar en PyPI](#publicar-en-pypi)
-- [Estilos con Tailwind y Vite](#estilos-con-tailwind-y-vite)
+- [Estilos con CSS y Vite](#estilos-con-css-y-vite)
 - [Arquitectura](#arquitectura)
 - [Pruebas](#pruebas)
 - [Solución de problemas](#solución-de-problemas)
@@ -127,7 +127,7 @@ o `INTERUI_NO_UPDATE_CHECK=1`.
 | Canal en vivo (WebSocket propio, sin dependencias) | ✅ estable |
 | Ventana nativa + puente al sistema operativo | ✅ estable |
 | CLI (`run`, `new`, `build`, `doctor`, `assets`) | ✅ estable |
-| Tematización Tailwind vía Vite | ✅ estable |
+| Tematización CSS vía Vite | ✅ estable |
 | Distribución multiplataforma | ✅ macOS · Windows · Linux |
 
 ---
@@ -169,7 +169,7 @@ Notas de compatibilidad garantizadas por el framework:
 - **Sin consola**: en ejecutables de Windows (`--windowed`) `stdout` no existe;
   los mensajes van a `<data_dir>/interui.log` automáticamente.
 - **Alta densidad de píxeles, zoom y temas claro/oscuro** gestionados por el motor
-  del sistema y Tailwind.
+  del sistema y CSS.
 
 ---
 
@@ -198,7 +198,7 @@ En `requirements.txt` (o `pyproject.toml`, `uv.lock`…):
 interui[desktop] >= 0.5.1
 ```
 
-El wheel trae el CSS de Tailwind compilado y el runtime JS: **no necesitas
+El wheel trae el CSS de CSS compilado y el runtime JS: **no necesitas
 Node.js ni internet** para usar el framework.
 
 > ¿Quieres la versión en desarrollo (el `main` del repositorio)? Clónalo y
@@ -376,7 +376,7 @@ SQLite (`python main.py` dentro de esa carpeta).
 
 ```
 ┌──────────────────────── ventana nativa (WebKit / WebView2 / WebKitGTK) ────────────────────────┐
-│  HTML + Tailwind renderizado                          JS runtime (interui.js)                  │
+│  HTML + CSS renderizado                          JS runtime (interui.js)                  │
 │  ┌──────────────────────────┐   eventos (click, input, submit…) por WebSocket   ┌────────────┐  │
 │  │  <div id="iui-root">     │ ─────────────────────────────────────────────────▶ │  Python    │  │
 │  │   controles de interui   │ ◀───────────────────────────────────────────────── │ handlers   │  │
@@ -389,7 +389,7 @@ SQLite (`python main.py` dentro de esa carpeta).
 ```
 
 1. `@app.page("/")` registra una vista que devuelve un árbol de componentes.
-2. Al abrir la ventana, Python renderiza ese árbol a HTML con clases Tailwind.
+2. Al abrir la ventana, Python renderiza ese árbol a HTML con clases CSS.
 3. Cada control con handler recibe un `id` estable y se registra en el servidor.
 4. Un clic viaja por WebSocket, se ejecuta el handler **en Python** y la vista se
    vuelve a renderizar; el cliente aplica solo los cambios (sin recargar).
@@ -437,7 +437,7 @@ ui.Row(
 | `2xl` | 1536 px | `xxl=1` |
 
 También existen `offset` (desplazamiento), `order`, `Row(dense=True)` y la rejilla
-nativa de Tailwind con `ui.Grid(cols=1, md=2, lg=4)`.
+nativa de CSS con `ui.Grid(cols=1, md=2, lg=4)`.
 
 👉 Guía completa con patrones de dashboard, formularios y tarjetas:
 [`docs/rejilla.md`](docs/rejilla.md).
@@ -585,13 +585,13 @@ Card(
 
 Esto genera `bg-white border border-slate-200 p-6 rounded-2xl shadow-md
 hover:bg-slate-50 dark:bg-slate-900 md:p-8` y `text-lg font-semibold
-text-slate-700`: exactamente lo que escribirías en Tailwind, pero sin escribirlo.
+text-slate-700`: exactamente lo que escribirías en CSS, pero sin escribirlo.
 
 - **Espacios de nombres**: `colors`, `pad`, `margin`, `gap`, `radius`, `shadow`,
   `border`, `font`, `width`, `height`, `opacity` y `flex`.
 - **Variantes con prefijo**: `hover_bg`, `focus_ring`, `active_bg`, `dark_bg`,
   `md_pad`, `md_hover_bg`… (el punto de ruptura va primero).
-- **Valores exactos** cuando Tailwind no llega: `colors.hex("#0f172a")`,
+- **Valores exactos** cuando CSS no llega: `colors.hex("#0f172a")`,
   `colors.rgb(34, 211, 238)`, `gradient.br(colors.fuchsia_500,
   colors.indigo_500)` o `pad.py("18px")`. Se emiten como CSS en línea, así que
   funcionan sin recompilar nada.
@@ -732,7 +732,7 @@ ui.Tabs(
 ui.Modal(ui.Text("Contenido"), dialog_id="alta", title="Nueva ficha").trigger("Abrir")
 ```
 
-Cualquier control acepta `class_` para ajustar Tailwind; `tw()` resuelve los
+Cualquier control acepta `class_` para ajustar CSS; `tw()` resuelve los
 conflictos (gana la última clase), sin peleas de especificidad:
 
 ```python
@@ -831,7 +831,7 @@ dialog.custom(                                    # 100 % personalizable
 | `dialog.custom(*children, buttons=…)` | Ventana a medida con tu propio contenido. |
 | `dialog.close()` / `app.close_all_dialogs()` | Cerrar. |
 
-Son HTML + Tailwind dentro de tu ventana (no diálogos del sistema), con
+Son HTML + CSS dentro de tu ventana (no diálogos del sistema), con
 `role="dialog"`, foco, `Escape`, cierre por fondo y animación. No bloquean: la
 respuesta llega a tu handler.
 
@@ -1070,8 +1070,8 @@ iui new mi_app                  # un solo archivo, sin base de datos
 iui init mi_app                 # asistente: interui.json + base de datos
 iui db makemigrations           # migraciones (también `iui db migrate|status`)
 iui doctor                      # comprueba el entorno
-iui assets                      # recompila Tailwind (Vite)
-iui dev                         # Tailwind en modo watch
+iui assets                      # recompila CSS (Vite)
+iui dev                         # CSS en modo watch
 iui build app.py --name MiApp
 ```
 
@@ -1157,10 +1157,10 @@ git push origin v0.5.1
 
 ---
 
-## Estilos con Tailwind y Vite
+## Estilos con CSS y Vite
 
-El CSS se genera con la configuración oficial de Tailwind v4 sobre Vite
-([guía de instalación](https://tailwindcss.com/docs/installation/using-vite)) en
+El CSS se genera con el compilador de utilidades sobre Vite
+([guía de instalación](https://example.com/docs/installation/using-vite)) en
 [`frontend/`](frontend):
 
 ```
@@ -1195,7 +1195,7 @@ interui/
 ├── base.py        # Component: árbol declarativo → HTML
 ├── grid.py        # rejilla de 12 columnas
 ├── controls/      # catálogo de controles (11 módulos)
-├── style.py       # tw(): resolución de conflictos Tailwind
+├── style.py       # tw(): resolución de conflictos CSS
 ├── html.py        # escapado y serialización segura
 ├── events.py      # UIEvent, Attachment, invocación de handlers
 ├── state.py       # Signal
@@ -1225,7 +1225,7 @@ Decisiones de diseño:
 ./venv/bin/python -m pytest -q
 ```
 
-Cubren render y escapado, resolución de clases Tailwind, rejilla, eventos,
+Cubren render y escapado, resolución de clases CSS, rejilla, eventos,
 protocolo WebSocket, servidor HTTP, capa de escritorio, ramas por sistema
 operativo, registro sin consola y verificaciones estructurales (clases o métodos
 duplicados, catálogo exportado).

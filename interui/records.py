@@ -934,7 +934,7 @@ class RecordPage(Component):
         # -- franja: título, contador y botón «Nuevo» --------------------
         centrado = self.title_align == "center"
         # El título se construye aquí (no con `Heading`) para que `title_font` y
-        # `title_color` manden de verdad: las utilidades de Tailwind no se pisan
+        # `title_color` manden de verdad: las utilidades de CSS no se pisan
         # por orden de escritura, así que no se mezclan dos tamaños ni dos colores.
         titulo_color, titulo_estilo = paint("color", self.title_color)
         titulo_clases = tw(

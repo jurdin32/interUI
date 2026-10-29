@@ -104,7 +104,7 @@ def _register_installed_apps(application: "App", names: list[str]) -> None:
 
 
 class App:
-    """Aplicación de escritorio/navegador basada en HTML + Tailwind."""
+    """Aplicación de escritorio/navegador basada en HTML + CSS."""
 
     def __init__(
         self,

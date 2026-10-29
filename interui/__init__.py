@@ -1,4 +1,4 @@
-"""interui · interfaces gráficas de Python con HTML, Tailwind y JS.
+"""interui · interfaces gráficas de Python con HTML, CSS y JS.
 
 .. code-block:: python
 

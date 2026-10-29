@@ -36,9 +36,9 @@ def test_context_item_es_un_menu_item() -> None:
 
 
 def test_menu_item_con_href_es_un_enlace() -> None:
-    html = render(ui.MenuItem("Documentación", href="https://tailwindcss.com"))
+    html = render(ui.MenuItem("Documentación", href="https://example.com"))
     assert "<a" in html
-    assert 'href="https://tailwindcss.com"' in html
+    assert 'href="https://example.com"' in html
 
 
 # --- MenuBar ------------------------------------------------------------------

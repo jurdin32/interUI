@@ -66,7 +66,7 @@ def index():
             Stack(
                 Heading("Ventana de escritorio nativa", level=1),
                 Muted(
-                    "Esta ventana la pinta el sistema (WebKit/WebView2). El HTML y Tailwind "
+                    "Esta ventana la pinta el sistema (WebKit/WebView2). El HTML y CSS "
                     "se generan en Python y se sirven desde un proceso local que muere al cerrar."
                 ),
                 Alert(
@@ -108,7 +108,7 @@ def index():
                         "Documentación",
                         icon=icons.external,
                         variant=variant.ghost,
-                        on_click=lambda: app.native.open_external("https://tailwindcss.com/docs"),
+                        on_click=lambda: app.native.open_external("https://example.com/docs"),
                     ),
                     Button("Cerrar ventana", icon=icons.power, variant=variant.danger,
                            on_click=app.native.close),

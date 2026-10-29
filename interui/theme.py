@@ -1,6 +1,6 @@
 """Estilos con notación de punto: ``bg=colors.red_500``, ``pad=pad.py_6``.
 
-El framework habla Tailwind por debajo, pero no hace falta escribir clases a mano.
+El framework habla CSS por debajo, pero no hace falta escribir clases a mano.
 Cada utilidad tiene un nombre con puntos y el valor se asigna con ``=``:
 
 .. code-block:: python
@@ -26,10 +26,10 @@ Hay tres reglas y no más:
 * **todo admite un prefijo de variante**: ``hover_bg``, ``dark_pad``,
   ``md_font`` o combinados como ``md_hover_bg``.
 
-Los guiones de Tailwind se escriben con ``_`` porque Python no admite ``-`` en un
+Los guiones de las utilidades CSS se escriben con ``_`` porque Python no admite ``-`` en un
 nombre; ``pad.py_6`` se lee igual que ``py-6``.
 
-Cuando hace falta un valor que Tailwind no tiene (un hexadecimal, un degradado,
+Cuando hace falta un valor que no está en las utilidades CSS (un hexadecimal, un degradado,
 una medida exacta) se usa el mismo ``=`` con un valor literal:
 
 .. code-block:: python
@@ -109,7 +109,7 @@ class CssColor(str):
 
 
 class Token(str):
-    """Utilidad de Tailwind ya completa, por ejemplo ``rounded-xl``.
+    """Utilidad de CSS ya completa, por ejemplo ``rounded-xl``.
 
     Se pueden encadenar para juntar varias utilidades del mismo grupo:
     ``font.lg.semibold`` equivale a ``text-lg font-semibold``.
@@ -219,7 +219,7 @@ _HEX_RE = re.compile(r"#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})")
 
 
 class _Colors(_Namespace):
-    """Paleta de Tailwind con nombres con puntos: ``colors.red_500``."""
+    """Paleta de CSS con nombres con puntos: ``colors.red_500``."""
 
     def hex(self, value: str) -> CssColor:
         """Color hexadecimal: ``colors.hex("#22d3ee")`` o ``colors.hex("22d3ee")``."""
@@ -340,7 +340,7 @@ gradient = _Gradients()
 # espaciado (padding / margin / gap)
 # ---------------------------------------------------------------------------
 # Pasos que existen en la hoja compilada; el resto se emite como CSS en línea
-# con `calc()`, igual que haría Tailwind, para que no haya valores muertos.
+# con `calc()`, igual que haría el compilador de CSS, para que no haya valores muertos.
 _SAFE_STEPS = frozenset({0.5, 1.5, 2.5, 3.5, *range(0, 33)})
 
 
@@ -797,7 +797,7 @@ def _declarations(css: Css) -> dict[str, str]:
 
 
 def _style_for(prop: str, value: Any) -> tuple[list[str], dict[str, str]]:
-    """Traduce ``prop=valor`` a clases de Tailwind y/o declaraciones CSS."""
+    """Traduce ``prop=valor`` a clases de utilidad y/o declaraciones CSS."""
     if value is None:
         return [], {}
     prefix = STYLE_PROPS[prop]

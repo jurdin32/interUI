@@ -21,7 +21,7 @@ def index():
     return Screen(
         Container(size="prose", pad=pad.py_16)(
             Heading("Hola, interui", level=1),
-            Muted("Una interfaz nativa construida con HTML, Tailwind y Python."),
+            Muted("Una interfaz nativa construida con HTML, CSS y Python."),
             Card(title="Contador", description="El estado vive en Python", margin=margin.mt_6)(
                 Text(f"Valor actual: {count.get()}", size=size.lg, weight="semibold"),
                 Row(

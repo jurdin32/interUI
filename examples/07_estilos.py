@@ -108,7 +108,7 @@ def index():
                 )(
                     Text("pad=pad.py('18px') se emite como CSS en línea."),
                     Text(
-                        "Sin recompilar Tailwind y sin escribir una sola clase.",
+                        "Sin recompilar CSS y sin escribir una sola clase.",
                         font=font.sm,
                         color=colors.slate_500,
                         margin=margin.t_2,

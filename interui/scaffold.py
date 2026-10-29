@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
 README = """# {name}
 
-Aplicación de escritorio creada con **interUI** (Python + Tailwind, sin navegador).
+Aplicación de escritorio creada con **interUI** (Python + HTML y CSS, sin navegador).
 
 ## Arrancar
 

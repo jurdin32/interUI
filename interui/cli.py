@@ -544,7 +544,7 @@ def cmd_doctor(_args: argparse.Namespace) -> int:
         ("Backend de ventana", str(info["backend"] or "—"), bool(info["backend"])),
         ("CSS compilado", f"{css.stat().st_size // 1024} kB" if css.exists() else "falta (npm run build)", css.exists()),
         ("Runtime JS", f"{js.stat().st_size // 1024} kB" if js.exists() else "falta", js.exists()),
-        ("Node.js", node or "no instalado (solo necesario para recompilar Tailwind)", True),
+        ("Node.js", node or "no instalado (solo necesario para recompilar CSS)", True),
         ("npm", npm or "no instalado", True),
         ("PyInstaller", shutil.which("pyinstaller") or "no instalado (necesario para `interui build`)", True),
     ]
@@ -563,11 +563,11 @@ def cmd_assets(_args: argparse.Namespace) -> int:
     if frontend is None:
         raise SystemExit("interui: no se encontró el directorio frontend/ con package.json")
     if shutil.which("npm") is None:
-        raise SystemExit("interui: npm no está instalado; instala Node.js para recompilar Tailwind")
+        raise SystemExit("interui: npm no está instalado; instala Node.js para recompilar CSS")
     if not (frontend / "node_modules").is_dir():
         print("[interui] instalando dependencias de frontend…")
         subprocess.run(["npm", "install"], cwd=frontend, check=True)
-    print("[interui] compilando Tailwind con Vite…")
+    print("[interui] compilando CSS con Vite…")
     subprocess.run(["npm", "run", "build"], cwd=frontend, check=True)
     css = STATIC_DIR / "app.css"
     print(f"[interui] app.css -> {css} ({css.stat().st_size // 1024} kB)")
@@ -644,7 +644,7 @@ def build_parser() -> argparse.ArgumentParser:
     invoked = Path(sys.argv[0]).name if sys.argv and sys.argv[0] else "interui"
     parser = argparse.ArgumentParser(
         prog="iui" if invoked.startswith("iui") else "interui",
-        description="Aplicaciones de escritorio en Python con HTML, Tailwind y JS.",
+        description="Aplicaciones de escritorio en Python con HTML, CSS y JS.",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -759,8 +759,8 @@ def build_parser() -> argparse.ArgumentParser:
     update.set_defaults(func=cmd_update)
 
     sub.add_parser("doctor", help="comprueba el entorno").set_defaults(func=cmd_doctor)
-    sub.add_parser("assets", help="recompila Tailwind (Vite)").set_defaults(func=cmd_assets)
-    sub.add_parser("dev", help="Tailwind en modo watch").set_defaults(func=cmd_dev)
+    sub.add_parser("assets", help="recompila CSS (Vite)").set_defaults(func=cmd_assets)
+    sub.add_parser("dev", help="CSS en modo watch").set_defaults(func=cmd_dev)
     return parser
 
 

@@ -72,7 +72,7 @@ interui-0.5.1-py3-none-any.whl          (≈ 265 kB)
 ├── interui/                 # 39 módulos: controles, servidor, escritorio,
 │                            #   tokens de estilo, ORM, config y migraciones
 ├── interui/static/
-│   ├── app.css              # Tailwind precompilado (≈ 668 kB)
+│   ├── app.css              # CSS precompilado (≈ 668 kB)
 │   ├── interui.js           # runtime del cliente (≈ 37 kB)
 │   ├── shell.html
 │   └── favicon.svg
@@ -83,7 +83,7 @@ interui-0.5.1-py3-none-any.whl          (≈ 265 kB)
 
 El CSS y el JS **viajan dentro del wheel**, así que quien instala no necesita
 Node.js, npm ni conexión a internet. Node solo hace falta si quieres
-**recompilar** Tailwind tras cambiar la paleta.
+**recompilar** CSS tras cambiar la paleta.
 
 Comprobación tras instalar:
 

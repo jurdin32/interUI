@@ -284,7 +284,7 @@ AZUL = ui.colors.hex("#876005")
 def test_card_cabecera_con_color_literal() -> None:
     html = _html(ui.Card("x", title="Hola", header_bg=AZUL, header_color=ui.colors.white))
     assert "background-color: #876005" in html
-    assert "bg-#876005" not in html, "no debe inventarse una clase de Tailwind"
+    assert "bg-#876005" not in html, "no debe inventarse una clase de CSS"
 
 
 def test_card_pie_con_color_literal() -> None:

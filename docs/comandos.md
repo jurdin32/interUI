@@ -32,8 +32,8 @@ algo falló, así que se pueden encadenar en scripts.
 | [`build`](#build) | empaqueta un ejecutable autónomo. |
 | [`doctor`](#doctor) | comprueba el entorno. |
 | [`update`](#update) | busca versiones nuevas de interUI. |
-| [`assets`](#assets-y-dev) | recompila Tailwind. |
-| [`dev`](#assets-y-dev) | Tailwind en modo *watch*. |
+| [`assets`](#assets-y-dev) | recompila CSS. |
+| [`dev`](#assets-y-dev) | CSS en modo *watch*. |
 
 ---
 
@@ -289,7 +289,7 @@ La app también avisa sola al arrancar, en segundo plano. Se desactiva con
 
 ## `assets` y `dev`
 
-Solo hacen falta si tocas la parte visual (paleta, clases nuevas de Tailwind):
+Solo hacen falta si tocas la parte visual (paleta, clases nuevas de CSS):
 
 ```bash
 iui assets    # recompila interui/static/app.css una vez

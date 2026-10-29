@@ -28,7 +28,7 @@ ui.Card(title="Hola", bg=ui.colors.white, rounded=ui.radius.xxl, shadow=ui.shado
 | `rounded`, `shadow`, `font` | token | `ui.radius.lg`, `ui.shadow.md`, `ui.font.sm.medium`. |
 | `variant`, `tone`, `size`, `layer`, `side` | token | `ui.variant.primary`, `ui.tone.danger`, `ui.size.lg`. |
 | `icon` | token | `ui.icons.check` (los 204 iconos, ver [iconos](iconos.md)). |
-| `class_` | `str` | Escape: clases Tailwind extra; sustituyen a las del control cuando chocan. |
+| `class_` | `str` | Escape: clases CSS extra; sustituyen a las del control cuando chocan. |
 | `id` | `str` | Identificador estable (por defecto se genera por posición). |
 | `key` | `Any` | Sufijo estable del `id` dentro de listas. |
 | `visible` / `when` | `bool` / `callable` | No renderiza el control. |
@@ -131,7 +131,7 @@ ui.Divider("o")
 
 Alias en minúsculas: `ui.grid`
 
-Rejilla nativa de Tailwind (columnas por breakpoint).
+Rejilla nativa de CSS (columnas por breakpoint).
 
 ```text
 ui.Grid(*children, cols=1, sm=None, md=None, lg=None, xl=None, gap=4)
@@ -373,7 +373,7 @@ ui.Link(*children, href="#", external=False)
 ```
 
 ```python
-ui.Link("Documentación", href="https://tailwindcss.com")
+ui.Link("Documentación", href="https://example.com")
 ```
 
 ### `ui.Mark`
@@ -1021,7 +1021,7 @@ ui.TagInput(tags=None, label=None, placeholder="Añadir y pulsar Enter", on_add=
 ```
 
 ```python
-ui.TagInput(["python", "tailwind"], label="Etiquetas")
+ui.TagInput(["python"], label="Etiquetas")
 ```
 
 ### `ui.TextInput`

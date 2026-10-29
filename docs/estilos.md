@@ -1,6 +1,6 @@
 # Estilos: notación de punto, sin clases a mano
 
-interUI genera Tailwind por debajo, pero **no escribes clases**. Cada argumento
+interUI genera CSS de utilidades por debajo, pero **no escribes clases**. Cada argumento
 dice *qué* se cambia y cada token dice *cuánto*:
 
 ```python
@@ -28,7 +28,7 @@ Card(class_="bg-white border border-slate-200 p-6 rounded-2xl shadow-md")(
 Son exactamente lo mismo: los tokens se compilan a esas clases.
 
 > **¿Por qué `py_6` y no `py-6`?** Python no admite `-` en un nombre, así que el
-> guion de Tailwind se escribe con `_`. `pad.py_6` se lee igual que `py-6`.
+> guion de las utilidades CSS se escribe con `_`. `pad.py_6` se lee igual que `py-6`.
 
 ---
 
@@ -80,7 +80,7 @@ Card(pad=6, rounded="xl", shadow="md", w="full", opacity=50)
 
 ### Colores — `colors`
 
-Los 22 colores de Tailwind con sus 11 tonos, más los básicos y una paleta con
+Los 22 colores de CSS con sus 11 tonos, más los básicos y una paleta con
 significado:
 
 ```python
@@ -243,7 +243,7 @@ Variantes de estado: `hover_`, `focus_`, `active_`, `disabled_`, `dark_`,
 Puntos de ruptura: `sm_`, `md_`, `lg_`, `xl_`, `xxl_` (este último es `2xl`).
 El punto de ruptura va **primero**: `md_hover_bg`, no `hover_md_bg`.
 
-> Las variantes solo admiten utilidades de Tailwind, no valores literales: la
+> Las variantes solo admiten utilidades de CSS, no valores literales: la
 > razón es que los literales se escriben como CSS en línea y el CSS en línea no
 > tiene `:hover`. Si necesitas un hexadecimal en `hover`, usa `class_`.
 
@@ -300,7 +300,7 @@ Select([("10", "10"), ("15", "15")], width="w-16")   # 4 rem, como el pie de la 
 Input("", width="w-40", label="Código")
 ```
 
-El valor es una clase de ancho de Tailwind y **sustituye** el `w-full` del
+El valor es una clase de ancho de CSS y **sustituye** el `w-full` del
 control (no se suma a él), así que no hay que pelearse con la clase por defecto.
 
 ### Fondo: siempre el que tú digas
@@ -338,7 +338,7 @@ ui.RecordTable(MiForm(), card_options=dict(bg=ui.colors.slate_50, pad=ui.pad.p_4
 
 ## 5. Colores personalizados, degradados y medidas exactas
 
-Cuando el valor no existe en Tailwind, se pasa un valor literal. interUI lo
+Cuando el valor no existe en CSS, se pasa un valor literal. interUI lo
 emite como **CSS en línea**, así que funciona con la hoja de estilos del paquete,
 sin recompilar nada.
 
@@ -375,8 +375,8 @@ Card(pad=pad.all(13))           # p-13 (existe en la hoja compilada)
 Card(pad=pad.all(999))          # calc(var(--spacing) * 999), sin huecos
 ```
 
-Los pasos de 0 a 32 usan clases de Tailwind; cualquier otro número se resuelve
-con `calc(var(--spacing) * N)`, que es exactamente lo que generaría Tailwind.
+Los pasos de 0 a 32 usan clases de CSS; cualquier otro número se resuelve
+con `calc(var(--spacing) * N)`, que es exactamente lo que generaría el compilador de CSS.
 
 ---
 
@@ -412,7 +412,7 @@ AttributeError: colors.morado no existe. Prueba con: red_500, indigo_600, …
 
 ## 8. Si añades tokens nuevos
 
-Los tokens se combinan en tiempo de ejecución, así que Tailwind no los ve al
+Los tokens se combinan en tiempo de ejecución, así que el compilador de CSS no los ve al
 escanear el código: la combinación final tiene que estar en el safelist de
 [`frontend/src/styles.css`](../frontend/src/styles.css). Si añades un espacio de
 nombres, añade también su matriz `@source inline(...)` y recompila:

@@ -1,10 +1,10 @@
-"""Los tokens de estilo (`colors.red_500`, `pad.py_6`) se compilan a Tailwind.
+"""Los tokens de estilo (`colors.red_500`, `pad.py_6`) se compilan a clases de utilidad.
 
 Comprueba dos cosas que se rompen en silencio si nadie las vigila:
 
 * el token genera exactamente la clase (o el CSS en línea) esperado;
 * esa clase existe de verdad en `interui/static/app.css`, porque se construye en
-  tiempo de ejecución y Tailwind solo la incluye por el safelist.
+  tiempo de ejecución y el compilador solo la incluye por el safelist.
 """
 
 from __future__ import annotations

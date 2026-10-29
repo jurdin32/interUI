@@ -56,7 +56,7 @@ def alternar_tema() -> None:
 
 def acerca_de() -> None:
     dialog.info(
-        "interUI genera ventanas nativas con HTML, Tailwind y Python.",
+        "interUI genera ventanas nativas con HTML, CSS y Python.",
         title="Acerca de interUI",
         level="success",
     )

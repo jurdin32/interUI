@@ -436,7 +436,7 @@ Funciona en cualquier control con tarjeta: `ui.Card(..., header=False)`.
 Los colores admiten token (`ui.colors.slate_100`), clase escrita
 (`"bg-slate-100"`) o **cualquier valor literal**: `ui.colors.hex("#876005")`,
 `ui.colors.rgb(135, 96, 5)` o un degradado. Los literales se emiten como CSS en
-línea, así que no hace falta recompilar Tailwind:
+línea, así que no hace falta recompilar CSS:
 
 ```python
 header_bg = ui.colors.hex("#876005")
