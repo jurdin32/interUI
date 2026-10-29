@@ -8,6 +8,9 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Icono en el título de cada menú**: `MenuBar(..., icons={"Registros":
+  ui.icons.users})`, o `("Registros", items, ui.icons.users)` en la forma de
+  lista. El nombre de la app (`brand` + `logo`) mantiene su icono propio.
 - **Asistente de proyecto**: `iui startproject` sin nombre pregunta el nombre
   corto y el **nombre largo** de la ventana, la carpeta, el motor de base de
   datos (con su ruta o conexión), el tema y si crear y aplicar ya la migración
