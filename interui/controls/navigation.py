@@ -62,6 +62,13 @@ class Tabs(Component):
         uid = ctx.uid(path, self.key, self.explicit_id)
         bar: list[str] = []
         panels: list[str] = []
+        bar_cls = {
+            "pills": "inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-900",
+            "enclosed": "flex items-center gap-1 border-b border-slate-200 dark:border-slate-700",
+        }.get(
+            self.variant,
+            "flex items-center gap-5 overflow-x-auto border-b border-slate-200 dark:border-slate-800",
+        )
         for index, (key, label, content) in enumerate(self.tabs):
             selected = key == self.active
             if self.variant == "pills":
@@ -71,7 +78,6 @@ class Tabs(Component):
                        if selected
                        else "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100")
                 )
-                bar_cls = "inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-900"
             elif self.variant == "enclosed":
                 classes = (
                     "-mb-px rounded-t-lg border border-b-0 px-3 py-2 text-sm font-medium transition "
@@ -79,7 +85,6 @@ class Tabs(Component):
                        if selected
                        else "border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200")
                 )
-                bar_cls = "flex items-center gap-1 border-b border-slate-200 dark:border-slate-700"
             else:
                 classes = (
                     "-mb-px border-b-2 px-1 py-2 text-sm font-medium transition "
@@ -88,7 +93,6 @@ class Tabs(Component):
                        else "border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 "
                            "dark:text-slate-400 dark:hover:text-slate-200")
                 )
-                bar_cls = "flex items-center gap-5 overflow-x-auto border-b border-slate-200 dark:border-slate-800"
             if self.handlers.get("change"):
                 trigger = (
                     f'id="{escape(uid)}-t{index}" data-iui-emit="change" data-iui-value="{escape(key)}"'

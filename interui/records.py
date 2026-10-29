@@ -166,6 +166,24 @@ class RowAction:
             **props,
         )
 
+    def item(self, record: Any) -> Any:
+        """La misma acción como entrada de menú contextual."""
+        from .controls.shell import ContextItem
+
+        def ejecutar() -> None:
+            if self.on_click is not None:
+                self.on_click(record)
+
+        handler: Any = ejecutar
+        if self.confirm:
+            def preguntar() -> None:
+                from .dialogs import dialog
+
+                dialog.confirm(self.confirm, on_accept=ejecutar)
+
+            handler = preguntar
+        return ContextItem(self.label, icon=self.icon, danger=self.danger, on_click=handler)
+
 
 class RecordTable(Component):
     """Tabla con lo guardado, usando las columnas del formulario.
@@ -185,6 +203,18 @@ class RecordTable(Component):
         card: bool = True,
         actions: Sequence[RowAction] | None = None,
         actions_header: Any = "",
+        selectable: bool = False,
+        selected_bg: Any = None,
+        on_row_click: Any = None,
+        on_row_dblclick: Any = None,
+        context_menu: Any = None,
+        striped: bool = False,
+        header_bg: Any = None,
+        header_color: Any = None,
+        cell_colors: dict[Any, Any] | None = None,
+        column_bg: dict[Any, Any] | None = None,
+        hover_bg: Any = None,
+        zebra: Any = None,
         search: bool = False,
         search_columns: Sequence[str] | None = None,
         search_placeholder: str = "Buscar…",
@@ -200,8 +230,21 @@ class RecordTable(Component):
         self.columns = list(columns) if columns is not None else form.field_names()
         self.empty = empty
         self.card = card
-        self.actions = list(actions or ())
+        #: `actions=False` esconde la columna de botones.
+        self.actions = [] if actions is False else list(actions or ())
         self.actions_header = actions_header
+        self.selectable = bool(selectable)
+        self.selected_bg = selected_bg
+        self.on_row_click = on_row_click
+        self.on_row_dblclick = on_row_dblclick
+        self.context_menu = context_menu
+        self.striped = bool(striped)
+        self.header_bg = header_bg
+        self.header_color = header_color
+        self.cell_colors = dict(cell_colors or {})
+        self.column_bg = dict(column_bg or {})
+        self.hover_bg = hover_bg
+        self.zebra = zebra
         self.search = bool(search)
         self.search_columns = list(search_columns) if search_columns else None
         self.search_placeholder = search_placeholder
@@ -410,10 +453,61 @@ class RecordTable(Component):
                     )
                 )
 
+        seleccion = _state(None, name=self._key("seleccion")) if self.selectable else None
+
+        def clic(indice: int, _fila: Any) -> None:
+            registro = records[indice]
+            if seleccion is not None:
+                seleccion.set(registro.pk)
+            if self.on_row_click is not None:
+                self.on_row_click(registro)
+
+        def doble_clic(indice: int, _fila: Any) -> None:
+            if self.on_row_dblclick is not None:
+                self.on_row_dblclick(records[indice])
+
+        def menu(indice: int, _fila: Any) -> list[Any]:
+            registro = records[indice]
+            if callable(self.context_menu):
+                return list(self.context_menu(registro) or ())
+            return [action.item(registro) for action in self.context_menu]
+
+        resaltada = None
+        if seleccion is not None:
+            actual = seleccion.get()
+            resaltada = next(
+                (index for index, record in enumerate(records) if record.pk == actual), None
+            )
+
+        columnas_extra = self.cell_colors
+        if columnas_extra:
+            columnas_extra = {
+                (self.columns.index(clave) if clave in self.columns else clave): valor
+                for clave, valor in columnas_extra.items()
+            }
+        fondos_extra = self.column_bg
+        if fondos_extra:
+            fondos_extra = {
+                (self.columns.index(clave) if clave in self.columns else clave): valor
+                for clave, valor in fondos_extra.items()
+            }
+
         table = Table(
             headers=headers,
             rows=rows,
             empty=self.empty if total == 0 else "Ningún resultado para la búsqueda",
+            striped=self.striped,
+            zebra=self.zebra,
+            hover_bg=self.hover_bg,
+            header_bg=self.header_bg,
+            header_color=self.header_color,
+            cell_colors=columnas_extra,
+            column_bg=fondos_extra,
+            selected=resaltada,
+            selected_bg=self.selected_bg,
+            on_row_click=clic if (self.selectable or self.on_row_click) else None,
+            on_row_dblclick=doble_clic if self.on_row_dblclick else None,
+            context_menu=menu if self.context_menu else None,
         )
         contenido: list[Any] = [*controles, table, *piezas]
         if not self.card:
@@ -462,6 +556,7 @@ class RecordPage(Component):
         new_label: Any = "Nuevo",
         new_icon: str | None = "plus",
         pad_: Any = None,
+        table_options: dict[str, Any] | None = None,
         **props: Any,
     ) -> None:
         modo = str(form_mode or "inline").lower()
@@ -474,7 +569,7 @@ class RecordPage(Component):
         self.show_counter = counter
         self.show_table = table
         self.columns = list(columns) if columns is not None else None
-        self.actions = list(actions or ())
+        self.actions = [] if actions is False else list(actions or ())
         self.table_options: dict[str, Any] = {
             "search": search,
             "search_columns": search_columns,
@@ -483,6 +578,8 @@ class RecordPage(Component):
             "sort": sort,
             "sortable": sortable,
             "order_by": order_by,
+            # Aspecto e interacción de la tabla (cebra, colores, clic, menú…).
+            **(table_options or {}),
         }
         self.form_mode = modo
         self.new_label = new_label

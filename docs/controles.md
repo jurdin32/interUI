@@ -566,7 +566,7 @@ Alias en minúsculas: `ui.spinner`
 Indicador de carga animado.
 
 ```text
-ui.Spinner(size=4, class_=None)
+ui.Spinner(size=4)
 ```
 
 ```python
@@ -961,7 +961,7 @@ Alias en minúsculas: `ui.select`
 Lista desplegable.
 
 ```text
-ui.Select(options=None, value="", name=None, placeholder=None, size=size.md, label=None, help_text=None, error=None, required=False, disabled=False, multiple=False, width=None)
+ui.Select(options=None, value="", name=None, placeholder=None, size=size.md, label=None, help_text=None, error=None, required=False, disabled=False, multiple=False, width=None, icon=None)
 ```
 
 ```python
@@ -1272,7 +1272,7 @@ Alias en minúsculas: `ui.table`
 Tabla estática.
 
 ```text
-ui.Table(headers=None, rows=None, caption=None, striped=False, hover=True, compact=False, bordered=False, footer=None, align=None, empty="Sin datos")
+ui.Table(headers=None, rows=None, caption=None, striped=False, zebra=None, hover=True, hover_bg=None, compact=False, bordered=False, footer=None, align=None, empty="Sin datos", header_bg=None, header_color=None, cell_colors=None, column_bg=None, selected=None, selected_bg=None, on_row_click=None, on_row_dblclick=None, on_row_context=None, context_menu=None, context_width="12rem")
 ```
 
 ```python

@@ -320,8 +320,10 @@ class Select(Component):
         disabled: bool = False,
         multiple: bool = False,
         width: str | None = None,
+        icon: str | None = None,
         **props: Any,
     ) -> None:
+        self.icon = icon
         self.options = _options(options)
         self.value = "" if value is None else str(value)
         self.placeholder = placeholder
@@ -345,6 +347,7 @@ class Select(Component):
             field_width(width),
             INPUT_SIZES.get(size, INPUT_SIZES["md"]),
             "iui-select" if not multiple else "iui-select px-2 py-2",
+            "pl-10" if icon else "",
             INVALID if error else "",
             props.get("base_class"),
         )
@@ -368,6 +371,12 @@ class Select(Component):
         return "".join(parts)
 
     def wrap(self, html: str, ctx: RenderContext, uid: str) -> str:
+        if self.icon:
+            lead = (
+                f'<span class="{ICON_BOX} left-3">'
+                f"{Icon(self.icon, size=4).render(ctx, uid + '-i')}</span>"
+            )
+            html = f'<div class="relative">{lead}{html}</div>'
         return field_shell(
             html, uid, label=self.label, help_text=self.help_text, error=self.error,
             required=self.required,

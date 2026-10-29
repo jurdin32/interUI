@@ -257,6 +257,8 @@ class Icon(Component):
         self.class_ = class_
 
     def render(self, ctx: Any, path: str) -> str:
+        if not self._shown():
+            return ""
         paths = ICONS.get(self.name) or ICONS["help"]
         if isinstance(self.size, int):
             size_class = _SIZE.get(self.size, f"h-{self.size} w-{self.size}")

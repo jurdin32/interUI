@@ -10,6 +10,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..theme import Color, Token
 
 __all__ = [
     "Table", "DataTable", "ListGroup", "ListItem", "Tree", "TreeNode", "Timeline",
@@ -26,8 +27,56 @@ def _cell(ctx: RenderContext, value: Any, path: str) -> str:
     return escape(value)
 
 
+def _parametros(handler: Any) -> int:
+    """Cuántos argumentos posicionales obligatorios pide un handler."""
+    import inspect
+
+    try:
+        firma = inspect.signature(handler)
+    except (TypeError, ValueError):  # pragma: no cover - callables opacos
+        return 0
+    return len(
+        [
+            name
+            for name, param in firma.parameters.items()
+            if param.default is param.empty
+            and param.kind in (param.POSITIONAL_ONLY, param.POSITIONAL_OR_KEYWORD)
+        ]
+    )
+
+
+def _con_fila(handler: Any, row_index: int, row: list[Any]) -> Any:
+    """Handler de fila: recibe la fila, o ``(indice, fila)``, o nada.
+
+    Nunca recibe el evento del navegador: para eso están los handlers normales
+    del componente, que sí lo reciben.
+    """
+    total = _parametros(handler)
+    if total >= 2:
+        return lambda *args: handler(row_index, row)
+    if total == 1:
+        return lambda *args: handler(row)
+    return lambda *args: handler()
+
+
 class Table(Component):
-    """Tabla estática con estilos de cabecera, cebra y hover."""
+    """Tabla estática con estilos de cabecera, cebra y hover.
+
+    Todo el aspecto se puede cambiar sin escribir CSS: colores de encabezado,
+    cebra, hover, color por columna y fila seleccionada. También admite
+    interacción por fila (clic, doble clic y menú contextual).
+
+    ```python
+    ui.Table(
+        headers=["Nombre", "Correo"],
+        rows=[["Ana", "ana@x.com"]],
+        header_bg=ui.colors.slate_100,
+        header_color=ui.colors.slate_700,
+        striped=True,
+        on_row_dblclick=lambda indice, fila: abrir(fila),
+    )
+    ```
+    """
 
     tag = "div"
 
@@ -38,24 +87,57 @@ class Table(Component):
         *,
         caption: str | None = None,
         striped: bool = False,
+        zebra: Any = None,
         hover: bool = True,
+        hover_bg: Any = None,
         compact: bool = False,
         bordered: bool = False,
         footer: Sequence[Any] | None = None,
         align: Sequence[str] | None = None,
         empty: Any = "Sin datos",
+        header_bg: Any = None,
+        header_color: Any = None,
+        cell_colors: dict[int | str, Any] | None = None,
+        column_bg: dict[int | str, Any] | None = None,
+        selected: int | None = None,
+        selected_bg: Any = None,
+        on_row_click: Any = None,
+        on_row_dblclick: Any = None,
+        on_row_context: Any = None,
+        context_menu: Any = None,
+        context_width: str = "12rem",
         **props: Any,
     ) -> None:
         self.headers = list(headers or [])
         self.rows = [list(row) for row in (rows or [])]
         self.caption = caption
         self.striped = striped
+        self.zebra = zebra
         self.hover = hover
+        self.hover_bg = hover_bg
         self.compact = compact
         self.bordered = bordered
         self.footer = list(footer or [])
         self.align = list(align or [])
         self.empty = empty
+        self.header_bg = header_bg
+        self.header_color = header_color
+        self.cell_colors = dict(cell_colors or {})
+        self.column_bg = dict(column_bg or {})
+        self.selected = selected
+        self.selected_bg = selected_bg or "indigo-50"
+        self.on_row_click = on_row_click
+        self.on_row_dblclick = on_row_dblclick
+        self.on_row_context = on_row_context
+        self.context_menu = context_menu
+        self.context_width = context_width
+        self.row_events: dict[str, Any] = {}
+        if on_row_click is not None:
+            self.row_events["click"] = on_row_click
+        if on_row_dblclick is not None:
+            self.row_events["dblclick"] = on_row_dblclick
+        if on_row_context is not None:
+            self.row_events["contextmenu"] = on_row_context
         props["base_class"] = tw(
             "w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm "
             "dark:border-slate-800 dark:bg-slate-900",
@@ -63,43 +145,101 @@ class Table(Component):
         )
         super().__init__(**props)
 
-    def render(self, ctx: RenderContext, path: str) -> str:
-        return super().render(ctx, path)
+    # -- ayudas de estilo -----------------------------------------------
+    def _clase(self, prefix: str, value: Any, extra: str = "") -> str:
+        """``_clase("bg", colors.slate_100)`` → ``bg-slate-100``."""
+        if value is None or value == "":
+            return extra
+        text = str(value)
+        if isinstance(value, Color) or not (text.startswith(prefix) or text.startswith(f"{prefix}-")):
+            text = f"{prefix}-{text}"
+        return tw(text, extra)
 
     def content(self, ctx: RenderContext, path: str) -> str:
         pad = "px-3 py-1.5" if self.compact else "px-4 py-3"
+        head_bg = self._clase("bg", self.header_bg)
         head = ""
         if self.headers:
             cells = []
             for index, header in enumerate(self.headers):
                 align = ALIGN.get(self.align[index] if index < len(self.align) else "left", "")
+                tone = self._clase("text", self.header_color, "text-xs font-semibold uppercase tracking-wide")
+                if self.header_color is None:
+                    tone = tw(tone, "text-slate-500 dark:text-slate-400")
                 cells.append(
-                    f'<th scope="col" class="{pad} {align} text-xs font-semibold uppercase '
-                    f'tracking-wide text-slate-500 dark:text-slate-400">'
+                    f'<th scope="col" class="{pad} {align} {tone}">'
                     f"{_cell(ctx, header, f'{path}-h{index}')}</th>"
                 )
             head = (
-                '<thead class="border-b border-slate-200 bg-slate-50/80 dark:border-slate-800 '
-                f'dark:bg-slate-800/50"><tr>{"".join(cells)}</tr></thead>'
+                '<thead class="border-b border-slate-200 dark:border-slate-800 '
+                f'dark:bg-slate-800/50 {head_bg}"><tr>{"".join(cells)}</tr></thead>'
             )
 
+        hover = ""
+        if self.hover:
+            hover = self._clase(
+                "hover:bg", self.hover_bg, "transition" if self.hover_bg is None else ""
+            )
+            if self.hover_bg is None:
+                hover = tw(hover, "hover:bg-slate-50 dark:hover:bg-slate-800/50")
+        border = "border-b border-slate-100 dark:border-slate-800" if self.bordered else ""
+
+        interactiva = bool(self.row_events) or self.context_menu is not None
+        paneles: list[str] = []
         body_rows = []
         for row_index, row in enumerate(self.rows):
-            zebra = (
-                "bg-slate-50/60 dark:bg-slate-800/30"
-                if self.striped and row_index % 2 == 1
-                else ""
-            )
-            hover = "transition hover:bg-slate-50 dark:hover:bg-slate-800/50" if self.hover else ""
-            border = "border-b border-slate-100 dark:border-slate-800" if self.bordered else ""
+            zebra = ""
+            if self.striped and row_index % 2 == 1:
+                zebra = self._clase("bg", self.zebra)
+                if self.zebra is None:
+                    zebra = tw(zebra, "bg-slate-50/60 dark:bg-slate-800/30")
+            elegida = self.selected is not None and row_index == self.selected
+            seleccion = self._clase("bg", self.selected_bg) if elegida else ""
             cells = []
             for column, value in enumerate(row):
                 align = ALIGN.get(self.align[column] if column < len(self.align) else "left", "")
+                color = self.cell_colors.get(column, self.cell_colors.get(str(column)))
+                fondo = self.column_bg.get(column, self.column_bg.get(str(column)))
+                tono = self._clase("text", color)
+                if color is None:
+                    tono = tw(tono, "text-sm text-slate-700 dark:text-slate-200")
+                else:
+                    tono = tw(tono, "text-sm")
+                celda = self._clase("bg", fondo, align)
                 cells.append(
-                    f'<td class="{pad} {align} text-sm text-slate-700 dark:text-slate-200">'
+                    f'<td class="{pad} {celda} {tono}">'
                     f"{_cell(ctx, value, f'{path}-r{row_index}-c{column}')}</td>"
                 )
-            body_rows.append(f'<tr class="{zebra} {hover} {border}">{"".join(cells)}</tr>')
+            extras = tw(zebra, hover, border, seleccion)
+            if self.context_menu is not None:
+                extras = tw(extras, "cursor-context-menu")
+            elif interactiva:
+                extras = tw(extras, "cursor-pointer")
+            attrs_parts = [f'class="{extras}"'] if extras else []
+            if interactiva:
+                fila_uid = ctx.uid(f"{path}-fila{row_index}", None, None)
+                for evento, handler in self.row_events.items():
+                    ctx.bind(fila_uid, evento, _con_fila(handler, row_index, row))
+                if self.row_events:
+                    attrs_parts.insert(0, f'id="{escape(fila_uid)}"')
+                    attrs_parts.append(f'data-iui-on="{",".join(sorted(self.row_events))}"')
+                items = self._items_of(row_index, row)
+                if items is not None:
+                    panel_id = f"{fila_uid}-menu"
+                    attrs_parts.append(f'data-iui-context="{escape(panel_id)}"')
+                    from .shell import context_panel
+
+                    paneles.append(
+                        context_panel(
+                            items,
+                            ctx,
+                            f"{path}-menu{row_index}",
+                            panel_id=panel_id,
+                            min_width=self.context_width,
+                        )
+                    )
+            attrs = (" " + " ".join(attrs_parts)) if attrs_parts else ""
+            body_rows.append(f"<tr{attrs}>{''.join(cells)}</tr>")
 
         if not body_rows:
             span = max(1, len(self.headers) or 1)
@@ -127,10 +267,23 @@ class Table(Component):
         )
         rows_html = "".join(body_rows)
         return (
-            f'<table class="min-w-full border-collapse">{caption}{head}'
+            f'<table data-iui-table class="min-w-full border-collapse">{caption}{head}'
             f'<tbody class="divide-y divide-slate-100 dark:divide-slate-800">{rows_html}</tbody>'
-            f"{foot}</table>"
+            f"{foot}</table>" + "".join(paneles)
         )
+
+    def _items_of(self, row_index: int, row: list[Any]) -> list[Any] | None:
+        """Entradas del menú contextual de una fila (o ``None`` si no hay)."""
+        menu = self.context_menu
+        if menu is None:
+            return None
+        if not callable(menu):
+            items = menu
+        elif _parametros(menu) >= 2:
+            items = menu(row_index, row)
+        else:
+            items = menu(row)
+        return [item for item in (items or []) if item is not None]
 
 
 def _row_value(row: Any, key: str) -> Any:

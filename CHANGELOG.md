@@ -8,6 +8,29 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Tablas configurables de arriba abajo**: `header_bg`, `header_color`,
+  `striped` (+ `zebra`), `hover_bg`, `cell_colors` y `column_bg` para colorear
+  por columna, `selected_bg` para la fila elegida. Todo con tokens
+  (`ui.colors.slate_100`), sin escribir CSS y manteniendo el modo oscuro.
+- **Interacción por fila en las tablas**: `actions=False` esconde los botones y
+  la tabla se maneja con `selectable=True` (el clic marca la fila),
+  `on_row_click`, `on_row_dblclick` (reciben **el registro**, ideal para abrir el
+  modal de edición) y `context_menu=[ui.RowAction(...)]` para el menú del clic
+  derecho en el cursor. `ui.Table` lo ofrece en genérico con
+  `on_row_click`/`on_row_dblclick`/`context_menu`. Documentado en
+  [`docs/formularios.md`](docs/formularios.md).
+- **Doble clic en una celda selecciona todo su contenido**, como en una hoja de
+  cálculo (lo hace el runtime, para todas las tablas).
+- **`RecordPage(table_options={...})`**: cualquier opción de la tabla
+  (colores, cebra, clic, doble clic, menú, selección) se pasa desde la vista sin
+  engordar la firma de la página.
+- **`ui.Html` se puede estilizar**: si le pasas `class_`, `bg`, `style`, `aria` o
+  `data`, envuelve el HTML en un `div` con esas clases; sin nada de eso sigue
+  insertando el markup tal cual. Respeta `visible`/`when`.
+- **`width` en los campos**: `Input`, `TextInput`, `EmailInput`, `PasswordInput`,
+  `Textarea` y `Select` aceptan `width="w-16"` y ese ancho **sustituye** el
+  `w-full` que traen por defecto. `Select` también admite `icon="list"`.
+  Documentado en [`docs/estilos.md`](docs/estilos.md).
 - **Tablas con buscador, orden y paginación** (estilo DataTable):
   `search=True` (global, sobre `search_columns`), `page_size=10` con selector
   `page_sizes=(10, 15, 20)` y pie «Mostrando 1–10 de 25», y cabeceras que ordenan
@@ -19,10 +42,6 @@ etiqueta como `vX.Y.Z`.
   aunque la búsqueda deje menos filas que el tamaño de página
   (`Mostrando 1–2 de 2`), y si la ventana es muy estrecha el grupo de controles
   baja entero a la línea siguiente en vez de partirse.
-- **`width` en los campos**: `Input`, `TextInput`, `EmailInput`, `Textarea` y
-  `Select` aceptan `width="w-16"` y ese ancho **sustituye** el `w-full` que
-  traen por defecto, así que un control puede ser estrecho sin pelearse con la
-  clase base. Documentado en [`docs/estilos.md`](docs/estilos.md).
 - **La página del registro se configura desde la vista**: `RecordPage(...,
   form_mode="inline" | "modal" | "none")`. En `"modal"` la página se queda con el
   contador y la tabla, y un botón **Nuevo** (`new_label`, `new_icon`) abre el

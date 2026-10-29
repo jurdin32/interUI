@@ -415,6 +415,24 @@ function onDelegated(domType, event) {
   dispatchEvent(target, name, { confirm: target.dataset.iuiConfirm });
 }
 
+/* Doble clic en una celda: se selecciona todo su contenido (como en una hoja
+   de cálculo). No intercepta el evento: el handler de la fila también corre. */
+function selectCellContents(target) {
+  const cell = target instanceof Element ? target.closest("[data-iui-table] td, [data-iui-table] th") : null;
+  if (!cell) return false;
+  const range = document.createRange();
+  range.selectNodeContents(cell);
+  const selection = window.getSelection();
+  if (!selection) return false;
+  selection.removeAllRanges();
+  selection.addRange(range);
+  return true;
+}
+
+document.addEventListener("dblclick", (event) => {
+  if (selectCellContents(event.target)) event.preventDefault();
+});
+
 for (const domType of Object.keys(DOM_EVENTS)) {
   const options = domType === "focusin" || domType === "focusout" ? true : false;
   document.addEventListener(domType, (event) => onDelegated(domType, event), options);

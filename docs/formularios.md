@@ -256,6 +256,79 @@ de la derecha baja a una segunda línea entero (no se parte por dentro).
 Todo se resuelve en Python sobre los registros ya cargados: funciona igual con
 SQLite, PostgreSQL o MySQL, sin tocar el motor.
 
+### Personalizar la tabla: colores, cebra y encabezado
+
+Todo el aspecto se configura desde la vista, con los mismos tokens de estilo del
+resto del framework (`ui.colors.*`):
+
+```python
+ui.RecordPage(
+    PersonaForm(),
+    table_options=dict(
+        striped=True,                          # filas alternas (cebra)
+        zebra=ui.colors.amber_50,              # color de la fila alterna
+        header_bg=ui.colors.slate_100,         # fondo del encabezado
+        header_color=ui.colors.slate_700,      # color del texto del encabezado
+        hover_bg=ui.colors.indigo_50,          # al pasar el ratón
+        cell_colors={"email": ui.colors.slate_500},   # por columna
+        column_bg={"activo": ui.colors.slate_50},     # fondo por columna
+        selected_bg=ui.colors.indigo_100,      # fila seleccionada
+    ),
+)
+```
+
+| Opción | Qué cambia | Por defecto |
+|---|---|---|
+| `striped` | pinta una fila sí y otra no | `False` |
+| `zebra` | color de esas filas alternas | `slate-50/60` |
+| `header_bg` | fondo de la fila de encabezados | `slate-50/80` |
+| `header_color` | color del texto de los encabezados | `slate-500` |
+| `hover_bg` | fondo al pasar el ratón por una fila | `slate-50` |
+| `cell_colors` | color de texto por columna (`{"email": …}`) | el del texto normal |
+| `column_bg` | fondo por columna | sin fondo |
+| `selected_bg` | fondo de la fila seleccionada | `indigo-50` |
+
+El modo oscuro sigue funcionando: si no fijas un color, cada pieza tiene su
+variante `dark:`; si fijas uno, se usa el mismo en los dos temas.
+
+**Doble clic en una celda selecciona su contenido entero**, como en una hoja de
+cálculo (no hace falta configurar nada).
+
+### Interacción por fila: clic, doble clic y clic derecho
+
+Los botones por fila son opcionales. Con `actions=False` desaparecen y la tabla
+se maneja con el ratón:
+
+```python
+ui.RecordPage(
+    PersonaForm(),
+    actions=False,                 # sin botones por fila
+    table_options=dict(
+        selectable=True,                    # el clic marca la fila
+        on_row_dblclick=editar,             # doble clic → modal de edición
+        context_menu=[                      # clic derecho → menú en el cursor
+            ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar),
+            ui.RowAction("Eliminar", icon=ui.icons.trash, danger=True,
+                         confirm="¿Eliminar esta persona?", on_click=eliminar),
+        ],
+    ),
+)
+```
+
+| Opción | Qué hace |
+|---|---|
+| `actions` | los iconos al final de la fila; `False` los esconde |
+| `selectable` | el clic selecciona la fila y la deja resaltada con `selected_bg` |
+| `on_row_click` | handler del clic; recibe **el registro** |
+| `on_row_dblclick` | handler del doble clic; recibe **el registro** |
+| `context_menu` | acciones del clic derecho (`RowAction`) o una función `registro → [acciones]` |
+| `row_context` | variante avanzada: menú construido por ti para cada fila |
+
+`on_row_click`, `on_row_dblclick` y `context_menu` se combinan: por ejemplo, el
+clic selecciona y el doble clic abre el modal, sin botones de por medio. El menú
+contextual hereda `danger=True` (en rojo) y `confirm="…"` de `RowAction`, igual
+que los botones.
+
 ### Acciones en cada fila: editar y eliminar
 
 `actions=` añade iconos al final de cada fila. El handler recibe **el registro**

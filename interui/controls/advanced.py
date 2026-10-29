@@ -8,7 +8,7 @@ from typing import Any, Sequence
 
 from ..base import Component, bind_many
 from ..context import RenderContext
-from ..html import escape, raw
+from ..html import element, escape, raw
 from ..icons import Icon
 from ..style import tw
 
@@ -19,7 +19,12 @@ __all__ = [
 
 
 class Html(Component):
-    """Escotilla de escape: inserta HTML literal (confía en el contenido)."""
+    """Escotilla de escape: inserta HTML literal (confía en el contenido).
+
+    Si se le pasan estilos o ``class_``, el HTML se envuelve en un ``div`` con
+    esas clases (y con ``style``/``aria``/``data`` si los hay); sin nada de eso
+    se inserta tal cual, byte a byte.
+    """
 
     tag = ""
 
@@ -28,7 +33,22 @@ class Html(Component):
         super().__init__(**props)
 
     def render(self, ctx: RenderContext, path: str) -> str:
-        return self.markup
+        if not self._shown():
+            return ""
+        uid = ctx.uid(path, self.key, self.explicit_id)
+        classes = self.classes(ctx, uid)
+        extra: dict[str, Any] = {}
+        if self.style:
+            extra["style"] = self.style
+        if self.aria:
+            extra.update({f"aria-{key.replace('_', '-')}": value for key, value in self.aria.items()})
+        if self.data:
+            extra.update({f"data-{key.replace('_', '-')}": value for key, value in self.data.items()})
+        for name, value in self.props.items():
+            extra[name] = value
+        if not classes and not extra:
+            return self.markup
+        return element("div", self.markup, id=uid, class_=classes, **extra)
 
 
 class CodeEditor(Component):

@@ -467,5 +467,11 @@ def form_dialog(
         buttons=[(cancel_label, cerrar, "outline")],
         **options,
     )
+    # Los formularios en modal comparten prefijo de señales: solo puede haber
+    # uno abierto. Si ya había otro (doble clic rápido en otra fila), se cierra.
+    dialog.form_dialog = True
+    for abierto in application.dialogs:
+        if getattr(abierto, "form_dialog", False) and abierto is not dialog:
+            application.close_dialog(abierto)
     application.show_dialog(dialog)
     return dialog

@@ -18,14 +18,19 @@ __all__ = [
 class Spinner(Component):
     tag = "span"
 
-    def __init__(self, size: int = 4, class_: str | None = None, **props: Any) -> None:
+    def __init__(self, size: int = 4, **props: Any) -> None:
         self.size = size
-        self.class_ = class_
         super().__init__(**props)
 
     def render(self, ctx: RenderContext, path: str) -> str:
-        classes = tw("inline-block animate-spin", f"h-{self.size} w-{self.size}", self.class_,
-                     "text-current")
+        if not self._shown():
+            return ""
+        classes = tw(
+            "inline-block animate-spin text-current",
+            f"h-{self.size} w-{self.size}",
+            self.base_class,
+            self.class_,
+        )
         return (
             f'<span class="{classes}" role="status" aria-label="cargando">'
             '<svg viewBox="0 0 24 24" fill="none" class="h-full w-full">'

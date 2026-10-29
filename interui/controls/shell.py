@@ -74,6 +74,25 @@ def _item_nodes(items: Iterable[Any]) -> list[Any]:
     return nodes
 
 
+def context_panel(
+    items: Iterable[Any],
+    ctx: RenderContext,
+    path: str,
+    *,
+    panel_id: str,
+    min_width: str = "12rem",
+) -> str:
+    """Panel de menú contextual (``position: fixed``) listo para abrirse."""
+    rows = _render_items(items, ctx, path)
+    return (
+        f'<div id="{escape(panel_id)}" data-iui-context-panel role="menu" '
+        f'style="min-width:{escape(min_width)}" '
+        'class="fixed z-[70] hidden flex-col overflow-hidden rounded-xl border border-slate-200 '
+        'bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">'
+        f"{rows}</div>"
+    )
+
+
 def _render_items(items: Iterable[Any], ctx: RenderContext, path: str) -> str:
     html: list[str] = []
     for index, node in enumerate(_item_nodes(items)):
@@ -301,13 +320,8 @@ class ContextMenu(Component):
     def content(self, ctx: RenderContext, path: str) -> str:
         uid = ctx.uid(path, self.key, self.explicit_id)
         panel_id = f"{uid}-ctx"
-        rows = _render_items(self.items, ctx, f"{path}-c")
-        panel = (
-            f'<div id="{escape(panel_id)}" data-iui-context-panel role="menu" '
-            f'style="min-width:{escape(self.min_width)}" '
-            'class="fixed z-[70] hidden flex-col overflow-hidden rounded-xl border border-slate-200 '
-            'bg-white py-1 shadow-2xl dark:border-slate-700 dark:bg-slate-900">'
-            f"{rows}</div>"
+        panel = context_panel(
+            self.items, ctx, f"{path}-c", panel_id=panel_id, min_width=self.min_width
         )
         body = render_children(self.children, ctx, path)
         hint = (
