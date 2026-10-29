@@ -242,3 +242,55 @@ def test_choice_rechaza_valores_fuera_de_la_lista(tmp_path) -> None:
     assert Cliente.objects.count() == 1
     assert Cliente.objects.first().estado == "vip"
     db.reset()
+
+
+def test_labels_cambia_el_nombre_visible(app) -> None:
+    """`labels` decide cómo se llama el campo, en el formulario y en la tabla."""
+
+    class ConEtiquetas(ui.ModelForm):
+        model = Persona
+        labels = {"nombre": "Nombre completo", "email": "Correo electrónico"}
+
+    form = ConEtiquetas()
+    assert form.label("nombre") == "Nombre completo"
+    assert form.label("email") == "Correo electrónico"
+    assert form.label("activo") == "Activo", "sin etiqueta, el nombre del campo"
+
+    app.page("/etiquetas")(lambda: ui.Screen(form))
+    _title, html, _bindings = app.render_page("/etiquetas")
+    assert "Nombre completo" in html
+    assert "Correo electrónico" in html
+
+
+def test_recordtable_usa_las_columnas_del_formulario(app) -> None:
+    """La tabla sale del formulario: sus campos, en su orden y con sus nombres."""
+    def pagina():
+        form = ui.ModelForm(Persona)
+        return ui.Screen(ui.Muted(ui.RecordCounter(form)), ui.RecordTable(form))
+
+    app.page("/registros")(pagina)
+    _title, html, _bindings = app.render_page("/registros")
+    assert "Nombre" in html
+    assert "Todavía no hay registros" in html
+    assert "0 registros guardados" in html
+
+    Persona.objects.create(nombre="Ana", email="ana@x.com")
+    _title, html, _bindings = app.render_page("/registros")
+    assert "1 registro guardado" in html
+    assert "Ana" in html
+    assert "sí" in html, "el booleano se ve como etiqueta"
+
+
+def test_recordtable_sin_base_de_datos_avisa(tmp_path) -> None:
+    """Si la tabla no existe, la página abre con un aviso en vez de romperse."""
+    db.reset()
+    db.configure(
+        Config({"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "v.db")}}})
+    )
+    application = ui.App("Sin BD", data_dir=tmp_path)
+    application.page("/")(lambda: ui.Screen(ui.RecordTable(ui.ModelForm(Persona))))
+
+    _title, html, _bindings = application.render_page("/")
+    assert "Sin base de datos" in html
+    assert "migrate" in html
+    db.reset()

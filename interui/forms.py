@@ -91,10 +91,9 @@ def _handler(signal: Any, errores: Any) -> Callable[[Any], None]:
 
 
 def _control(
-    name: str, field: Any, value: Any, *, required: bool, on_change: Any
+    name: str, field: Any, value: Any, *, label: str, required: bool, on_change: Any
 ) -> Component:
     """El control que corresponde al tipo del campo."""
-    label = _label(name)
     kind = field.type
     lower = name.lower()
 
@@ -145,6 +144,7 @@ class ModelForm(Component):
     model: type[Model] | None = None
     fields: Sequence[str] | None = None
     exclude: Sequence[str] = ()
+    labels: dict[str, str] | None = None
     submit_label: str = "Guardar"
     title: Any = None
     prefix: str | None = None
@@ -156,6 +156,7 @@ class ModelForm(Component):
         *,
         fields: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
+        labels: dict[str, str] | None = None,
         submit_label: str | None = None,
         title: Any = None,
         prefix: str | None = None,
@@ -170,6 +171,8 @@ class ModelForm(Component):
         self.form_fields = fields if fields is not None else getattr(type(self), "fields", None)
         declared_exclude = exclude if exclude is not None else getattr(type(self), "exclude", ())
         self.form_exclude = tuple(declared_exclude or ())
+        declared_labels = labels if labels is not None else getattr(type(self), "labels", None)
+        self.form_labels = dict(declared_labels or {})
         self.submit_label = submit_label or getattr(type(self), "submit_label", "Guardar")
         self.prefix = prefix or getattr(type(self), "prefix", None)
         self.on_saved = on_saved if on_saved is not None else getattr(type(self), "on_saved", None)
@@ -194,6 +197,14 @@ class ModelForm(Component):
             ]
         return [name for name in names if name not in self.form_exclude and name in model._fields]
 
+    def label(self, name: str) -> str:
+        """Nombre visible del campo: lo que diga `labels` o el campo con espacios.
+
+        Es el mismo texto que usa el formulario, así que una vista puede pintar
+        una tabla o un encabezado sin repetir los nombres a mano.
+        """
+        return self.form_labels.get(name) or _label(name)
+
     def content(self, ctx: RenderContext, path: str) -> str:
         model = self.model
         assert model is not None  # lo garantiza field_names()
@@ -211,6 +222,7 @@ class ModelForm(Component):
                     name,
                     field,
                     signal.get(),
+                    label=self.label(name),
                     required=_required(field),
                     on_change=_handler(signal, errores),
                 )
@@ -227,13 +239,15 @@ class ModelForm(Component):
                     value = None
                 if value is None:
                     if _required(field):
-                        problemas.append(f"{_label(name)} es obligatorio.")
+                        problemas.append(f"{self.label(name)} es obligatorio.")
                     continue
                 if isinstance(field, Choice) and str(value) not in field.option_values:
-                    problemas.append(f"{_label(name)}: elige una de las opciones.")
+                    problemas.append(f"{self.label(name)}: elige una de las opciones.")
                     continue
                 if field.unique and model.objects.filter(**{name: value}).exists():
-                    problemas.append(f"Ya existe un registro con ese {_label(name).lower()}.")
+                    problemas.append(
+                        f"Ya existe un registro con ese {self.label(name).lower()}."
+                    )
                     continue
                 valores[name] = value
 

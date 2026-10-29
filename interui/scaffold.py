@@ -389,11 +389,16 @@ from {app}.models import {Model}
 
 
 class {Model}Form(ui.ModelForm):
-    """Alta de {Model}: cada campo del modelo se convierte en su control."""
+    """Alta de {Model}: cada campo del modelo se convierte en su control.
+
+    Este archivo manda sobre el formulario **y** sobre la tabla de la vista:
+    `fields` decide qué campos salen y en qué orden, y `labels` cómo se llaman.
+    """
 
     model = {Model}
-    # fields = ["nombre", "descripcion"]   # solo estos, en este orden
-    # exclude = ["activo"]                 # todos menos estos
+    # fields = ["nombre", "descripcion"]      # solo estos, en este orden
+    # exclude = ["activo"]                    # todos menos estos
+    # labels = {"nombre": "Nombre completo"}  # el nombre que se muestra
     title = "Nuevo registro"
 '''
 
@@ -402,75 +407,17 @@ APP_VIEWS_PY = '''"""Vistas de {app}: el formulario y lo que ya está guardado."
 import interui as ui
 
 from {app}.forms import {Model}Form
-from {app}.models import {Model}
-
-
-# Columnas de la tabla: los campos del modelo, sin clave ni automáticos.
-CAMPOS = [
-    name
-    for name, field in {Model}._fields.items()
-    if not field.auto and not field.primary_key
-]
-
-
-def _titulo(name: str) -> str:
-    """``fecha_nacimiento`` -> ``Fecha nacimiento``."""
-    texto = name.replace("_", " ")
-    return texto[:1].upper() + texto[1:]
-
-
-def _celda(valor: object) -> object:
-    """Un booleano se ve como etiqueta y un hueco como raya."""
-    if isinstance(valor, bool):
-        return ui.Badge("sí" if valor else "no")
-    return "—" if valor is None or valor == "" else valor
-
-
-def _registros() -> list:
-    """Sin migraciones la tabla no existe; la página abre igual."""
-    try:
-        return list({Model}.objects.all())
-    except ui.db.DatabaseError:
-        return []
-
-
-def _avisos() -> ui.Component | None:
-    try:
-        {Model}.objects.exists()
-    except ui.db.DatabaseError:
-        return ui.Alert(
-            "Falta la base de datos. Ejecuta `python iui.py migrate` y vuelve a abrir.",
-            title="Sin base de datos",
-            level=ui.tone.warning,
-            margin=ui.margin.t_6,
-        )
-    return None
-
-
-def _contador(total: int) -> str:
-    if total == 1:
-        return "1 registro guardado"
-    return f"{total} registros guardados"
 
 
 def inicio() -> ui.Component:
-    registros = _registros()
+    """El formulario decide los campos y sus nombres; la tabla los usa tal cual."""
+    form = {Model}Form(margin=ui.margin.t_6)
     return ui.Screen(
         ui.Container(pad=ui.pad.py_10)(
             ui.Heading("{App}", level=1),
-            ui.Muted(_contador(len(registros))),
-            _avisos(),
-            {Model}Form(margin=ui.margin.t_6),
-            ui.Card(pad=ui.pad.all_2, margin=ui.margin.t_6)(
-                ui.Table(
-                    headers=[_titulo(name) for name in CAMPOS],
-                    rows=[
-                        [_celda(getattr(registro, name)) for name in CAMPOS]
-                        for registro in registros
-                    ],
-                    empty="Todavía no hay registros",
-                )
-            ),
+            ui.Muted(ui.RecordCounter(form)),
+            form,
+            ui.RecordTable(form, margin=ui.margin.t_6),
         )
     )
 '''

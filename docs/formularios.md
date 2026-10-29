@@ -77,9 +77,30 @@ obligatorios hecha en Python y el botón **Guardar** conectado.
 | `model` | el modelo del que salen los campos | obligatorio |
 | `fields` | qué campos se muestran y en qué orden | todos los editables |
 | `exclude` | qué campos dejar fuera | `()` |
+| `labels` | el nombre visible de cada campo | el nombre del campo |
 | `title` | título de la tarjeta | «Nuevo cliente» |
 | `submit_label` | texto del botón | `"Guardar"` |
 | `on_saved` | función que recibe el registro guardado | `None` |
+
+### Los nombres de los campos
+
+`labels` cambia el texto que se ve: en el formulario **y** en la tabla de la
+vista, porque los dos leen del formulario. Sin `labels`, el nombre del campo
+(`fecha_nacimiento`) se muestra con espacios y mayúscula («Fecha nacimiento»).
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    fields = ["nombre", "email", "fecha_nacimiento"]
+    labels = {
+        "nombre": "Nombre completo",
+        "email": "Correo electrónico",
+        "fecha_nacimiento": "Fecha de nacimiento",
+    }
+```
+
+Este archivo es el único sitio donde se decide **qué campos salen** y **cómo se
+llaman**: `fields` manda sobre el orden y `labels` sobre los nombres.
 
 Si el modelo tiene muchos campos y solo quieres cambiar un par, usa `exclude`:
 
@@ -106,29 +127,42 @@ Es el mismo formulario con los valores por defecto.
 
 ## 3. La vista
 
-La vista no sabe nada de campos ni de validación; solo coloca el formulario:
+La vista no sabe nada de campos, nombres ni validación. Estas diez líneas son
+todo:
 
 ```python
 # ventas/views.py
 import interui as ui
 
 from ventas.forms import ClienteForm
-from ventas.models import Cliente
 
 
 def lista() -> ui.Component:
+    form = ClienteForm(margin=ui.margin.t_6)
     return ui.Screen(
         ui.Container(pad=ui.pad.py_10)(
             ui.Heading("Clientes", level=1),
-            ClienteForm(margin=ui.margin.t_6),
-            ui.Table(
-                headers=["Nombre", "Correo"],
-                rows=[[cliente.nombre, cliente.email] for cliente in Cliente.objects.all()],
-                empty="Todavía no hay clientes",
-            ),
+            ui.Muted(ui.RecordCounter(form)),      # «3 registros guardados»
+            form,                                  # el formulario
+            ui.RecordTable(form),                  # la tabla de lo guardado
         )
     )
 ```
+
+| Pieza | Qué pinta |
+|---|---|
+| `ClienteForm(...)` | la tarjeta con los campos y el botón |
+| `ui.RecordTable(form)` | la tabla con lo guardado, con las columnas y nombres del formulario |
+| `ui.RecordCounter(form)` | el contador (`0 registros guardados`, `1 registro guardado`…) |
+
+`RecordTable` y `RecordCounter` reciben **el formulario**, no el modelo: así no
+hay que repetir la lista de campos y, si añades una columna en `forms.py`,
+aparece en la tabla sin tocar la vista. Si la tabla de la base de datos todavía
+no existe (falta `migrate`), `RecordTable` muestra un aviso en su lugar en vez de
+romper la página.
+
+> ¿Quieres otra tabla (un resumen, una búsqueda)? Escribe tu `ui.Table` con las
+> filas que necesites; `RecordTable` es solo el caso más común hecho.
 
 ```python
 # ventas/urls.py

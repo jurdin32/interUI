@@ -8,6 +8,12 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **`labels` en `ModelForm`**: el nombre visible de cada campo se declara en
+  `forms.py` (`labels = {"fecha_nacimiento": "Fecha de nacimiento"}`) y lo usan
+  el formulario, los mensajes de error y la tabla.
+- **`ui.RecordTable(form)` y `ui.RecordCounter(form)`**: pintan lo guardado con
+  las columnas y nombres que declara el formulario, y avisan si falta `migrate`.
+  La vista generada por `startapp` baja a diez líneas sin funciones auxiliares.
 - **Icono en el título de cada menú**: `MenuBar(..., icons={"Registros":
   ui.icons.users})`, o `("Registros", items, ui.icons.users)` en la forma de
   lista. El nombre de la app (`brand` + `logo`) mantiene su icono propio.
@@ -44,8 +50,8 @@ etiqueta como `vX.Y.Z`.
   dentro del proyecto con `models.py`, `forms.py`, `views.py`, `urls.py` y
   `README.md` **listos para usar** (formulario de alta, aviso si falta la base de
   datos y tabla con lo guardado), la apunta en `apps` de `interui.json` y añade
-  su `models.py` a las migraciones. El formulario y la tabla se generan a partir
-  del modelo: si cambias los campos, ambos se adaptan solos.
+  su `models.py` a las migraciones. El formulario decide campos y nombres
+  (`fields`, `labels`) y la vista solo coloca el formulario y su tabla.
   Sus rutas se registran solas (`App.from_config()` importa `<app>/urls.py`), sin
   registrar nada a mano; un solo `migrate` pone al día todas las apps.
   `Config.model_paths()`, `Config.installed_apps()` y `migrations.models` aceptan

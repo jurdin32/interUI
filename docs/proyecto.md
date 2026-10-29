@@ -268,13 +268,22 @@ allí y la vista solo los coloca en la página. Se explica entero en
 # ventas/forms.py
 class VentaForm(ui.ModelForm):
     model = Venta
-    fields = ["nombre", "descripcion", "activo"]
+    fields = ["nombre", "descripcion", "activo"]      # qué campos y en qué orden
+    labels = {"descripcion": "Detalle"}               # cómo se llaman
 ```
 
 ```python
-# ventas/views.py
+# ventas/views.py: el formulario y la tabla, sin repetir los campos
 def inicio() -> ui.Component:
-    return ui.Screen(VentaForm())
+    form = VentaForm()
+    return ui.Screen(
+        ui.Container(pad=ui.pad.py_10)(
+            ui.Heading("Ventas", level=1),
+            ui.Muted(ui.RecordCounter(form)),
+            form,
+            ui.RecordTable(form),
+        )
+    )
 ```
 
 ---
