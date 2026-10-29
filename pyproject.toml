@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Johnny Urdin", email = "urdin32@live.com" }]
+authors = [{ name = "Johnny Urdin", email = "urdin32@gmail.com" }]
 keywords = [
   "gui", "desktop", "html", "tailwindcss", "webview", "ui", "pywebview",
   "cross-platform", "tailwind",
