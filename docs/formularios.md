@@ -334,6 +334,8 @@ class ClienteTable(ui.RecordTable):
     title_pad = ui.pad.p_6                # aire alrededor
     title_border = ui.colors.indigo_700   # línea inferior
     title_align = "center"                # "left" (por defecto) o "center"
+    title_full_width = True               # la franja ocupa todo el ancho
+    title_rounded = False                 # esquinas rectas (por defecto: redondeada)
 
     counter_color = ui.colors.indigo_100  # color del «25 registros guardados»
     counter = False                       # o esconder el contador
@@ -353,6 +355,8 @@ class ClienteTable(ui.RecordTable):
 | `title_pad` | padding de la franja | sin padding |
 | `title_border` | línea inferior de la franja | sin línea |
 | `title_align` | `"left"` o `"center"` | `"left"` |
+| `title_full_width` | la franja va de lado a lado de la ventana; el título se queda alineado con la tabla | `False` |
+| `title_rounded` | esquinas de la franja: `True`, `False` o un radio (`ui.radius.lg`) | redondeada si hay `title_bg`, recta si es a lo ancho |
 | `counter` | mostrar el contador | `True` |
 | `counter_color` | color del contador | `slate-500` |
 | `new_label` / `new_icon` | texto e icono del botón | `"Nuevo"` / `plus` |

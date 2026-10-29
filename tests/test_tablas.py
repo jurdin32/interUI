@@ -472,3 +472,45 @@ def test_el_formulario_colorea_su_tarjeta(tmp_path) -> None:
     app = _app(tmp_path)
     html = _html(Formulario(), app)
     assert "bg-slate-50" in html
+
+
+def test_franja_a_todo_lo_ancho(tmp_path) -> None:
+    """`title_full_width` estira la franja; el contenido sigue alineado."""
+
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        title_bg = ui.colors.indigo_600
+        title_pad = ui.pad.py_6
+        title_full_width = True
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert 'class="w-full bg-indigo-600 py-6"' in html, "franja de lado a lado"
+    assert "max-w-7xl" in html, "el título se alinea con la tabla"
+    assert "rounded-xl bg-indigo-600" not in html, "a lo ancho no se redondea"
+
+
+def test_esquinas_de_la_franja_configurables(tmp_path) -> None:
+    class Redonda(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        title_bg = ui.colors.indigo_600
+        title_rounded = True
+
+    class Recta(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        title_bg = ui.colors.indigo_600
+        title_rounded = False
+
+    app = _app(tmp_path)
+    assert "rounded-xl" in _html(ui.RecordPage(Redonda), app)
+    assert "rounded-xl bg-indigo-600" not in _html(ui.RecordPage(Recta), app)
+
+
+def test_la_franja_con_fondo_se_redondea_por_defecto(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        title_bg = ui.colors.indigo_600
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert "rounded-xl bg-indigo-600" in html or "bg-indigo-600 rounded-xl" in html

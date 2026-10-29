@@ -308,6 +308,10 @@ class RecordTable(Component):
     title_border: Any = None
     title_pad: Any = None
     title_align: str | None = None
+    #: Ocupa todo el ancho de la ventana (la franja, no el contenido).
+    title_full_width: bool | None = None
+    #: `True` redondeada, `False` esquinas rectas (por defecto, si hay fondo).
+    title_rounded: Any = None
     counter: bool | None = None
     counter_color: Any = None
     new_label: Any = None
@@ -717,6 +721,8 @@ class RecordPage(Component):
         title_border: Any = None,
         title_pad: Any = None,
         title_align: str | None = None,
+        title_full_width: bool | None = None,
+        title_rounded: Any = None,
         counter_color: Any = None,
         pad_: Any = None,
         table_options: dict[str, Any] | None = None,
@@ -789,6 +795,9 @@ class RecordPage(Component):
         self.title_border = heredado("title_border", title_border)
         self.title_pad = heredado("title_pad", title_pad)
         self.title_align = heredado("title_align", title_align) or "left"
+        self.title_full_width = bool(heredado("title_full_width", title_full_width))
+        #: `None` = redondeada solo si hay fondo; `False`/`"none"` = esquinas rectas.
+        self.title_rounded = heredado("title_rounded", title_rounded)
         self.counter_color = heredado("counter_color", counter_color)
         # `counter` es booleano y su valor por defecto es `True`: si la tabla lo
         # declara, manda ella.
@@ -856,18 +865,31 @@ class RecordPage(Component):
         elif nuevo is not None:
             cabecera = Stack(cabecera, nuevo, gap=3, align="center")
 
+        radio = self.title_rounded
+        if radio is None:
+            # A lo ancho no se redondea (la franja va de lado a lado).
+            radio = "" if self.title_full_width else ("xl" if self.title_bg else "")
+        elif radio is True:
+            radio = "xl"
+        elif radio is False or str(radio) == "none":
+            radio = ""
         franja = tw(
             _util("bg", self.title_bg),
             "border-b" if self.title_border else "",
             _util("border", self.title_border),
-            _util("rounded", "xl") if self.title_bg else "",
+            _util("rounded", radio) if radio else "",
             self.title_pad or "",
         )
-        header: Any = (
-            Stack(cabecera, pad=self.title_pad, class_=franja)
-            if franja
-            else cabecera
-        )
+        if not franja:
+            header: Any = cabecera
+        elif self.title_full_width:
+            # Franja de lado a lado: el fondo ocupa la ventana y el contenido
+            # sigue alineado con la tabla (mismo ancho máximo y padding).
+            header = Component(tag="div", base_class=tw("w-full", franja))(
+                Container(cabecera, size="xl")
+            )
+        else:
+            header = Stack(cabecera, pad=self.title_pad, class_=franja)
 
         pieces: list[Any] = [header]
         if self.form_mode == "inline":
@@ -886,6 +908,12 @@ class RecordPage(Component):
                         **self.table_options,
                     )
                 )
+        if pieces and isinstance(pieces[0], Component) and self.title_full_width and self.title_bg:
+            return Stack(
+                pieces[0],
+                Container(*pieces[1:], pad=self.page_pad),
+                gap=0,
+            ).render(ctx, f"{path}-page")
         return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")
 
     def _abrir_alta(self) -> None:

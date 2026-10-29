@@ -19,6 +19,11 @@ etiqueta como `vX.Y.Z`.
   `rounded=`, `shadow=` y `ring=` a su `Card`, aceptan `card_options={…}` y la
   caja blanca interior de la tabla se apaga (`Table(surface=False)`) para que no
   tape el fondo.
+- **La franja de la página puede ocupar todo el ancho**: `title_full_width = True`
+  la estira de lado a lado de la ventana (el título, el contador y el botón
+  siguen alineados con la tabla) y `title_rounded = True/False/radio` decide las
+  esquinas. Sin indicarlo, la franja con fondo sale redondeada y, a todo lo
+  ancho, recta.
 - **La franja de la página también se configura desde `tables.py`**: `title`,
   `title_font`, `title_color`, `title_bg`, `title_pad`, `title_border`,
   `title_align`, `counter`/`counter_color` y `new_label`/`new_icon`/
