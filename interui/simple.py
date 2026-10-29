@@ -56,10 +56,21 @@ _REGISTERED: App | None = None
 # ventana implícita
 # ---------------------------------------------------------------------------
 def current_app(title: str = "interUI", **options: Any) -> App:
-    """Devuelve (o crea) la aplicación por defecto de la API compacta.
+    """La aplicación en curso.
+
+    Dentro de un handler devuelve **la app que lo está ejecutando**, también en
+    un proyecto (donde no hay ventana implícita): así `ui.current_app().quit()`
+    cierra la ventana de verdad. Fuera de un handler devuelve (o crea) la
+    ventana implícita de la API compacta.
 
     No se llama ``app`` para no tapar el submódulo ``interui.app``.
     """
+    from .app import active_app
+
+    activo = active_app()
+    if activo is not None:
+        return activo
+
     global _DEFAULT_APP
     if _DEFAULT_APP is None:
         _DEFAULT_APP = App(title, **options)
@@ -111,9 +122,7 @@ def window(
 
 def recipient_app() -> App:
     """La app que ejecuta el handler actual, o la implícita fuera de uno."""
-    from .app import active_app
-
-    return active_app() or current_app()
+    return current_app()
 
 
 def view(

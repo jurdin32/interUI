@@ -52,7 +52,7 @@ from .simple import state as _state
 from .simple import toast as _toast
 from .theme import gap, margin
 
-__all__ = ["ModelForm"]
+__all__ = ["ModelForm", "form_dialog"]
 
 
 # ---------------------------------------------------------------------------
@@ -145,6 +145,10 @@ class ModelForm(Component):
     fields: Sequence[str] | None = None
     exclude: Sequence[str] = ()
     labels: dict[str, str] | None = None
+    #: Registro que se está editando (``None`` = alta nueva).
+    instance: Model | None = None
+    #: `False` oculta el título de la tarjeta (dentro de un diálogo, por ejemplo).
+    show_title: bool = True
     submit_label: str = "Guardar"
     title: Any = None
     prefix: str | None = None
@@ -157,6 +161,7 @@ class ModelForm(Component):
         fields: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
         labels: dict[str, str] | None = None,
+        instance: Model | None = None,
         submit_label: str | None = None,
         title: Any = None,
         prefix: str | None = None,
@@ -173,6 +178,8 @@ class ModelForm(Component):
         self.form_exclude = tuple(declared_exclude or ())
         declared_labels = labels if labels is not None else getattr(type(self), "labels", None)
         self.form_labels = dict(declared_labels or {})
+        self.instance = instance
+        self._pending: dict[str, Any] | None = None
         self.submit_label = submit_label or getattr(type(self), "submit_label", "Guardar")
         self.prefix = prefix or getattr(type(self), "prefix", None)
         self.on_saved = on_saved if on_saved is not None else getattr(type(self), "on_saved", None)
@@ -205,6 +212,21 @@ class ModelForm(Component):
         """
         return self.form_labels.get(name) or _label(name)
 
+    def load(self, record: Model) -> "ModelForm":
+        """Rellena el formulario con un registro guardado; al guardar, lo actualiza."""
+        self.instance = record
+        self._pending = {name: getattr(record, name, None) for name in self.field_names()}
+        return self
+
+    def _duplicado(self, model: type[Model], name: str, value: Any) -> bool:
+        """¿Otro registro ya usa ese valor? (el que se edita no cuenta)."""
+        otros = [
+            item
+            for item in model.objects.filter(**{name: value})
+            if self.instance is None or item.pk != self.instance.pk
+        ]
+        return bool(otros)
+
     def content(self, ctx: RenderContext, path: str) -> str:
         model = self.model
         assert model is not None  # lo garantiza field_names()
@@ -213,9 +235,15 @@ class ModelForm(Component):
 
         controles: list[Component] = []
         bindings: list[tuple[str, Any, Any]] = []
+        pending = self._pending
         for name in self.field_names():
             field = model._fields[name]
-            signal = _state(_initial(field), name=f"{base}_{name}")
+            inicial = _initial(field)
+            if pending and pending.get(name) is not None:
+                inicial = pending[name]
+            signal = _state(inicial, name=f"{base}_{name}")
+            if pending:
+                signal.set(pending.get(name))
             bindings.append((name, field, signal))
             controles.append(
                 _control(
@@ -227,6 +255,9 @@ class ModelForm(Component):
                     on_change=_handler(signal, errores),
                 )
             )
+
+        if pending:
+            self._pending = None
 
         def guardar() -> None:
             problemas: list[str] = []
@@ -244,7 +275,7 @@ class ModelForm(Component):
                 if isinstance(field, Choice) and str(value) not in field.option_values:
                     problemas.append(f"{self.label(name)}: elige una de las opciones.")
                     continue
-                if field.unique and model.objects.filter(**{name: value}).exists():
+                if field.unique and self._duplicado(model, name, value):
                     problemas.append(
                         f"Ya existe un registro con ese {self.label(name).lower()}."
                     )
@@ -256,13 +287,19 @@ class ModelForm(Component):
                 return
 
             try:
-                saved = model.objects.create(**valores)
+                if self.instance is not None:
+                    for name, value in valores.items():
+                        setattr(self.instance, name, value)
+                    saved = self.instance.save()
+                else:
+                    saved = model.objects.create(**valores)
             except _db.DatabaseError as exc:
                 errores.set([f"No se pudo guardar: {exc}"])
                 return
 
             for _name, field, signal in bindings:
                 signal.set(_initial(field))
+            self.instance = None
             _toast("Registro guardado", "success")
             if self.on_saved is not None:
                 self.on_saved(saved)
@@ -271,8 +308,72 @@ class ModelForm(Component):
             *([ValidationSummary(errores.get())] if errores.get() else []),
             Stack(*controles, gap=gap.all_3),
             Button(self.submit_label, icon="check", on_click=guardar, margin=margin.t_4),
-            title=self.form_title or f"Nuevo {model.__name__.lower()}",
+            title=(self.form_title or f"Nuevo {model.__name__.lower()}")
+            if self.show_title
+            else None,
         )
         return card.render(ctx, f"{path}-card")
 
 
+def form_dialog(
+    form: Any,
+    *,
+    instance: Model | None = None,
+    title: Any = None,
+    width: str = "lg",
+    cancel_label: str = "Cerrar",
+    on_saved: Callable[[Any], None] | None = None,
+    **options: Any,
+) -> Any:
+    """Abre un formulario en un diálogo modal y lo cierra al guardar.
+
+    ```python
+    def editar(registro) -> None:
+        ui.form_dialog(PersonaForm, instance=registro, title="Editar persona")
+    ```
+
+    Acepta la clase (crea el formulario) o una instancia. Al guardar se cierra
+    solo y la página se repinta con el cambio.
+    """
+    from .app import active_app
+    from .dialogs import Dialog
+
+    application = active_app()
+    if application is None:
+        raise RuntimeError(
+            "form_dialog se abre desde un handler (un botón o una acción de tabla)."
+        )
+
+    node = form() if isinstance(form, type) else form
+    if instance is not None:
+        node.load(instance)
+    # Un prefijo propio: los valores del diálogo no pisan los del formulario de
+    # la página (misma tabla, mismas claves de señal).
+    if not node.prefix:
+        node.prefix = "dialogo"
+    node.show_title = False
+
+    def cerrar() -> None:
+        application.close_dialog()
+
+    previous = node.on_saved
+
+    def al_guardar(record: Any) -> None:
+        cerrar()
+        if previous is not None:
+            previous(record)
+        if on_saved is not None:
+            on_saved(record)
+
+    node.on_saved = al_guardar
+
+    dialog = Dialog(
+        node,
+        title=title or node.form_title or "Formulario",
+        width=width,
+        scrollable=True,
+        buttons=[(cancel_label, cerrar, "outline")],
+        **options,
+    )
+    application.show_dialog(dialog)
+    return dialog

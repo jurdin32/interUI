@@ -168,6 +168,62 @@ Sin `title`, el título es el plural del modelo (`Persona` → «Personas»). La
 columnas de la tabla se pueden acortar sin tocar el formulario:
 `ui.RecordTable(form, columns=["nombre", "email"])`.
 
+### Acciones en cada fila: editar y eliminar
+
+`actions=` añade iconos al final de cada fila. El handler recibe **el registro**
+de esa fila:
+
+```python
+def editar(registro: Persona) -> None:
+    ui.form_dialog(PersonaForm, instance=registro, title="Editar persona")
+
+
+def eliminar(registro: Persona) -> None:
+    registro.delete()
+    ui.toast("Registro eliminado", "success")
+
+
+def inicio() -> ui.Component:
+    return ui.RecordPage(
+        PersonaForm(),
+        title="Personas",
+        columns=["cedula", "nombres", "email", "activo"],   # menos columnas, más sitio
+        actions=[
+            ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar),
+            ui.RowAction(
+                "Eliminar",
+                icon=ui.icons.trash,
+                danger=True,
+                confirm="¿Eliminar esta persona?",
+                on_click=eliminar,
+            ),
+        ],
+    )
+```
+
+| Opción de `RowAction` | Para qué |
+|---|---|
+| `on_click` | la función que recibe el registro de la fila |
+| `icon` | el icono del botón (`ui.icons.*`) |
+| `label` | texto del tooltip y de accesibilidad |
+| `danger=True` | lo pinta en rojo |
+| `confirm="…"` | pregunta antes de ejecutar |
+
+### Editar en un modal con el formulario
+
+`ui.form_dialog(PersonaForm, instance=registro)` abre el formulario dentro de un
+diálogo, ya relleno, y lo cierra al guardar. Como el formulario lleva el
+registro cargado, **actualiza** en vez de crear, y su propia fila no cuenta como
+duplicado en los campos `unique`.
+
+```python
+ui.form_dialog(PersonaForm, instance=registro, title="Editar persona")
+ui.form_dialog(PersonaForm, title="Nueva persona")     # alta, sin registro
+```
+
+Opciones: `title`, `width` (`"sm"`, `"md"`, `"lg"`, `"xl"`), `cancel_label` y
+`on_saved` (se ejecuta después de guardar y antes de cerrar).
+
 `RecordTable` y `RecordCounter` reciben **el formulario**, no el modelo: así no
 hay que repetir la lista de campos y, si añades una columna en `forms.py`,
 aparece en la tabla sin tocar la vista. Si la tabla de la base de datos todavía

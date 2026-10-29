@@ -27,17 +27,19 @@ from typing import Any, Sequence
 from . import db as _db
 from .base import Component
 from .context import RenderContext
+from .controls.buttons import Button
 from .controls.data import Table
 from .controls.feedback import Alert
 from .controls.layout import Card
 from .controls.typography import Badge, Heading, Muted
 from .forms import ModelForm
-from .grid import Container
+from .grid import Container, Stack
 from .html import escape
 from .orm import Model
+from .style import tw
 from .theme import margin, pad, tone
 
-__all__ = ["RecordCounter", "RecordPage", "RecordTable"]
+__all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
 
 
 def _model_of(form: ModelForm) -> type[Model]:
@@ -69,6 +71,76 @@ def _cell(value: Any) -> Any:
     return "—" if value is None or value == "" else value
 
 
+class RowAction:
+    """Un botón de icono al final de cada fila: editar, borrar…
+
+    ```python
+    ui.RecordTable(
+        PersonaForm(),
+        actions=[
+            ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar),
+            ui.RowAction("Eliminar", icon=ui.icons.trash, danger=True,
+                         confirm="¿Eliminar esta persona?", on_click=borrar),
+        ],
+    )
+    ```
+
+    El handler recibe **el registro** de esa fila: ``def editar(registro): ...``.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        *,
+        icon: str | None = None,
+        on_click: Any = None,
+        danger: bool = False,
+        confirm: Any = None,
+        variant: str | None = None,
+        **options: Any,
+    ) -> None:
+        self.label = label
+        self.icon = icon or ("trash" if danger else "edit")
+        self.on_click = on_click
+        self.danger = danger
+        self.confirm = confirm
+        self.variant = variant or ("ghost")
+        self.options = options
+
+    def build(self, record: Any) -> Component:
+        """El botón de esta fila, ya conectado al registro."""
+
+        def ejecutar() -> None:
+            if self.on_click is not None:
+                self.on_click(record)
+
+        handler: Any = ejecutar
+        if self.confirm:
+            def preguntar() -> None:
+                from .dialogs import dialog
+
+                dialog.confirm(self.confirm, on_accept=ejecutar)
+
+            handler = preguntar
+
+        props = dict(self.options)
+        if self.danger:
+            props["class_"] = tw(
+                "text-rose-600 hover:bg-rose-50 dark:text-rose-400 "
+                "dark:hover:bg-rose-500/10",
+                props.get("class_"),
+            )
+        return Button(
+            icon=self.icon,
+            variant=self.variant,
+            size="sm",
+            title=self.label,
+            aria={"label": self.label},
+            on_click=handler,
+            **props,
+        )
+
+
 class RecordTable(Component):
     """Tabla con lo guardado, usando las columnas del formulario.
 
@@ -85,12 +157,16 @@ class RecordTable(Component):
         columns: Sequence[str] | None = None,
         empty: Any = "Todavía no hay registros",
         card: bool = True,
+        actions: Sequence[RowAction] | None = None,
+        actions_header: Any = "",
         **props: Any,
     ) -> None:
         self.form = form
         self.columns = list(columns) if columns is not None else form.field_names()
         self.empty = empty
         self.card = card
+        self.actions = list(actions or ())
+        self.actions_header = actions_header
         super().__init__(**props)
 
     def content(self, ctx: RenderContext, path: str) -> str:
@@ -102,14 +178,23 @@ class RecordTable(Component):
                 level=tone.warning,
             ).render(ctx, f"{path}-alerta")
 
-        table = Table(
-            headers=[self.form.label(name) for name in self.columns],
-            rows=[
-                [_cell(getattr(record, name)) for name in self.columns]
-                for record in records
-            ],
-            empty=self.empty,
-        )
+        headers = [self.form.label(name) for name in self.columns]
+        rows: list[list[Any]] = [
+            [_cell(getattr(record, name)) for name in self.columns] for record in records
+        ]
+        if self.actions:
+            headers.append(self.actions_header)
+            for record, row in zip(records, rows):
+                row.append(
+                    Stack(
+                        *[action.build(record) for action in self.actions],
+                        direction="row",
+                        gap=1,
+                        justify="end",
+                    )
+                )
+
+        table = Table(headers=headers, rows=rows, empty=self.empty)
         if not self.card:
             return table.render(ctx, f"{path}-tabla")
         return Card(table, pad=pad.all_2).render(ctx, f"{path}-tabla")
@@ -135,6 +220,8 @@ class RecordPage(Component):
         title: Any = None,
         counter: bool = True,
         table: bool = True,
+        columns: Sequence[str] | None = None,
+        actions: Sequence[RowAction] | None = None,
         pad_: Any = None,
         **props: Any,
     ) -> None:
@@ -142,6 +229,8 @@ class RecordPage(Component):
         self.page_title = title
         self.show_counter = counter
         self.show_table = table
+        self.columns = list(columns) if columns is not None else None
+        self.actions = list(actions or ())
         self.page_pad = pad_ if pad_ is not None else pad.py_8
         super().__init__(**props)
 
@@ -156,7 +245,14 @@ class RecordPage(Component):
             pieces.append(Muted(RecordCounter(form)))
         pieces.append(form)
         if self.show_table:
-            pieces.append(RecordTable(form, margin=margin.t_6))
+            pieces.append(
+                RecordTable(
+                    form,
+                    columns=self.columns,
+                    actions=self.actions,
+                    margin=margin.t_6,
+                )
+            )
         return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")
 
 

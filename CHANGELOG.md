@@ -8,6 +8,14 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Acciones en la tabla**: `ui.RecordTable(form, actions=[...])` y
+  `ui.RecordPage(form, actions=[...])` con `ui.RowAction("Editar",
+  icon=…, on_click=…)`: un botón de icono por fila cuyo handler recibe ese
+  registro. `danger=True` lo pinta en rojo y `confirm="…"` pregunta antes.
+- **Editar dentro de un modal**: `ui.form_dialog(Form, instance=registro)`
+  abre el formulario relleno en un diálogo y lo cierra al guardar; `ModelForm`
+  actualiza el registro (`load()`) en vez de crear otro y no se marca como
+  duplicado de sí mismo en los campos `unique`.
 - **El proyecto solo lleva configuración**: `startproject` ya no crea
   `mi_app/models.py`, `views.py` ni `urls.py`. Todo eso vive en las apps
   (`iui startapp`), así que un proyecto se compone de `mi_app/app.py` +

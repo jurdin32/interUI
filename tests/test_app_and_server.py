@@ -1,5 +1,7 @@
 import io
 import json
+import threading
+import time
 import urllib.request
 
 import pytest
@@ -345,3 +347,61 @@ def test_layout_envuelve_todas_las_paginas() -> None:
     app.page("/vacia")(lambda: None)
     html = app.render_page("/vacia")[1]
     assert "iui-shell" in html
+
+
+def test_current_app_devuelve_la_app_del_handler() -> None:
+    """En un proyecto, `ui.current_app()` es la app que ejecuta el handler.
+
+    Es lo que hace que un menú con `ui.current_app().quit()` cierre la ventana
+    en vez de crear una app nueva y apagarla a ella.
+    """
+
+    class _WS:
+        id = "w1"
+
+        def __init__(self) -> None:
+            self.enviados: list[dict[str, object]] = []
+
+        def send_json(self, payload: dict[str, object]) -> None:
+            self.enviados.append(payload)
+
+    app = ui.App("Proyecto")
+    visto: list[object] = []
+
+    def salir() -> None:
+        visto.append(ui.current_app())
+        ui.current_app().quit()
+
+    app.page("/")(lambda: ui.Screen(ui.Button("Salir", on_click=salir)))
+    _title, _html, bindings = app.render_page("/")
+    uid = next(iter(bindings))
+    app._client_pages["w1"] = "/"
+    app._bindings["w1"] = bindings
+
+    ws = _WS()
+    app._dispatch(ws, {"id": uid, "e": "click"})
+
+    assert visto == [app], "current_app() debe ser la app en curso, no una nueva"
+    assert app._stopped, "Salir tiene que detener la aplicación"
+
+
+def test_quit_cierra_la_ventana_nativa_sin_bloquear() -> None:
+    """`quit()` destruye la ventana en otro hilo: el handler no se queda colgado."""
+
+    class _Desktop:
+        def __init__(self) -> None:
+            self.cerrada = threading.Event()
+
+        def close(self) -> None:
+            time.sleep(0.3)  # como el destroy real: bloquea hasta cerrar
+            self.cerrada.set()
+
+    app = ui.App("Escritorio")
+    app._desktop = _Desktop()
+    inicio = time.monotonic()
+    app.quit()
+    tardanza = time.monotonic() - inicio
+
+    assert tardanza < 0.2, "quit() no debe esperar al destroy"
+    assert app._stopped
+    assert app._desktop.cerrada.wait(timeout=2), "la ventana no se cerró"

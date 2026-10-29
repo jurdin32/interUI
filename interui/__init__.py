@@ -60,8 +60,10 @@ from .simple import (  # API compacta (minúsculas, ventana implícita)
     alias_names, column, current_app, row, snake_case, state, subtitle, title, toast,
     view, window,
 )
-from .forms import ModelForm  # formularios a partir de un modelo
-from .records import RecordCounter, RecordPage, RecordTable  # lo guardado, desde el formulario
+from .forms import ModelForm, form_dialog  # formularios a partir de un modelo
+from .records import (  # lo guardado, desde el formulario
+    RecordCounter, RecordPage, RecordTable, RowAction,
+)
 
 __all__ = [
     "App", "Component", "Fragment", "RenderContext", "UIEvent", "Attachment",
@@ -81,7 +83,7 @@ __all__ = [
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names", "updates",
-    "ModelForm", "RecordCounter", "RecordPage", "RecordTable",
+    "ModelForm", "form_dialog", "RecordCounter", "RecordPage", "RecordTable", "RowAction",
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",
     "AspectRatio", "ScrollArea", "Grid", "Screen",
     *_controls_all,

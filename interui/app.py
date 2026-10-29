@@ -746,17 +746,29 @@ class App:
     def quit(self) -> None:
         """Cierra todas las ventanas y detiene el servidor.
 
-        Es seguro llamarlo desde un handler de un botón: el bucle de ``run()``
-        termina en cuanto las ventanas se destruyen.
+        Es seguro llamarlo desde un handler de un botón (``ui.current_app()
+        .quit()``): el bucle de ``run()`` termina en cuanto las ventanas se
+        destruyen. Destruir la ventana nativa bloquea hasta que el bucle
+        gráfico acaba, así que se hace en otro hilo: si no, la conexión del
+        botón se queda esperando y parece que «Salir» no hace nada.
         """
         self._stopped = True
+        desktop = self._desktop
         for window in [item for item in self.windows if item.ident != "main"]:
             window.close()
-        if self._desktop is not None:
-            self._desktop.close()
-        for window in list(self._windows.values()):
-            window.close()
-        if self._desktop is None and self.server is not None:
+        if desktop is not None:
+
+            def cerrar() -> None:
+                try:
+                    desktop.close()
+                except Exception:  # noqa: BLE001 - la ventana ya podía estar cerrada
+                    pass
+
+            threading.Thread(target=cerrar, name="interui-quit", daemon=True).start()
+        for window in [item for item in self.windows if item.ident == "main"]:
+            window.closed = True
+            self._forget_window(window)
+        if desktop is None and self.server is not None:
             threading.Thread(target=self._shutdown, name="interui-quit", daemon=True).start()
 
     def set_theme(self, theme: str = "dark") -> None:

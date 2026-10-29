@@ -308,3 +308,137 @@ def test_recordpage_pinta_la_pagina_completa(app) -> None:
     # Sin `title`, el plural del modelo.
     app.page("/auto")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona))))
     assert "Personas" in app.render_page("/auto")[1]
+
+
+def test_load_rellena_y_actualiza_el_registro(app) -> None:
+    """`form.load(registro)` edita ese registro en vez de crear otro."""
+    persona = Persona.objects.create(nombre="Ana", email="ana@x.com")
+    form = ui.ModelForm(Persona)
+    app.page("/editar")(lambda: ui.Screen(form))
+
+    app.render_page("/editar")
+    form.load(persona)
+    _title, html, _bindings = app.render_page("/editar")
+    assert 'value="Ana"' in html, "el campo viene relleno"
+
+    _señal(app, "nombre").set("Ana María")
+    _title, _html, bindings = app.render_page("/editar")
+    invoke(_boton(bindings), UIEvent(id="x", event="click"))
+
+    assert Persona.objects.count() == 1, "no debe crear un registro nuevo"
+    assert Persona.objects.first().nombre == "Ana María"
+    assert Persona.objects.first().email == "ana@x.com"
+
+
+def test_al_editar_no_choca_con_su_propio_unique(app) -> None:
+    """El registro que se edita no cuenta como duplicado de sí mismo."""
+    persona = Persona.objects.create(nombre="Ana", email="ana@x.com")
+    form = ui.ModelForm(Persona)
+    app.page("/editar")(lambda: ui.Screen(form))
+    app.render_page("/editar")
+    form.load(persona)
+
+    _title, _html, bindings = app.render_page("/editar")
+    invoke(_boton(bindings), UIEvent(id="x", event="click"))
+
+    assert _señal(app, "errores").get() == []
+    assert Persona.objects.count() == 1
+
+
+def test_rowaction_ejecuta_con_el_registro_de_su_fila(app) -> None:
+    """Cada icono de la tabla llama al handler con su registro."""
+    vistos: list[str] = []
+
+    def borrar(registro) -> None:
+        vistos.append(registro.nombre)
+        registro.delete()
+
+    app.page("/acciones")(
+        lambda: ui.Screen(
+            ui.RecordTable(
+                ui.ModelForm(Persona),
+                columns=["nombre"],
+                actions=[
+                    ui.RowAction("Eliminar", icon=ui.icons.trash, danger=True, on_click=borrar),
+                ],
+            )
+        )
+    )
+    Persona.objects.create(nombre="Ana", email="ana@x.com")
+    Persona.objects.create(nombre="Luis", email="luis@x.com")
+
+    _title, html, bindings = app.render_page("/acciones")
+    assert "Eliminar" in html
+    assert html.count('aria-label="Eliminar"') == 2, "un botón por fila"
+
+    for uid, handlers in list(bindings.items()):
+        if "click" in handlers:
+            invoke(handlers["click"], UIEvent(id=uid, event="click"))
+            break
+
+    assert len(vistos) == 1
+    assert Persona.objects.count() == 1
+
+
+def test_rowaction_con_confirm_pide_permiso(app) -> None:
+    """Con `confirm` primero pregunta y solo borra al aceptar."""
+    app.page("/confirmar")(
+        lambda: ui.Screen(
+            ui.RecordTable(
+                ui.ModelForm(Persona),
+                columns=["nombre"],
+                actions=[
+                    ui.RowAction(
+                        "Eliminar",
+                        confirm="¿Seguro?",
+                        on_click=lambda registro: registro.delete(),
+                    )
+                ],
+            )
+        )
+    )
+    Persona.objects.create(nombre="Ana", email="ana@x.com")
+    _title, _html, bindings = app.render_page("/confirmar")
+
+    class _WS:
+        id = "w1"
+
+        def send_json(self, payload) -> None:
+            pass
+
+    app._client_pages["w1"] = "/confirmar"
+    app._bindings["w1"] = bindings
+    uid = next(u for u, handlers in bindings.items() if "click" in handlers)
+    app._dispatch(_WS(), {"id": uid, "e": "click"})
+
+    assert Persona.objects.count() == 1, "no borra sin confirmar"
+    assert app.dialogs, "abre un diálogo de confirmación"
+
+
+def test_form_dialog_abre_el_formulario_en_un_modal(app) -> None:
+    """`form_dialog` abre el formulario en un diálogo con el registro cargado."""
+
+    class _WS:
+        id = "w1"
+
+        def send_json(self, payload) -> None:
+            pass
+
+    def editar(registro) -> None:
+        ui.form_dialog(ui.ModelForm(Persona), instance=registro, title="Editar")
+
+    app.page("/modal")(lambda: ui.Screen(ui.Button("Editar", on_click=lambda: editar(
+        Persona.objects.first()
+    ))))
+    Persona.objects.create(nombre="Ana", email="ana@x.com")
+    _title, _html, bindings = app.render_page("/modal")
+
+    app._client_pages["w1"] = "/modal"
+    app._bindings["w1"] = bindings
+    uid = next(u for u, handlers in bindings.items() if "click" in handlers)
+    app._dispatch(_WS(), {"id": uid, "e": "click"})
+
+    assert len(app.dialogs) == 1
+    html = app.render_page("/modal")[1]
+    assert "Editar" in html
+    assert 'value="Ana"' in html
