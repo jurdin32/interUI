@@ -13,6 +13,12 @@ etiqueta como `vX.Y.Z`.
   `page_sizes=(10, 15, 20)` y pie «Mostrando 1–10 de 25», y cabeceras que ordenan
   al pulsarlas (`sort=True`, `sortable=[...]`, `order_by="-campo"`). Todo en
   Python, así que funciona con cualquier motor.
+- **Pie de la tabla cuidado**: `Mostrando 1–10 de 25` a la izquierda y
+  `[10 ▾] ‹ 1 de 3 ›` a la derecha, en una sola línea y sin salirse de la
+  tarjeta (`whitespace-nowrap`, `tabular-nums`). El resumen sigue apareciendo
+  aunque la búsqueda deje menos filas que el tamaño de página
+  (`Mostrando 1–2 de 2`), y si la ventana es muy estrecha el grupo de controles
+  baja entero a la línea siguiente en vez de partirse.
 - **La página del registro se configura desde la vista**: `RecordPage(...,
   form_mode="inline" | "modal" | "none")`. En `"modal"` la página se queda con el
   contador y la tabla, y un botón **Nuevo** (`new_label`, `new_icon`) abre el
@@ -99,6 +105,11 @@ etiqueta como `vX.Y.Z`.
 
 ### Corregido
 
+- **Recargar una página ya no devuelve a la bienvenida**: el servidor solo
+  pinta cuando el cliente saluda (`hello`) diciendo qué ruta quiere. Antes
+  empujaba un render de `/` al conectar y, si llegaba tarde, la ventana se
+  quedaba en «Hola mundo» aunque la URL fuera `/persona`. La ventana nativa se
+  sigue mostrando en cuanto llega el primer render.
 - **`iui update --run` (`--install`, `--upgrade`) actualiza de verdad** en las
   cuatro formas de instalación, sin copiar comandos: detecta el origen, ejecuta
   los pasos (`git pull` + `pip -e` en modo enlace) y avisa al terminar. Para las

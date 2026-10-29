@@ -232,6 +232,27 @@ mayúsculas) y vuelve a la primera página. Al pulsar una cabecera se ordena
 ascendente y, si la pulsas otra vez, descendente; la columna activa muestra la
 flecha.
 
+#### El pie de la tabla
+
+Cuando hay `page_size`, debajo de la tabla aparece una sola línea con el
+resumen a la izquierda y los controles a la derecha:
+
+```
+Mostrando 1–10 de 25                     [10 ▾]  ‹  1 de 3  ›
+```
+
+- **`Mostrando 3–12 de 25`** cuenta solo las filas que cumplen la búsqueda;
+  `25` es el total guardado. Con una búsqueda que deja pocas filas sigue
+  apareciendo (`Mostrando 1–2 de 2`), para no perder el selector de tamaño.
+- **`[10 ▾]`** cambia las filas por página (`page_sizes`) y vuelve a la primera.
+- **`‹ 1 de 3 ›`** navega; los extremos se deshabilitan solos. El número de
+  páginas se recalcula con lo filtrado.
+
+Con `page_size=None` el pie desaparece y se ven todos los registros de una vez.
+
+Los controles no se salen de la tarjeta: si la ventana es muy estrecha, el grupo
+de la derecha baja a una segunda línea entero (no se parte por dentro).
+
 Todo se resuelve en Python sobre los registros ya cargados: funciona igual con
 SQLite, PostgreSQL o MySQL, sin tocar el motor.
 

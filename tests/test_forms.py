@@ -556,13 +556,13 @@ def test_tabla_pagina_de_10_en_10(tmp_path) -> None:
 
     _title, html, _bindings = app.render_page("/tabla")
     assert "Mostrando 1–10 de 25" in html
-    assert "1 / 3" in html
+    assert "1 de 3" in html
     assert html.count("Persona ") == 10, "solo diez filas"
 
     app._signals["tabla_form_personas_pagina"].set(2)
     _title, html, _bindings = app.render_page("/tabla")
     assert "Mostrando 21–25 de 25" in html
-    assert "3 / 3" in html
+    assert "3 de 3" in html
     db.reset()
 
 
@@ -586,7 +586,19 @@ def test_tabla_busca_en_las_columnas(tmp_path) -> None:
     _title, html, _bindings = app.render_page("/tabla")
     assert "Persona 07" in html
     assert "Persona 08" not in html
-    assert "1 de 25" in html
+    assert "Mostrando 1–1 de 1" in html, "con una sola coincidencia también hay pie"
+    db.reset()
+
+
+def test_tabla_muestra_el_pie_aunque_quepan_todas_las_filas(tmp_path) -> None:
+    """El pie y el selector de filas no deben desaparecer al filtrar."""
+    app = _tabla_app(tmp_path, total=6)
+    _tabla(ui.RecordPage(ui.ModelForm(Persona), search=True, page_size=10), app)
+
+    _title, html, _bindings = app.render_page("/tabla")
+    assert "Mostrando 1–6 de 6" in html
+    assert "1 de 1" in html
+    assert "Filas por página" in html
     db.reset()
 
 

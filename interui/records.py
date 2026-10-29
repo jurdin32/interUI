@@ -281,7 +281,7 @@ class RecordTable(Component):
 
         filtrados = len(records)
 
-        if self.page_size and filtrados > self.page_size:
+        if self.page_size and filtrados:
             tamano_signal = _state(self.page_size, name=self._key("tamano"))
 
             def al_cambiar_tamano(evento: Any) -> None:
@@ -305,7 +305,8 @@ class RecordTable(Component):
             piezas.append(
                 Stack(
                     Muted(
-                        f"Mostrando {desde + 1}–{desde + len(records)} de {filtrados}"
+                        f"Mostrando {desde + 1}–{desde + len(records)} de {filtrados}",
+                        class_="whitespace-nowrap tabular-nums",
                     ),
                     Stack(
                         Select(
@@ -313,36 +314,51 @@ class RecordTable(Component):
                             value=str(tamano),
                             on_change=al_cambiar_tamano,
                             size="sm",
-                            width="w-20",
+                            width="w-16",
+                            title="Filas por página",
+                            aria={"label": "Filas por página"},
+                            class_="shrink-0",
                         ),
-                        Button(
-                            icon="chevron-left",
-                            variant="outline",
-                            size="sm",
-                            title="Anterior",
-                            aria={"label": "Página anterior"},
-                            disabled=pagina == 0,
-                            on_click=ir_a(pagina - 1),
-                        ),
-                        Muted(f"{pagina + 1} / {paginas}"),
-                        Button(
-                            icon="chevron-right",
-                            variant="outline",
-                            size="sm",
-                            title="Siguiente",
-                            aria={"label": "Página siguiente"},
-                            disabled=pagina >= paginas - 1,
-                            on_click=ir_a(pagina + 1),
+                        Stack(
+                            Button(
+                                icon="chevron-left",
+                                variant="outline",
+                                size="sm",
+                                title="Página anterior",
+                                aria={"label": "Página anterior"},
+                                disabled=pagina == 0,
+                                on_click=ir_a(pagina - 1),
+                                class_="shrink-0",
+                            ),
+                            Muted(
+                                f"{pagina + 1} de {paginas}",
+                                class_="whitespace-nowrap tabular-nums px-1",
+                            ),
+                            Button(
+                                icon="chevron-right",
+                                variant="outline",
+                                size="sm",
+                                title="Página siguiente",
+                                aria={"label": "Página siguiente"},
+                                disabled=pagina >= paginas - 1,
+                                on_click=ir_a(pagina + 1),
+                                class_="shrink-0",
+                            ),
+                            direction="row",
+                            align="center",
+                            gap=gap.all_1,
                         ),
                         direction="row",
                         align="center",
                         gap=gap.all_2,
+                        class_="flex-nowrap shrink-0",
                     ),
                     direction="row",
                     justify="between",
                     align="center",
                     gap=gap.all_3,
                     margin=margin.t_4,
+                    class_="flex-wrap",
                 )
             )
         elif self.search:
