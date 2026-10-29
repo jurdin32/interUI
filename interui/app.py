@@ -48,6 +48,35 @@ def active_app() -> Any:
     return _ACTIVE_APP.get()
 
 
+def _welcome_page(application: "App") -> Callable[..., Any]:
+    """La página que se ve cuando ninguna vista registró `/`."""
+
+    def welcome() -> Any:
+        from .controls.typography import Heading, Muted
+        from .grid import Container, Screen
+        from .theme import margin
+
+        rutas = [
+            route for route, *_rest in application._routes if route.rstrip("/") != ""
+        ]
+        hint = (
+            f"Páginas disponibles: {', '.join(rutas)}"
+            if rutas
+            else "Crea tu primera app: python iui.py startapp personas"
+        )
+        return Screen(
+            Container(
+                size="full",
+                class_="flex min-h-screen flex-col items-center justify-center gap-2",
+            )(
+                Heading("Hola mundo", level=1),
+                Muted(hint, margin=margin.t_2),
+            )
+        )
+
+    return welcome
+
+
 def _register_installed_apps(application: "App", names: list[str]) -> None:
     """Conecta las rutas de las apps declaradas en ``interui.json``.
 
@@ -159,7 +188,18 @@ class App:
         application.config = settings
         db_module.configure(settings)
         _register_installed_apps(application, settings.installed_apps())
+        application._ensure_home()
         return application
+
+    def _ensure_home(self) -> None:
+        """Si nadie ha registrado `/`, pone una bienvenida.
+
+        Un proyecto recién creado no tiene vistas: así la ventana abre igual y
+        la primera app que registre `/` la sustituye.
+        """
+        if self.has_page("/"):
+            return
+        self.page("/", title=self.title)(_welcome_page(self))
 
     # ------------------------------------------------------------------
     # rutas

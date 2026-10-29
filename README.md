@@ -310,12 +310,9 @@ mi_app/
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
-├── mi_app/             # el paquete del proyecto
+├── mi_app/             # el paquete del proyecto (solo configuración)
 │   ├── __init__.py
-│   ├── app.py          # crea la App y registra las rutas
-│   ├── urls.py         # ruta → vista
-│   ├── views.py        # las páginas (una: «Hola mundo»)
-│   └── models.py       # modelos del ORM (vacío)
+│   └── app.py          # crea la App y el armazón de la ventana
 ├── migrations/         # migraciones generadas
 └── data/               # SQLite o archivos
 ```
@@ -335,10 +332,10 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `main.py` | abre la app: aplica migraciones, construye la `App` y muestra la ventana |
 | `iui.py` | comandos que nunca abren ventana: `startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check` |
 | `interui.json` | configuración: identidad, ventana, base de datos, apps y migraciones |
-| `urls.py` | qué vista responde a cada ruta |
-| `views.py` | qué se pinta en cada página |
-| `forms.py` | formularios de la app: un control por campo del modelo |
-| `models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
+| `<app>/views.py` | qué se pinta en cada página |
+| `<app>/urls.py` | qué vista responde a cada ruta |
+| `<app>/forms.py` | formularios: un control por campo del modelo |
+| `<app>/models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
 | `migrations/` | historial del esquema, en JSON legible y versionado |
 | `data/` | base de datos y archivos de la app (fuera de git) |
 | `<app>/` | apps del proyecto: modelos, formularios, vistas y rutas que se registran solas |
@@ -346,21 +343,19 @@ Cada pieza tiene una responsabilidad y no se solapan:
 `iui` y `interui` son el mismo comando (`iui startproject`, `iui run`, `iui db
 migrate`…). Si solo quieres un archivo suelto: `interui new mi_app`.
 
-Contenido de `app.py`:
+Contenido de `mi_app/app.py` (todo el paquete del proyecto):
 
 ```python
-from interui import App, Button, Card, Container, Heading, Screen, pad
-
-app = App("mi_app")
-
-
-@app.page("/")
-def index():
-    return Screen(Container(size="prose", pad=pad.py_10)(Heading("mi_app", level=1)))
+BASE_DIR = Path(__file__).resolve().parent.parent
+CONFIG = BASE_DIR / "interui.json"
 
 
-if __name__ == "__main__":
-    app.run()
+def create_app() -> ui.App:
+    """`App` del proyecto, con las rutas de todas sus apps."""
+    return ui.App.from_config(CONFIG)
+
+
+app = create_app()
 ```
 
 Ejemplos completos en [`examples/`](examples):

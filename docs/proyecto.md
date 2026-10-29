@@ -2,8 +2,9 @@
 
 Un proyecto de interUI es una carpeta con una estructura fija. Conocerla te
 ahorra buscar dónde va cada cosa: **`main.py` abre la app**, **`iui.py` ejecuta
-comandos**, **`interui.json` guarda la configuración** y el resto son páginas
-(`views.py`), rutas (`urls.py`) y modelos (`models.py`).
+comandos**, **`interui.json` guarda la configuración** y el paquete del proyecto
+(`mi_app/`) solo tiene configuración: **los modelos y las páginas viven en las
+apps**.
 
 ```text
 mi_app/
@@ -13,12 +14,9 @@ mi_app/
 ├── requirements.txt
 ├── README.md
 ├── .gitignore
-├── mi_app/                 ← el paquete del proyecto
+├── mi_app/                 ← el paquete del proyecto (solo configuración)
 │   ├── __init__.py
-│   ├── app.py              ← construye la App y registra las rutas
-│   ├── urls.py             ← qué vista responde a cada ruta
-│   ├── views.py            ← las páginas (al empezar, «Hola mundo»)
-│   └── models.py           ← modelos propios del proyecto (vacío)
+│   └── app.py              ← construye la App y el armazón de la ventana
 ├── ventas/                 ← una app del proyecto (`iui.py startapp ventas`)
 │   ├── models.py           ← sus tablas
 │   ├── forms.py            ← sus formularios
@@ -117,7 +115,7 @@ mano y admite variables de entorno con `${VARIABLE:valor_por_defecto}`.
   "apps": [],
   "migrations": {
     "directory": "migrations",
-    "models": ["mi_app/models.py"]
+    "models": []
   }
 }
 ```
@@ -140,18 +138,20 @@ Referencia completa, con todos los motores y ejemplos:
 
 ## 4. El paquete del proyecto
 
-El paquete (`mi_app/`) es lo que da forma a la ventana. Al empezar tiene tres
-piezas y cada una responde a una pregunta distinta:
+El paquete (`mi_app/`) es **solo configuración**: dos archivos.
 
 | Archivo | Pregunta que responde |
 |---|---|
-| `app.py` | ¿Cómo se construye la `App`? |
-| `urls.py` | ¿Qué vista responde a cada ruta? |
-| `views.py` | ¿Qué se pinta en cada página? |
-| `models.py` | ¿Qué tablas hay en la base de datos? |
+| `__init__.py` | ¿Cómo se llama el paquete? |
+| `app.py` | ¿Cómo se construye la `App` y cuál es el armazón de la ventana? |
 
-El proyecto recién creado solo trae una vista: una etiqueta centrada que dice
-«Hola mundo». Todo lo demás lo añades tú.
+No hay `models.py`, `views.py` ni `urls.py`: los modelos, los formularios y las
+páginas van en las **apps**, una por dominio (`ventas`, `personas`, `tareas`…).
+Así una app se puede copiar de un proyecto a otro sin arrastrar el resto.
+
+Mientras no haya ninguna app que registre la página `/`, la ventana muestra
+«Hola mundo» centrado con una pista de cómo crear la primera. Esa bienvenida la
+pone el framework, no un archivo del proyecto.
 
 ### `app.py`
 
@@ -161,26 +161,23 @@ CONFIG = BASE_DIR / "interui.json"
 
 
 def create_app() -> ui.App:
-    """`App` del proyecto, con todas las páginas ya registradas."""
-    app = ui.App.from_config(CONFIG)
-    urls.register(app)
-    return app
+    """`App` del proyecto, con las rutas de todas sus apps."""
+    return ui.App.from_config(CONFIG)
 
 
 app = create_app()
 ```
 
 `App.from_config()` lee `interui.json`, configura la base de datos y **registra
-las rutas de cada app** de la lista `apps`. Después, `urls.register(app)` añade
-las páginas del propio proyecto. El módulo deja además una instancia `app`
-lista para usar (`from mi_app.app import app`), que es lo que espera la CLI.
+las rutas de cada app** de la lista `apps`. El módulo deja además una instancia
+`app` lista para usar (`from mi_app.app import app`), que es lo que espera la
+CLI.
 
 **Si quieres un menú**, el armazón se pone aquí, una sola vez:
 
 ```python
 def create_app() -> ui.App:
     app = ui.App.from_config(CONFIG)
-    urls.register(app)
     app.layout = ui.AppShell(
         title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
         header=ui.MenuBar(
@@ -199,61 +196,44 @@ Con `app.layout`, **todas** las páginas se pintan dentro del armazón y cada
 vista devuelve solo su contenido. Los `href` de los menús navegan entre páginas
 sin recargar. Se explica en [menús](menus.md#el-armazón-de-toda-la-aplicación-applayout).
 
-### `urls.py`
+### Dónde va cada cosa
 
-```python
-urlpatterns = [
-    ("/", views.inicio, "Mi app"),
-]
-
-
-def register(app) -> None:
-    for path, view, title in urlpatterns:
-        app.page(path, title=title)(view)
-```
-
-Cada entrada es `(ruta, vista, título de la ventana)`. Las rutas aceptan
-parámetros tipados: `"/tarea/<int:id>"` llama a `tarea(id=1)` con un `int`.
-
-### `views.py`
+| Quiero… | Va en |
+|---|---|
+| una tabla | `<app>/models.py` |
+| un formulario | `<app>/forms.py` |
+| una página | `<app>/views.py` |
+| una ruta nueva | `<app>/urls.py` |
+| el menú y la barra de título | `mi_app/app.py` (`app.layout`) |
+| la base de datos y la ventana | `interui.json` |
 
 Una vista es una función sin argumentos (o con los parámetros de la ruta) que
-devuelve un componente. La que trae el proyecto centra su contenido en la
-ventana:
+devuelve un componente. Las vistas se ejecutan **en cada render**; por eso
+conviene que sean rápidas y que no guarden estado en variables globales: el
+estado va en `ui.state()` (señales) o en la base de datos.
+
+La vista más corta que existe:
 
 ```python
+# ventas/views.py
 def inicio() -> ui.Component:
-    return ui.Screen(
-        ui.Container(
-            size="full",
-            class_="flex min-h-screen items-center justify-center",
-        )(
-            ui.Heading("Hola mundo", level=1),
-        )
-    )
+    return ui.RecordPage(VentaForm(), title="Ventas")
 ```
 
-Las vistas se ejecutan **en cada render**; por eso conviene que sean rápidas y
-que no guarden estado en variables globales: el estado va en `app.state()`
-(señales) o en la base de datos.
-
-### Cuando la app crece: el armazón
-
-Con una sola página no hace falta nada más. Cuando haya varias, lo normal es
-escribir un armazón compartido (barra de título, menú lateral, barra de estado)
-y envolver con él el contenido de cada vista:
+Y el armazón (barra de título, menú, barra de estado) se pone una sola vez en
+`mi_app/app.py` con `app.layout`:
 
 ```python
-def frame(*content, title: str = "Mi app", active: str = "/") -> ui.AppShell:
-    shell = ui.AppShell(collapsible=False)     # menú siempre visible
-    shell.title_bar = ui.TitleBar(title, icon=ui.icons.layers)
-    shell.sidebar = sidebar(active)
-    shell.add = ui.Container(pad=ui.pad.p_4)(*content)
-    return shell
+app.layout = ui.AppShell(
+    title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
+    header=ui.MenuBar({"Ventas": [ui.ContextItem("Clientes", href="/clientes")]}),
+    status=ui.StatusBar(ui.text("Listo")),
+)
 ```
 
-Está explicado en [menús y armazón](menus.md) y en el
-[tutorial](guia.md#paso-3-poner-un-menú).
+Con eso, **todas** las páginas se pintan dentro del armazón: el menú no
+desaparece al navegar y ninguna vista lo repite. Está explicado en
+[menús y armazón](menus.md) y en el [tutorial](guia.md#paso-3-poner-un-menú).
 
 ---
 

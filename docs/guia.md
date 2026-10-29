@@ -631,11 +631,14 @@ iui startproject mi_app      # sin nombre: pregunta base de datos, tema, etc.
 | `main.py` | el punto de entrada: migra lo pendiente y abre la ventana |
 | `iui.py` | los comandos del proyecto (`startapp`, `makemigrations`, `migrate`…) |
 | `interui.json` | la configuración: nombre, ventana, base de datos, apps |
-| `mi_app/app.py` | crea la `App` y conecta las rutas |
-| `mi_app/views.py` | las páginas del proyecto |
-| `mi_app/urls.py` | qué vista responde a cada ruta |
+| `mi_app/app.py` | configuración: crea la `App` y el armazón de la ventana |
+| `<app>/` | apps del proyecto: modelos, formularios, páginas y rutas |
 | `migrations/` | el historial de la base de datos (se versiona en git) |
 | `data/` | la base de datos y los archivos (no se versiona) |
+
+El paquete del proyecto **solo tiene configuración**: no hay `models.py` ni
+`views.py` en `mi_app/`. Mientras no exista ninguna app, la ventana muestra
+«Hola mundo»; la primera app que registre una página la sustituye.
 
 El ciclo de trabajo, siempre el mismo:
 

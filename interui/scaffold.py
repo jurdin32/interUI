@@ -11,11 +11,8 @@
     ├── .gitignore
     ├── tienda/             ← el paquete del proyecto
     │   ├── __init__.py
-    │   ├── app.py          ← crea la App y registra las rutas
-    │   ├── urls.py         ← qué vista responde a cada ruta
-    │   ├── views.py        ← las páginas (una: «Hola mundo»)
-    │   └── models.py       ← modelos del ORM (vacío al empezar)
-    ├── <app>/              ← apps del proyecto (`iui startapp`)
+    │   └── app.py          ← configuración: crea la App y el armazón
+    ├── <app>/              ← apps del proyecto (`iui startapp`): modelos y vistas
     ├── migrations/         ← migraciones generadas
     └── data/               ← SQLite / archivos (se crea al migrar)
 
@@ -73,17 +70,16 @@ INIT_PY = '''"""{name}: aplicación de escritorio con interUI."""
 __version__ = "0.1.0"
 '''
 
-APP_PY = '''"""La ventana de la aplicación.
+APP_PY = '''"""Configuración de la ventana.
 
-Aquí se crea la `App` con lo que dice `interui.json` y se registran las rutas
-de `urls.py`.
+Aquí se crea la `App` con lo que dice `interui.json`. El proyecto **no** tiene
+modelos ni vistas: cada app (`python iui.py startapp <app>`) trae los suyos y
+sus rutas se registran solas.
 """
 
 from pathlib import Path
 
 import interui as ui
-
-from {pkg} import urls
 
 #: `interui.json` vive un nivel por encima del paquete.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,10 +87,13 @@ CONFIG = BASE_DIR / "interui.json"
 
 
 def create_app() -> ui.App:
-    """`App` del proyecto, con todas las páginas ya registradas."""
-    app = ui.App.from_config(CONFIG)
-    urls.register(app)
-    return app
+    """`App` del proyecto, con las rutas de todas sus apps.
+
+    El armazón de la ventana (barra de título, menú, barra de estado) se pone
+    aquí, una sola vez, con `app.layout = ui.AppShell(...)`. Las vistas solo
+    devuelven su contenido.
+    """
+    return ui.App.from_config(CONFIG)
 
 
 app = create_app()
@@ -143,59 +142,6 @@ if __name__ == "__main__":
     main()
 '''
 
-URLS_PY = '''"""Rutas del proyecto.
-
-Cada entrada es `(ruta, vista, título de la ventana)`. Para parámetros usa
-`"/tarea/<int:id>"` y la vista recibirá la función `tarea(id=1)`.
-"""
-
-from typing import Any, Callable
-
-from {pkg} import views
-
-URLPattern = tuple[str, Callable[..., Any], str]
-
-urlpatterns: list[URLPattern] = [
-    ("/", views.inicio, "{name}"),
-]
-
-
-def register(app: Any) -> None:
-    """Conecta `urlpatterns` con la aplicación.
-
-    Las apps creadas con `python iui.py startapp` no se tocan aquí: están en
-    `apps` de interui.json y sus rutas se registran solas.
-    """
-    for path, view, title in urlpatterns:
-        app.page(path, title=title)(view)
-'''
-
-VIEWS_PY = '''"""Vistas del proyecto: cada función devuelve la página que se pinta."""
-
-import interui as ui
-
-
-def inicio() -> ui.Component:
-    """La portada: una etiqueta centrada en la ventana."""
-    return ui.Screen(
-        ui.Container(
-            size="full",
-            class_="flex min-h-screen items-center justify-center",
-        )(
-            ui.Heading("Hola mundo", level=1),
-        )
-    )
-'''
-
-MODELS_PY = '''"""Modelos del ORM.
-
-Declara aquí tus tablas y ejecuta `python iui.py makemigrations` para crear la
-migración. El proyecto empieza vacío: solo trae una ventana.
-"""
-
-import interui as ui  # noqa: F401 - lo usarás al declarar un modelo
-'''
-
 README = """# {name}
 
 Aplicación de escritorio creada con **interUI** (Python + Tailwind, sin navegador).
@@ -207,8 +153,8 @@ pip install -r requirements.txt
 python main.py
 ```
 
-La ventana muestra una etiqueta centrada con «Hola mundo». A partir de ahí,
-edita `{pkg}/views.py` y guarda: la ventana se vuelve a pintar sola.
+La ventana abre con «Hola mundo» centrado. En cuanto crees una app, su página
+sustituye esa bienvenida.
 
 `main.py` aplica las migraciones pendientes y abre la ventana nativa. Los
 comandos que no abren ventana (`startapp`, `makemigrations`, `migrate`,
@@ -220,44 +166,47 @@ comandos que no abren ventana (`startapp`, `makemigrations`, `migrate`,
 |---|---|
 | `main.py` | punto de entrada: crea la app y abre la ventana. |
 | `iui.py` | comandos del proyecto (`startapp`, `makemigrations`, `migrate`, `status`, `shell`, `run`). |
-| `interui.json` | configuración: nombre, tamaño de la ventana, base de datos, migraciones. |
-| `{pkg}/app.py` | crea la `App` y registra las rutas. |
-| `{pkg}/urls.py` | qué vista responde a cada ruta. |
-| `{pkg}/views.py` | las páginas, en Python con componentes (de momento, «Hola mundo»). |
-| `{pkg}/models.py` | modelos del ORM (vacío; se convierte en tablas con las migraciones). |
+| `interui.json` | configuración: nombre, ventana, base de datos, apps y migraciones. |
+| `{pkg}/app.py` | crea la `App` (configuración; aquí se pone el armazón de la ventana). |
 | `migrations/` | migraciones generadas. |
 | `data/` | base SQLite o archivos (se crea al migrar). |
-| `<app>/` | apps del proyecto: `models.py`, `views.py` y `urls.py` (`iui startapp`). |
 
-## Dar los primeros pasos
+El proyecto no trae modelos ni vistas: van en las **apps**, una por dominio.
 
-1. Cambia el texto en `{pkg}/views.py` (`inicio`).
-2. Añade una ruta nueva en `{pkg}/urls.py`.
-3. Crea una tabla en `{pkg}/models.py` y ejecuta:
-
-```bash
-python iui.py makemigrations
-python iui.py migrate
-```
-
-## Añadir una app
+## Tu primera app
 
 ```bash
 python iui.py startapp tareas
 python iui.py makemigrations
 python iui.py migrate
+python main.py
 ```
 
-Crea `tareas/` con `models.py`, `views.py` y `urls.py`, y la declara en `apps`
-de `interui.json`: sus rutas se registran solas al abrir la ventana.
+Crea `tareas/` con `models.py`, `forms.py`, `views.py` y `urls.py` **listos para
+usar**: la página `/tareas` trae formulario de alta, validación y tabla con lo
+guardado. Además la declara en `apps` de `interui.json`: sus rutas se registran
+solas.
 
-## Añadir una página
+## Añadir un menú a la ventana
 
-1. Escribe la vista en `{pkg}/views.py` (o en la app que corresponda).
-2. Añádela a `urlpatterns` en `{pkg}/urls.py` (o en `<app>/urls.py`).
+El armazón se escribe una vez en `{pkg}/app.py` y envuelve todas las páginas:
 
 ```python
-("\\"/ajustes\\"", views.ajustes, "Ajustes"),
+def salir() -> None:
+    ui.current_app().quit()
+
+
+def create_app() -> ui.App:
+    app = ui.App.from_config(CONFIG)
+    app.layout = ui.AppShell(
+        title_bar=ui.TitleBar("{name}", icon=ui.icons.layers),
+        header=ui.MenuBar(
+            {"Archivo": [ui.ContextItem("Salir", icon=ui.icons.power, on_click=salir)]},
+            icons={"Archivo": ui.icons.folder},
+        ),
+        status=ui.StatusBar(ui.text("Listo")),
+    )
+    return app
 ```
 """
 
@@ -291,7 +240,7 @@ def _config(
         }
     )
     data["databases"] = {"default": {"engine": engine, **settings}}
-    data["migrations"] = {"directory": "migrations", "models": [f"{pkg}/models.py"]}
+    data["migrations"] = {"directory": "migrations", "models": []}
     return data
 
 
@@ -335,9 +284,6 @@ def create_project(
         target / ".gitignore": "__pycache__/\n*.py[cod]\ndata/\nbuild/\ndist/\n*.spec\n.env\n",
         target / pkg / "__init__.py": _render(INIT_PY, display, pkg),
         target / pkg / "app.py": _render(APP_PY, display, pkg),
-        target / pkg / "urls.py": _render(URLS_PY, display, pkg),
-        target / pkg / "views.py": _render(VIEWS_PY, display, pkg),
-        target / pkg / "models.py": MODELS_PY,
         target / "migrations" / ".gitkeep": "",
         target / "data" / ".gitkeep": "",
     }

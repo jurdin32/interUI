@@ -8,6 +8,12 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **El proyecto solo lleva configuración**: `startproject` ya no crea
+  `mi_app/models.py`, `views.py` ni `urls.py`. Todo eso vive en las apps
+  (`iui startapp`), así que un proyecto se compone de `mi_app/app.py` +
+  `interui.json`. Si ninguna vista registra `/`, el framework pone una
+  bienvenida («Hola mundo» y la pista de qué páginas hay o cómo crear la
+  primera).
 - **`app.layout`**: el armazón de la ventana (`AppShell` con barra de título,
   menú y estado) se escribe una vez y envuelve **todas** las páginas; las vistas
   devuelven solo su contenido y el menú no desaparece al navegar. Las entradas

@@ -44,15 +44,16 @@ def test_crea_la_estructura_completa(proyecto: pathlib.Path) -> None:
         if path.is_file()
     }
     assert EXPECTED <= archivos
-    for esperado in (
-        "tienda/__init__.py",
-        "tienda/app.py",
-        "tienda/urls.py",
+    for esperado in ("tienda/__init__.py", "tienda/app.py"):
+        assert esperado in archivos, f"falta {esperado}"
+    # El proyecto solo lleva configuración: modelos y vistas van en las apps.
+    for sobrante in (
+        "tienda/layout.py",
         "tienda/views.py",
         "tienda/models.py",
+        "tienda/urls.py",
     ):
-        assert esperado in archivos, f"falta {esperado}"
-    assert "tienda/layout.py" not in archivos, "el proyecto inicial no trae armazón"
+        assert sobrante not in archivos, f"el proyecto no debe traer {sobrante}"
 
 
 def test_los_archivos_generados_compilan(proyecto: pathlib.Path) -> None:
@@ -63,10 +64,10 @@ def test_los_archivos_generados_compilan(proyecto: pathlib.Path) -> None:
 def test_la_configuracion_apunta_al_paquete(proyecto: pathlib.Path) -> None:
     settings = Config.load(proyecto / "interui.json")
     assert settings.app.entry == "tienda.app"
-    assert "tienda/models.py" in settings.migrations.models
-    assert settings.model_paths() == [proyecto / "tienda" / "models.py"]
     assert settings.database().engine == "sqlite"
-    assert settings.model_paths()[0].is_file()
+    # Sin apps no hay modelos: el proyecto es solo configuración.
+    assert settings.migrations.models == []
+    assert settings.model_paths() == []
 
 
 def test_el_proyecto_se_importa_y_renderiza(proyecto: pathlib.Path, monkeypatch) -> None:
@@ -93,8 +94,10 @@ def test_comandos_del_proyecto(proyecto: pathlib.Path, monkeypatch, capsys) -> N
 
 
 def test_un_modelo_nuevo_se_migra_y_guarda(proyecto: pathlib.Path, monkeypatch) -> None:
-    """El proyecto nace vacío: el modelo lo añade quien lo necesita."""
-    (proyecto / "tienda" / "models.py").write_text(
+    """El proyecto nace vacío: los modelos entran con una app."""
+    monkeypatch.chdir(proyecto)
+    assert cli.main(["startapp", "tareas"]) == 0
+    (proyecto / "tareas" / "models.py").write_text(
         "import interui as ui\n"
         "\n"
         "class Tarea(ui.Model):\n"
@@ -104,14 +107,13 @@ def test_un_modelo_nuevo_se_migra_y_guarda(proyecto: pathlib.Path, monkeypatch) 
         "        table = \"tareas\"\n",
         encoding="utf-8",
     )
-    monkeypatch.chdir(proyecto)
     assert cli.project_main(["makemigrations"]) == 0
     assert (proyecto / "migrations" / "0001_initial.json").is_file()
     assert cli.project_main(["migrate"]) == 0
     monkeypatch.syspath_prepend(str(proyecto))
-    _fresh_modules("tienda")
+    _fresh_modules("tienda", "tareas")
 
-    from tienda.models import Tarea  # type: ignore[import-not-found]
+    from tareas.models import Tarea  # type: ignore[import-not-found]
 
     Tarea.objects.create(titulo="Comprar pan")
     assert Tarea.objects.count() == 1
@@ -186,7 +188,7 @@ def test_el_json_es_valido(proyecto: pathlib.Path) -> None:
 
 def test_create_project_devuelve_los_archivos(tmp_path) -> None:
     files = create_project(tmp_path / "otro", "Otro")
-    assert len(files) >= 13
+    assert len(files) >= 10
     assert all(path.is_file() for path in files)
     assert isinstance(ui, object)
 
@@ -475,3 +477,26 @@ def test_init_tambien_pregunta_el_nombre_largo(tmp_path, monkeypatch) -> None:
     assert data["app"]["name"] == "Agenda"
     assert data["app"]["title"] == "Agenda de Contactos"
     assert data["databases"]["default"]["name"] == "data/agenda.db"
+
+
+def test_el_proyecto_sin_apps_muestra_la_bienvenida(proyecto: pathlib.Path, monkeypatch) -> None:
+    """Sin vistas propias, el framework pone la página `/` con una pista."""
+    monkeypatch.syspath_prepend(str(proyecto))
+    _fresh_modules("tienda")
+
+    from tienda.app import create_app
+
+    app = create_app()
+    assert app.has_page("/")
+    title, html, _bindings = app.render_page("/")
+    assert "Hola mundo" in html
+    assert "startapp" in html, "la bienvenida dice cómo empezar"
+
+    # Cuando hay apps, la pista lista sus páginas.
+    monkeypatch.chdir(proyecto)
+    assert cli.main(["startapp", "clientes"]) == 0
+    _fresh_modules("tienda", "clientes")
+    from tienda.app import create_app as crear
+
+    html = crear().render_page("/")[1]
+    assert "/clientes" in html
