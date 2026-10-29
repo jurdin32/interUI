@@ -39,7 +39,8 @@ def proyecto(tmp_path, monkeypatch):
 
 def test_crea_la_estructura_completa(proyecto: pathlib.Path) -> None:
     archivos = {
-        str(path.relative_to(proyecto))
+        # `as_posix()`: en Windows `str(Path)` usa `\\` y no casaría con EXPECTED.
+        path.relative_to(proyecto).as_posix()
         for path in proyecto.rglob("*")
         if path.is_file()
     }

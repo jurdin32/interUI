@@ -10,6 +10,11 @@ import interui as ui
 from interui import desktop
 from interui.desktop import DesktopError, Native, NativeBridge
 
+# La ventana nativa necesita el extra `desktop` (pywebview). Sin él, la matriz
+# `test` del CI no puede ejecutar estas pruebas: se saltan y las corre la tarea
+# `desktop`, que sí lo instala.
+pytest.importorskip("webview", reason="necesita pywebview (extra `desktop`)")
+
 
 class FakeWindow:
     def __init__(self, choice: str | None = None) -> None:

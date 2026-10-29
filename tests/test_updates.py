@@ -91,7 +91,7 @@ def test_instalacion_local_en_editable(monkeypatch: pytest.MonkeyPatch) -> None:
     origin, command = updates.install_info()
     assert origin == "local"
     assert "git -C" in command and "pull" in command
-    assert "/tmp/mi copia" in command  # la URL se decodifica
+    assert "mi copia" in command, "la URL se decodifica"
 
 
 def test_instalacion_desde_wheel_local(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
@@ -100,7 +100,9 @@ def test_instalacion_desde_wheel_local(monkeypatch: pytest.MonkeyPatch, tmp_path
     monkeypatch.setattr(updates, "_direct_url", lambda: {"url": f"file://{wheel}"})
     origin, command = updates.install_info()
     assert origin == "wheel"
-    assert command == f"pip install -U {wheel}"
+    # El comando cita la ruta (en Windows lleva `\\` y espacios).
+    assert command.startswith("pip install -U ")
+    assert str(wheel) in command
 
 
 def test_install_command_sin_extra(monkeypatch: pytest.MonkeyPatch) -> None:

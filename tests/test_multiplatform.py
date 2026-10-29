@@ -165,6 +165,7 @@ def test_extensions_from_filters():
 
 
 def test_dialog_falls_back_to_pywebview_off_macos(monkeypatch, tmp_path):
+    pytest.importorskip("webview", reason="necesita pywebview (extra `desktop`)")
     monkeypatch.setattr(desktop.platform, "system", lambda: "Linux")
     seen = {}
 
