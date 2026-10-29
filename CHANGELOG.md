@@ -4,7 +4,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 La versión vive en `interui/__init__.py` (`__version__`) y cada release se
 etiqueta como `vX.Y.Z`.
 
-## [0.5.0] — sin publicar
+## [0.5.1] — sin publicar
+
+### Corregido
+
+- **El `requirements.txt` que crea `startproject` apunta a PyPI**: antes decía
+  «interUI todavía no está en PyPI» e instalaba desde GitHub
+  (`interui[desktop] @ git+https://…`); ahora es `interui[desktop]>=0.5.0`.
+- La documentación deja de presentar la instalación desde GitHub como la vía
+  normal (`README`, `docs/publicar.md`, `docs/actualizar.md`, `docs/guia.md`).
+
+## [0.5.0] — 2026-10-29, publicado en PyPI
 
 ### Añadido
 

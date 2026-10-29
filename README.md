@@ -64,10 +64,10 @@ app.run()
 >
 > Solo ver el comando, sin ejecutarlo: `iui update`.
 >
-> Si prefieres hacerlo a mano desde GitHub:
+> Si prefieres hacerlo a mano:
 >
 > ```bash
-> pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+> pip install -U "interui[desktop]"
 > ```
 >
 > 📖 **Guía de actualización:** [docs/actualizar.md](docs/actualizar.md) ·
@@ -141,7 +141,7 @@ cambia es el motor de render que aporta el sistema operativo:
 |---|---|---|---|
 | Motor de ventana | WebKit (Cocoa) | WebView2 (Chromium) | WebKitGTK |
 | Requisito del sistema | ninguno (WebKit incluido) | WebView2 Runtime (incluido en Windows 10/11 actualizados) | `libgtk-3-0` + `libwebkit2gtk-4.1-0` |
-| Instalación de la ventana | `pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"` | igual | igual |
+| Instalación de la ventana | `pip install "interui[desktop]"` | igual | igual |
 | Ejecutable | `.app` (PyInstaller) | `.exe` | binario ELF |
 | Selector de archivos | *sheet* nativo | diálogo Win32 | diálogo GTK |
 | Notificaciones | Centro de notificaciones | cuadro nativo (`MessageBoxW`) | `notify-send` / `zenity` |
@@ -175,48 +175,34 @@ Notas de compatibilidad garantizadas por el framework:
 
 ## Instalación
 
-### Instalar desde GitHub (la vía disponible hoy)
-
-El paquete **todavía no está publicado en PyPI**, así que se instala directamente
-del repositorio:
-
 ```bash
-pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+pip install "interui[desktop]"
 ```
 
 - `[desktop]` añade `pywebview` (ventana nativa real). Sin el extra, el núcleo
   funciona en el navegador.
-- **Fijar una versión**: añade `@v0.5.0` al final de la URL.
-- **Actualizar**: repite el comando con `pip install -U`.
-- Necesita `git` instalado y conexión la primera vez (pip compila el paquete con
-  `hatchling`).
+- **Fijar una versión**: `pip install "interui[desktop]==0.5.1"`.
+- **Actualizar**: `pip install -U "interui[desktop]"` (o `iui update --run`).
 
 Variantes:
 
 ```bash
-pip install "git+https://github.com/jurdin32/interUI.git"                        # núcleo
-pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.5.0"
-pipx install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
-uv add "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
-pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+pip install interui                        # núcleo, sin ventana nativa
+pipx install "interui[desktop]"            # como comando aislado
+uv add "interui[desktop]"                  # con uv
 ```
 
 En `requirements.txt` (o `pyproject.toml`, `uv.lock`…):
 
 ```text
-interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.5.0
-```
-
-### El día que esté en PyPI
-
-Cuando el primer release esté publicado, lo anterior se resume en:
-
-```bash
-pip install "interui[desktop]"      # desde PyPI (incluye ventana nativa)
+interui[desktop] >= 0.5.1
 ```
 
 El wheel trae el CSS de Tailwind compilado y el runtime JS: **no necesitas
 Node.js ni internet** para usar el framework.
+
+> ¿Quieres la versión en desarrollo (el `main` del repositorio)? Clónalo y
+> instálalo en modo editable: ver [Instalar para desarrollar el framework](#instalar-para-desarrollar-el-framework).
 
 ### Instalar para desarrollar el framework
 
@@ -1139,9 +1125,8 @@ Consejos:
 
 ## Publicar en PyPI
 
-**Estado:** el paquete no está en PyPI todavía (por eso la instalación es desde
-GitHub); está preparado para publicarse tal cual (nombre `interui` libre, CSS y
-JS incluidos en el wheel de `hatchling`).
+**Estado:** publicado — [`interui` en PyPI](https://pypi.org/project/interui/)
+(0.5.1). El CSS y el runtime JS viajan dentro del wheel de `hatchling`.
 
 ```bash
 pip install build twine
@@ -1162,9 +1147,9 @@ Solo hay que registrar el proyecto en
 `environment=pypi` y crear la etiqueta:
 
 ```bash
-git tag -a v0.5.0 -m "interui 0.5.0"
+git tag -a v0.5.1 -m "interui 0.5.1"
 git push origin main
-git push origin v0.5.0
+git push origin v0.5.1
 ```
 
 👉 Paso a paso, errores habituales y checklist de versión:
@@ -1255,7 +1240,7 @@ duplicados, catálogo exportado).
 
 | Síntoma | Causa y solución |
 |---|---|
-| La ventana no aparece / no abre | `interui doctor`: falta `pywebview` → `pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"`. Desde 0.5 la app no abre el navegador por su cuenta: si quieres depurar así, `app.run(window="browser")` o `--window browser`. |
+| La ventana no aparece / no abre | `interui doctor`: falta `pywebview` → `pip install "interui[desktop]"`. Desde 0.5 la app no abre el navegador por su cuenta: si quieres depurar así, `app.run(window="browser")` o `--window browser`. |
 | Se ve sin estilos | Falta `interui/static/app.css` → `interui assets`. |
 | `ImportError: No module named webview` | Instala el extra `desktop`. |
 | Linux: error de GTK/WebKit | Instala `libgtk-3-0` y `libwebkit2gtk-4.1-0`. |
@@ -1264,7 +1249,7 @@ duplicados, catálogo exportado).
 | El ejecutable no arranca en Windows | Es una app `--windowed` sin `stdout`; los mensajes van a `<data_dir>/interui.log`. |
 | Los estilos nuevos no aparecen | Recompila (`interui assets`) y reinicia la app. |
 | El editor subraya `window`/`text` en rojo **pero el programa funciona** | Pylance analiza con *otro* intérprete o con caché vieja. Ver [por qué el editor marca errores](#por-qué-el-editor-marca-errores-y-el-programa-funciona). |
-| `"window" es un símbolo de importación desconocido` o `state` «no se puede llamar al módulo» | Hay una versión antigua de `interui` instalada en el intérprete que usa tu editor. Comprueba con `python -c "import interui; print(interui.__version__, interui.__file__)"` (debe ser ≥ 0.5.0 y apuntar a tu código) y reinstala: `pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"` o, si trabajas sobre el repo, `pip install -e ".[desktop,dev]"`. |
+| `"window" es un símbolo de importación desconocido` o `state` «no se puede llamar al módulo» | Hay una versión antigua de `interui` instalada en el intérprete que usa tu editor. Comprueba con `python -c "import interui; print(interui.__version__, interui.__file__)"` (debe ser ≥ 0.5.1 y apuntar a tu código) y reinstala: `pip install -U "interui[desktop]"` o, si trabajas sobre el repo, `pip install -e ".[desktop,dev]"`. |
 
 ---
 
@@ -1346,8 +1331,8 @@ El mapa completo está en **[docs/indice.md](docs/indice.md)**.
 - [Actualizar interUI](docs/actualizar.md) — versión, comandos y aviso en la app.
 - [Empaquetar y publicar](docs/publicar.md) — wheel, TestPyPI, PyPI y ejecutables.
 - [Guía de escritorio](docs/escritorio.md) — ventana nativa, puente y empaquetado.
-- [Instalación y publicación](docs/publicar.md) — instalar desde GitHub y publicar en PyPI.
-- [Historial de cambios](CHANGELOG.md) — qué trae cada versión (actual: 0.5.0).
+- [Instalación y publicación](docs/publicar.md) — instalar desde PyPI y publicar una versión nueva.
+- [Historial de cambios](CHANGELOG.md) — qué trae cada versión (actual: 0.5.1).
 
 ---
 

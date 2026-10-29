@@ -45,27 +45,23 @@ también puedes usar `python iui.py update --run`.
 Esto es lo que ejecuta `iui update --run` en cada situación. El framework lo
 detecta solo y te muestra el comando correcto en el aviso de la app.
 
-**Instalado desde GitHub** (la forma disponible hoy, porque el paquete aún no
-está en PyPI):
+**Instalado desde PyPI** (lo normal):
+
+```bash
+pip install -U "interui[desktop]"
+```
+
+Para ir a una versión concreta: `pip install -U "interui[desktop]==0.5.1"`.
+
+**Instalado desde GitHub** (el `main` del repositorio, solo para probar lo que
+aún no se ha publicado):
 
 ```bash
 pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 ```
 
-`--force-reinstall` no es opcional: la versión no cambia entre commits, así que
-sin él `pip` contesta «already satisfied» y no descarga nada.
-
-Para moverte a una versión concreta en lugar de a la última de `main`:
-
-```bash
-pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git@v0.5.0"
-```
-
-**Instalado desde PyPI** (cuando se publique el primer release):
-
-```bash
-pip install -U interui[desktop]
-```
+`--force-reinstall` no es opcional ahí: la versión no cambia entre commits, así
+que sin él `pip` contesta «already satisfied» y no descarga nada.
 
 **Clon de desarrollo instalado en modo editable**:
 

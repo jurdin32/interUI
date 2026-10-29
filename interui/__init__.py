@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import sys
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 from .app import App
 from .base import Component, Fragment, bind_many, render, render_children

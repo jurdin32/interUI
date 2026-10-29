@@ -177,7 +177,7 @@ def test_la_version_del_paquete_se_conserva(proyecto: pathlib.Path) -> None:
 
 def test_requirements_instalan_desde_github(proyecto: pathlib.Path) -> None:
     text = (proyecto / "requirements.txt").read_text(encoding="utf-8")
-    assert "interui" in text and "git+https://github.com/jurdin32/interUI" in text
+    assert "interui[desktop]" in text and "git+" not in text
 
 
 def test_el_json_es_valido(proyecto: pathlib.Path) -> None:

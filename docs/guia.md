@@ -13,7 +13,7 @@ tabla y base de datos.
 > **Antes de empezar.** Instala interUI y comprueba el entorno:
 >
 > ```bash
-> pip install "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+> pip install "interui[desktop]"
 > iui doctor
 > ```
 >

@@ -212,8 +212,8 @@ def create_app() -> ui.App:
 ```
 """
 
-REQUIREMENTS = """# interUI todavía no está en PyPI: se instala desde GitHub.
-interui[desktop] @ git+https://github.com/jurdin32/interUI
+REQUIREMENTS = """# interUI, con ventana nativa (pywebview). Está publicado en PyPI.
+interui[desktop]>=0.5.0
 """
 
 
