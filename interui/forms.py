@@ -175,8 +175,8 @@ def _control(
 #: Opciones que van a la tarjeta del formulario (y a su cabecera y pie).
 _CARD_KEYS = (
     "bg", "border", "rounded", "shadow", "ring", "pad", "radius", "elevated",
-    "header_bg", "header_color", "header_border", "header_pad", "header_font",
-    "footer_bg",
+    "header", "header_bg", "header_color", "header_border", "header_pad",
+    "header_font", "footer_bg",
 )
 
 

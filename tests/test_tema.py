@@ -275,3 +275,89 @@ def test_startapp_genera_estilos(tmp_path) -> None:
     assert "TEMA" in codigo
     urls = (tmp_path / "demo" / "libros" / "urls.py").read_text(encoding="utf-8")
     assert "estilos" in urls
+
+
+# --- colores literales (hex, rgb, degradados) -----------------------------
+AZUL = ui.colors.hex("#876005")
+
+
+def test_card_cabecera_con_color_literal() -> None:
+    html = _html(ui.Card("x", title="Hola", header_bg=AZUL, header_color=ui.colors.white))
+    assert "background-color: #876005" in html
+    assert "bg-#876005" not in html, "no debe inventarse una clase de Tailwind"
+
+
+def test_card_pie_con_color_literal() -> None:
+    html = _html(ui.Card("x", footer_bg=AZUL, footer="pie"))
+    assert "background-color: #876005" in html
+
+
+def test_tabla_con_colores_literales() -> None:
+    html = _html(
+        ui.Table(
+            headers=["A"],
+            rows=[["1"], ["2"]],
+            striped=True,
+            selected=0,
+            header_bg=AZUL,
+            header_color=ui.colors.white,
+            zebra=ui.colors.rgb(240, 240, 240),
+            selected_bg=AZUL,
+            cell_colors={0: AZUL},
+            column_bg={0: ui.colors.rgb(250, 250, 250)},
+        )
+    )
+    assert "background-color: #876005" in html
+    assert "rgb(240 240 240)" in html, "la cebra con un color literal"
+    assert "color: #876005" in html
+
+
+def test_dialogo_con_color_literal() -> None:
+    html = _html(ui.Dialog(title="Aviso", message="Hola", header_bg=AZUL))
+    assert "background-color: #876005" in html
+
+
+def test_franja_con_color_literal(tmp_path) -> None:
+    db.reset()
+    db.configure(
+        Config({"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "t.db")}}})
+    )
+    db.backend().create_table("tema_personas", Persona.columns())
+    app = ui.App("Tema", data_dir=tmp_path)
+    try:
+        html = _pagina(app, ui.RecordPage(ui.ModelForm(Persona), title="Personas", table=True))
+        aplicar_tema({"RecordPage": dict(title_bg=AZUL)})
+        html = _pagina(app, ui.RecordPage(ui.ModelForm(Persona), title="Personas", table=True))
+        assert "background-color: #876005" in html
+    finally:
+        db.reset()
+
+
+# --- cabecera de la tarjeta ------------------------------------------------
+def test_card_sin_cabecera() -> None:
+    html = _html(ui.Card("x", title="Hola", header=False))
+    assert "Hola" not in html, "el título no se pinta"
+
+
+def test_card_sin_cabecera_desde_el_tema() -> None:
+    aplicar_tema({"Card": dict(header=False)})
+    assert "Hola" not in _html(ui.Card("x", title="Hola"))
+
+
+def test_formulario_sin_cabecera_la_mantiene_en_el_modal() -> None:
+    class Persona(ui.Model):
+        nombre = ui.Str(max_length=60)
+
+        class Meta:
+            table = "tema_sin_cabecera"
+
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+        title = "Nueva persona"
+        header = False
+
+    form = PersonaForm()
+    html = _html(form)
+    assert "Nueva persona" not in html, "la tarjeta no lleva cabecera"
+    assert "Guardar" in html
+    assert form.form_title == "Nueva persona", "el modal sí conserva el título"

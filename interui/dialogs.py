@@ -36,7 +36,7 @@ from .events import UIEvent, invoke
 from .html import escape
 from .icons import Icon
 from .style import tw
-from .theme import Color, Token, utility
+from .theme import Color, Token, juntar_estilos, paint, utility
 
 __all__ = [
     "Dialog", "DialogHost", "DialogAPI", "dialog",
@@ -256,26 +256,32 @@ class Dialog(Component):
     # -- render ----------------------------------------------------------
     def content(self, ctx: RenderContext, path: str) -> str:
         uid = ctx.uid(path, self.key, self.explicit_id)
+        velo_clase, velo_estilo = paint("bg", self.backdrop)
         backdrop = Div(
             id=f"{uid}-backdrop",
-            base_class=tw(
-                "absolute inset-0 backdrop-blur-sm",
-                _clase("bg", self.backdrop) or "bg-slate-950/50",
-            ),
+            base_class=tw("absolute inset-0 backdrop-blur-sm", velo_clase or "bg-slate-950/50"),
             aria={"hidden": "true"},
             **({"on_click": self._dismiss} if self.dismissible else {}),
+            **({"style": velo_estilo} if velo_estilo else {}),
         )
+        panel_fondo, panel_fondo_estilo = paint("bg", self.panel_bg)
+        panel_borde, panel_borde_estilo = paint("border", self.panel_border)
         panel = Div(
             base_class=tw(
                 "iui-dialog-panel relative z-10 flex max-h-[calc(100dvh-2rem)] w-full "
                 "flex-col overflow-hidden",
                 _clase("rounded", self.panel_rounded) or "rounded-2xl",
-                _clase("bg", self.panel_bg) or "bg-white dark:bg-slate-900",
-                _clase("border", self.panel_border) or "ring-1 ring-slate-900/5 dark:ring-slate-700/40",
+                panel_fondo or "bg-white dark:bg-slate-900",
+                panel_borde or "ring-1 ring-slate-900/5 dark:ring-slate-700/40",
                 _clase("shadow", self.panel_shadow) or "shadow-2xl",
                 WIDTHS.get(self.width, WIDTHS["md"]),
             ),
             **({"aria": {"labelledby": f"{uid}-title"}} if self.dialog_title else {}),
+            **(
+                {"style": juntar_estilos(panel_fondo_estilo, panel_borde_estilo)}
+                if juntar_estilos(panel_fondo_estilo, panel_borde_estilo)
+                else {}
+            ),
         )
         if self.dialog_title or self.icon:
             panel(self._header(ctx, uid))
@@ -288,13 +294,15 @@ class Dialog(Component):
             )
         )
         body(*self._body(ctx, path))
+        pie_fondo, pie_estilo = paint("bg", self.footer_bg)
         footer = Div(
             base_class=tw(
                 "flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 "
                 "dark:border-slate-800",
-                _clase("bg", self.footer_bg),
+                pie_fondo,
                 _pad(self.footer_pad) or "px-5 py-3",
-            )
+            ),
+            **({"style": pie_estilo} if pie_estilo else {}),
         )
 
         if self.fields:
@@ -326,14 +334,21 @@ class Dialog(Component):
 
     def _header(self, ctx: RenderContext, uid: str) -> Component:
         tone = LEVELS.get(self.level, LEVELS["neutral"])[1]
+        cabeza_fondo, cabeza_fondo_estilo = paint("bg", self.header_bg)
+        cabeza_borde, cabeza_borde_estilo = paint("border", self.header_border)
         box = Div(
             base_class=tw(
                 "flex items-start gap-3",
-                "border-b" if self.header_border or True else "",
-                _clase("border", self.header_border) or "border-slate-100 dark:border-slate-800",
-                _clase("bg", self.header_bg),
+                "border-b",
+                cabeza_borde or "border-slate-100 dark:border-slate-800",
+                cabeza_fondo,
                 _pad(self.header_pad) or "px-5 py-4",
-            )
+            ),
+            **(
+                {"style": juntar_estilos(cabeza_fondo_estilo, cabeza_borde_estilo)}
+                if juntar_estilos(cabeza_fondo_estilo, cabeza_borde_estilo)
+                else {}
+            ),
         )
         if self.icon:
             badge = Div(
@@ -343,6 +358,7 @@ class Dialog(Component):
         if self.dialog_title:
             # El título se compone aquí para que `title_font`/`header_color`
             # manden de verdad (sin mezclar dos tamaños/colores de Tailwind).
+            titulo_color, titulo_estilo = paint("color", self.header_color)
             title = _Tag(
                 "h2",
                 self.dialog_title,
@@ -351,8 +367,9 @@ class Dialog(Component):
                     "min-w-0 truncate",
                     "text-base font-semibold" if not self.title_font else "",
                     _clase("font", self.title_font),
-                    _clase("text", self.header_color) or "text-slate-900 dark:text-white",
+                    titulo_color or "text-slate-900 dark:text-white",
                 ),
+                **({"style": titulo_estilo} if titulo_estilo else {}),
             )
             box(Div(base_class="flex min-w-0 flex-col gap-0.5")(title))
         if self.closable:

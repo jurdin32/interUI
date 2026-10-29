@@ -683,3 +683,32 @@ def test_la_pagina_con_la_tabla_y_el_formulario_en_un_modal(tmp_path) -> None:
 def test_la_pagina_rechaza_piezas_que_no_conoce(tmp_path) -> None:
     with pytest.raises(TypeError, match="RecordPage acepta formularios y tablas"):
         ui.RecordPage("PersonaTable")
+
+
+def test_la_franja_se_puede_declarar_en_forms(tmp_path) -> None:
+    """`title_*` en `forms.py`: la página los toma del formulario."""
+
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+        title_bg = ui.colors.indigo_600
+        title_color = ui.colors.white
+        title_pad = ui.pad.py_6
+        title_full_width = True
+        header_bg = ui.colors.hex("#876005")
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaForm, title="Personas"), app)
+    assert "bg-indigo-600" in html, "el fondo de la franja"
+    assert "py-6" in html, "el relleno"
+    assert "background-color: #876005" in html, "la cabecera del formulario"
+
+
+def test_lo_pasado_a_la_pagina_gana_sobre_lo_declarado_en_forms(tmp_path) -> None:
+    class PersonaForm(ui.ModelForm):
+        model = Persona
+        title_bg = ui.colors.rose_600
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaForm, title="Personas", title_bg=ui.colors.emerald_600), app)
+    assert "bg-emerald-600" in html
+    assert "bg-rose-600" not in html, "lo que se pasa a la página manda"

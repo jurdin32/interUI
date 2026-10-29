@@ -11,7 +11,7 @@ from ..html import escape
 from ..icons import Icon
 from ..style import tw
 from ..tema import estilos_de
-from ..theme import Color, Token
+from ..theme import Color, Token, juntar_estilos, paint, style_attr
 
 __all__ = [
     "Table", "DataTable", "ListGroup", "ListItem", "Tree", "TreeNode", "Timeline",
@@ -189,22 +189,24 @@ class Table(Component):
     def content(self, ctx: RenderContext, path: str) -> str:
         pad = _pad(self.cell_pad) or ("px-3 py-1.5" if self.compact else "px-4 py-3")
         head_pad = _pad(self.header_pad) or pad
-        head_bg = self._clase("bg", self.header_bg)
+        head_bg, head_estilo = paint("bg", self.header_bg)
         head = ""
         if self.headers:
+            tone_clase, tone_estilo = paint("color", self.header_color)
             cells = []
             for index, header in enumerate(self.headers):
                 align = ALIGN.get(self.align[index] if index < len(self.align) else "left", "")
-                tone = self._clase("text", self.header_color, "text-xs font-semibold uppercase tracking-wide")
+                tone = tw("text-xs font-semibold uppercase tracking-wide", tone_clase)
                 if self.header_color is None:
                     tone = tw(tone, "text-slate-500 dark:text-slate-400")
                 cells.append(
-                    f'<th scope="col" class="{head_pad} {align} {tone}">'
+                    f'<th scope="col" class="{head_pad} {align} {tone}"{style_attr(tone_estilo)}>'
                     f"{_cell(ctx, header, f'{path}-h{index}')}</th>"
                 )
             head = (
                 '<thead class="border-b border-slate-200 dark:border-slate-800 '
-                f'dark:bg-slate-800/50 {head_bg}"><tr>{"".join(cells)}</tr></thead>'
+                f'dark:bg-slate-800/50 {head_bg}"{style_attr(head_estilo)}>'
+                f'<tr>{"".join(cells)}</tr></thead>'
             )
 
         hover = ""
@@ -221,25 +223,31 @@ class Table(Component):
         body_rows = []
         for row_index, row in enumerate(self.rows):
             zebra = ""
+            fila_estilo = ""
             if self.striped and row_index % 2 == 1:
-                zebra = self._clase("bg", self.zebra)
+                zebra, fila_estilo = paint("bg", self.zebra)
                 if self.zebra is None:
                     zebra = tw(zebra, "bg-slate-50/60 dark:bg-slate-800/30")
             elegida = self.selected is not None and row_index == self.selected
-            seleccion = self._clase("bg", self.selected_bg) if elegida else ""
+            seleccion = ""
+            if elegida:
+                seleccion, seleccion_estilo = paint("bg", self.selected_bg)
+                fila_estilo = juntar_estilos(fila_estilo, seleccion_estilo)
             cells = []
             for column, value in enumerate(row):
                 align = ALIGN.get(self.align[column] if column < len(self.align) else "left", "")
                 color = self.cell_colors.get(column, self.cell_colors.get(str(column)))
                 fondo = self.column_bg.get(column, self.column_bg.get(str(column)))
-                tono = self._clase("text", color)
+                tono, tono_estilo = paint("color", color)
                 if color is None:
                     tono = tw(tono, "text-sm text-slate-700 dark:text-slate-200")
                 else:
                     tono = tw(tono, "text-sm")
-                celda = self._clase("bg", fondo, align)
+                celda, celda_estilo = paint("bg", fondo)
+                celda = tw(celda, align)
                 cells.append(
-                    f'<td class="{pad} {celda} {tono}">'
+                    f'<td class="{pad} {celda} {tono}"'
+                    f'{style_attr(juntar_estilos(celda_estilo, tono_estilo))}>'
                     f"{_cell(ctx, value, f'{path}-r{row_index}-c{column}')}</td>"
                 )
             extras = tw(zebra, hover, border, seleccion)
@@ -248,6 +256,8 @@ class Table(Component):
             elif interactiva:
                 extras = tw(extras, "cursor-pointer")
             attrs_parts = [f'class="{extras}"'] if extras else []
+            if fila_estilo:
+                attrs_parts.append(style_attr(fila_estilo).strip())
             if interactiva:
                 fila_uid = ctx.uid(f"{path}-fila{row_index}", None, None)
                 for evento, handler in self.row_events.items():

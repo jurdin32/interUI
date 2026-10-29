@@ -81,6 +81,9 @@ __all__ = [
     "STYLE_PROPS",
     "resolve_style_props",
     "utility",
+    "paint",
+    "style_attr",
+    "juntar_estilos",
 ]
 
 _NUM = re.compile(r"\d+(?:\.\d+)?")
@@ -884,3 +887,38 @@ def utility(prefix: str, value: Any) -> str:
     if isinstance(value, (Token, Color)) or text == prefix or text.startswith(f"{prefix}-"):
         return text
     return f"{prefix}-{text}"
+
+
+def paint(utilidad: str, valor: Any) -> tuple[str, str]:
+    """Clases y CSS para una utilidad, acepte token, clase o valor literal.
+
+    ```pycon
+    >>> paint("bg", colors.slate_100)
+    ('bg-slate-100', '')
+    >>> paint("bg", colors.hex("#876005"))
+    ('', 'background-color: #876005')
+    ```
+
+    Es la vía para que las opciones propias de los controles (``header_bg``,
+    ``title_bg``, ``zebra``…) admitan lo mismo que ``bg=``: un token de la
+    paleta, una clase escrita a mano, un ``hex()``, un ``rgb()`` o un degradado.
+    """
+    if valor is None or valor == "":
+        return "", ""
+    clases, declaraciones = resolve_style_props({utilidad: valor})
+    estilo = "; ".join(f"{nombre}: {dato}" for nombre, dato in declaraciones.items())
+    return " ".join(clases), estilo
+
+
+def style_attr(estilo: str) -> str:
+    """``style_attr("color: red")`` → ``' style="color: red"'`` (o ``""``)."""
+    if not estilo:
+        return ""
+    from .html import escape
+
+    return f' style="{escape(estilo)}"'
+
+
+def juntar_estilos(*partes: str) -> str:
+    """Une declaraciones CSS saltándose las vacías."""
+    return "; ".join(parte for parte in partes if parte)

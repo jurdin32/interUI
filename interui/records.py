@@ -40,7 +40,7 @@ from .orm import Model
 from .simple import state as _state
 from .style import tw
 from .tema import por_defecto
-from .theme import Color, Token, gap, margin, pad, tone
+from .theme import Color, Token, gap, juntar_estilos, margin, pad, paint, style_attr, tone
 
 __all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
 
@@ -245,6 +245,22 @@ def _es_tabla(valor: Any) -> bool:
     if isinstance(valor, RecordTable):
         return True
     return isinstance(valor, type) and issubclass(valor, RecordTable)
+
+
+#: Opciones de la franja de la página que también se pueden declarar en
+#: `forms.py` (es donde vive el formulario, y ahí se busca primero lo suyo).
+_CLAVES_FRANJA = (
+    "title_bg",
+    "title_color",
+    "title_font",
+    "title_border",
+    "title_pad",
+    "title_align",
+    "title_full_width",
+    "title_rounded",
+    "counter_color",
+    "page_gap",
+)
 
 
 def _es_formulario(valor: Any) -> bool:
@@ -873,6 +889,11 @@ class RecordPage(Component):
                 declarado = getattr(declarada_tabla, nombre, None)
                 if declarado is not None and declarado != getattr(RecordTable, nombre, None):
                     return declarado
+            # La franja también se puede declarar en `forms.py`.
+            if nombre in _CLAVES_FRANJA and self.form is not None:
+                del_formulario = getattr(type(self.form), nombre, None)
+                if del_formulario is not None:
+                    return del_formulario
             del_tema = por_defecto(type(self), nombre)
             if del_tema is None and declarada_tabla is not None:
                 del_tema = por_defecto(declarada_tabla, nombre)
@@ -915,23 +936,26 @@ class RecordPage(Component):
         # El título se construye aquí (no con `Heading`) para que `title_font` y
         # `title_color` manden de verdad: las utilidades de Tailwind no se pisan
         # por orden de escritura, así que no se mezclan dos tamaños ni dos colores.
+        titulo_color, titulo_estilo = paint("color", self.title_color)
         titulo_clases = tw(
             "font-sans tracking-tight",
             _util("font", self.title_font) if self.title_font else "text-4xl font-bold sm:text-5xl",
-            _util("text", self.title_color) if self.title_color else "text-slate-900 dark:text-slate-100",
+            titulo_color or "text-slate-900 dark:text-slate-100",
         )
         contador: Any = None
         if self.show_counter:
+            contador_color, contador_estilo = paint("color", self.counter_color)
             contador = (
                 Component(
                     tag="p",
-                    base_class=tw("text-sm leading-relaxed", _util("text", self.counter_color)),
+                    base_class=tw("text-sm leading-relaxed", contador_color),
+                    style=contador_estilo or None,
                 )(RecordCounter(form))
                 if self.counter_color
                 else Muted(RecordCounter(form))
             )
         cabecera = Stack(
-            Component(tag="h1", base_class=titulo_clases)(titulo),
+            Component(tag="h1", base_class=titulo_clases, style=titulo_estilo or None)(titulo),
             *( [contador] if contador is not None else [] ),
             gap=1,
             align="center" if centrado else "start",
@@ -968,23 +992,33 @@ class RecordPage(Component):
             radio = "xl"
         elif radio is False or str(radio) == "none":
             radio = ""
+        franja_fondo, franja_fondo_estilo = paint("bg", self.title_bg)
+        franja_borde, franja_borde_estilo = paint("border", self.title_border)
         franja = tw(
-            _util("bg", self.title_bg),
+            franja_fondo,
             "border-b" if self.title_border else "",
-            _util("border", self.title_border),
+            franja_borde,
             _util("rounded", radio) if radio else "",
             self.title_pad or "",
         )
+        franja_estilo = juntar_estilos(franja_fondo_estilo, franja_borde_estilo)
         if not franja:
             header: Any = cabecera
         elif self.title_full_width:
             # Franja de lado a lado: el fondo ocupa la ventana y el contenido
             # sigue alineado con la tabla (mismo ancho máximo y padding).
-            header = Component(tag="div", base_class=tw("w-full", franja))(
-                Container(cabecera, size="xl")
-            )
+            header = Component(
+                tag="div",
+                base_class=tw("w-full", franja),
+                style=franja_estilo or None,
+            )(Container(cabecera, size="xl"))
         else:
-            header = Stack(cabecera, pad=self.title_pad, class_=franja)
+            header = Stack(
+                cabecera,
+                pad=self.title_pad,
+                class_=franja,
+                style=franja_estilo or None,
+            )
 
         pieces: list[Any] = [header]
         for tipo, valor in self.piezas:

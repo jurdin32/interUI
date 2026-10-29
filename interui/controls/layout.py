@@ -10,7 +10,7 @@ from ..html import escape
 from ..icons import Icon
 from ..style import tw
 from ..tema import estilos_de, por_defecto
-from ..theme import Color, Token, utility
+from ..theme import Color, Token, juntar_estilos, paint, style_attr, utility
 from .buttons import Button
 
 __all__ = [
@@ -58,6 +58,8 @@ class Card(Component):
         hover: bool = False,
         radius: str | None = None,
         elevated: bool = True,
+        #: `header=False` esconde la cabecera (título, icono y acciones).
+        header: bool | None = None,
         header_bg: Any = None,
         header_color: Any = None,
         header_border: Any = None,
@@ -67,6 +69,7 @@ class Card(Component):
         **props: Any,
     ) -> None:
         self.card_title = title
+        self.con_cabecera = por_defecto(type(self), "header", header) is not False
         radius = por_defecto(type(self), "radius", radius) or "md"
         if not hover:
             hover = bool(estilos_de(type(self)).get("hover", False))
@@ -100,7 +103,9 @@ class Card(Component):
         from ..base import render_children
 
         head = ""
-        if self.card_title or self.description or self.actions or self.icon:
+        if self.con_cabecera and (
+            self.card_title or self.description or self.actions or self.icon
+        ):
             icon = (
                 f'<span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg '
                 f'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">'
@@ -131,25 +136,30 @@ class Card(Component):
                     Button(label, variant=variant, size="sm", on_click=handler).render(ctx, f"{path}-a{i}")
                     for i, (label, handler, variant) in enumerate(_action_tuples(self.actions))
                 )
+            color_clases, color_estilo = paint("color", self.header_color)
             titulo_clases = tw(
                 "truncate",
                 "text-base font-semibold" if not self.header_font else "",
                 _clase("font", self.header_font),
-                _clase("text", self.header_color) or "text-slate-900 dark:text-white",
+                color_clases or "text-slate-900 dark:text-white",
             )
             titles = titles.replace(
                 'class="truncate text-base font-semibold text-slate-900 dark:text-white"',
-                f'class="{titulo_clases}"',
+                f'class="{titulo_clases}"{style_attr(color_estilo)}',
             )
+            fondo_clases, fondo_estilo = paint("bg", self.header_bg)
+            borde_clases, borde_estilo = paint("border", self.header_border)
             cabecera_clases = tw(
                 "flex items-start gap-3",
-                "border-b" if self.header_border or True else "",
-                _clase("border", self.header_border) or "border-slate-100 dark:border-slate-800",
-                _clase("bg", self.header_bg),
+                "border-b",
+                borde_clases or "border-slate-100 dark:border-slate-800",
+                fondo_clases,
                 self.header_pad or "px-4 py-3",
             )
             head = (
-                f'<div class="{cabecera_clases}">{icon}{titles}'
+                f'<div class="{cabecera_clases}"'
+                f'{style_attr(juntar_estilos(fondo_estilo, borde_estilo))}>'
+                f"{icon}{titles}"
                 f'<div class="ml-auto flex items-center gap-2">{action_html}</div></div>'
             )
         body = render_children(self.children, ctx, path)
@@ -157,13 +167,14 @@ class Card(Component):
         body = f'<div class="{body_pad} flex flex-col gap-3">{body}</div>' if body else ""
         foot = ""
         if self.footer is not None:
+            pie_fondo, pie_estilo = paint("bg", self.footer_bg)
             pie_clases = tw(
                 "flex items-center gap-2 border-t border-slate-100 px-4 py-3 text-sm "
                 "dark:border-slate-800",
-                _clase("bg", self.footer_bg) or "bg-slate-50/60 dark:bg-slate-800/40",
+                pie_fondo or "bg-slate-50/60 dark:bg-slate-800/40",
             )
             foot = (
-                f'<div class="{pie_clases}">'
+                f'<div class="{pie_clases}"{style_attr(pie_estilo)}>'
                 + (
                     self.footer.render(ctx, path + "-ft")
                     if isinstance(self.footer, Component)

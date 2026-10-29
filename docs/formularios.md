@@ -419,6 +419,50 @@ class ClienteForm(ui.ModelForm):
 
 Sin ninguna de ellas el formulario se ve como siempre.
 
+#### Quitar la cabecera de la tarjeta
+
+Si el título sobra (porque ya lo dice la franja de la página o el modal),
+`header = False` deja la tarjeta solo con los campos:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    header = False        # sin la franja del título
+    title = "Nuevo cliente"   # sigue siendo el título del modal
+```
+
+Funciona en cualquier control con tarjeta: `ui.Card(..., header=False)`.
+
+Los colores admiten token (`ui.colors.slate_100`), clase escrita
+(`"bg-slate-100"`) o **cualquier valor literal**: `ui.colors.hex("#876005")`,
+`ui.colors.rgb(135, 96, 5)` o un degradado. Los literales se emiten como CSS en
+línea, así que no hace falta recompilar Tailwind:
+
+```python
+header_bg = ui.colors.hex("#876005")
+```
+
+#### La franja de la página también se declara aquí
+
+Si la vista solo coloca la página, lo normal es que el título y su franja
+también salgan del formulario:
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    title_bg = ui.colors.hex("#1e3a8a")   # fondo de la franja
+    title_color = ui.colors.white
+    title_pad = ui.pad.py_6
+    title_full_width = True               # de lado a lado de la ventana
+    counter_color = ui.colors.white       # el «N registros guardados»
+    page_gap = 4
+```
+
+`RecordPage` los toma de `forms.py`, y si también los declaras en `tables.py` o
+se los pasas a la página, esos ganan. Lo que **no** se lee del formulario es
+`title` (ese es el título de su tarjeta): el de la página se pasa con
+`RecordPage(..., title="Clientes")` o se declara en `tables.py`.
+
 ### Colores, cebra y encabezado
 
 Todo el aspecto se configura con los mismos tokens de estilo del resto del
