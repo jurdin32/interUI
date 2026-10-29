@@ -173,7 +173,7 @@ def test_dialog_falls_back_to_pywebview_off_macos(monkeypatch, tmp_path):
         def create_file_dialog(self, dialog_type, **kwargs):
             seen["dialog_type"] = dialog_type
             seen["kwargs"] = kwargs
-            return ("/tmp/elegido.txt",)
+            return (str(tmp_path / "elegido.txt"),)
 
     app = ui.App("Dialogos", data_dir=tmp_path / "data")
     window = desktop.DesktopWindow(app)

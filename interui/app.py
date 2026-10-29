@@ -162,6 +162,7 @@ class App:
         self._local = threading.local()
         self._stopped = False
         self._shutdown_done = False
+        self._running = False
         self._native = Native(self)
         self.check_updates = check_updates
         self.update: _updates.UpdateInfo | None = None
@@ -777,8 +778,11 @@ class App:
         for window in [item for item in self.windows if item.ident == "main"]:
             window.closed = True
             self._forget_window(window)
-        if desktop is None and self.server is not None:
-            threading.Thread(target=self._shutdown, name="interui-quit", daemon=True).start()
+        # Con ventana nativa el cierre de `desktop` ya va en su hilo. Sin ella,
+        # el bucle de `run()` ve `_stopped` y apaga el servidor en su `finally`:
+        # lanzarlo aquí en paralelo dejaba `app.server` vivo al volver `run()`.
+        if desktop is None and self.server is not None and not self._running:
+            self._shutdown()
 
     def set_theme(self, theme: str = "dark") -> None:
         """Cambia el tema del cliente: ``"claro"``/``"light"`` o ``"oscuro"``/``"dark"``."""
@@ -879,6 +883,7 @@ class App:
 
         self._stopped = False
         self._shutdown_done = False
+        self._running = True
 
         server = Server(self, host, port)
         self.server = server
@@ -920,6 +925,7 @@ class App:
             log(f"[interui] {exc}", error=True)
             raise
         finally:
+            self._running = False
             self._shutdown()
             self._desktop = None
 

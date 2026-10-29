@@ -406,7 +406,9 @@ class DesktopWindow:
                     "path": path,
                     "size": size,
                     "mime": "",
-                    "url": Path(path).as_uri(),
+                    # `absolute()`: un diálogo puede devolver una ruta relativa
+                    # (y `as_uri()` la rechaza).
+                    "url": Path(path).absolute().as_uri(),
                 }
             )
         return {"files": files, "cancelled": not files}
