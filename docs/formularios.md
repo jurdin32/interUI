@@ -82,6 +82,20 @@ obligatorios hecha en Python y el botón **Guardar** conectado.
 | `submit_label` | texto del botón | `"Guardar"` |
 | `on_saved` | función que recibe el registro guardado | `None` |
 
+### Iconos y textos de ayuda
+
+```python
+class ClienteForm(ui.ModelForm):
+    model = Cliente
+    icons = {"nombre": "user", "email": "mail", "ciudad": "building"}
+    placeholders = {"email": "tu@correo.com", "telefono": "+34 600 000 000"}
+```
+
+Los dos se pueden omitir: sin `icons`, cada campo elige el suyo por su nombre
+(`email`/`correo` → correo, `telefono` → teléfono, `nombre` → persona,
+`direccion` → mapa, `cedula`/`documento` → almohadilla, `precio` → etiqueta…).
+Un `Bool` no lleva icono y un `Choice` es un desplegable.
+
 ### Los nombres de los campos
 
 `labels` cambia el texto que se ve: en el formulario **y** en la tabla de la
@@ -167,6 +181,24 @@ def lista() -> ui.Component:
 Sin `title`, el título es el plural del modelo (`Persona` → «Personas»). Las
 columnas de la tabla se pueden acortar sin tocar el formulario:
 `ui.RecordTable(form, columns=["nombre", "email"])`.
+
+### Elegir qué se ve: formulario dentro, en modal o ninguno
+
+| `form_mode` | La página muestra |
+|---|---|
+| `"inline"` (por defecto) | el formulario dentro de la página, y la tabla debajo |
+| `"modal"` | solo el contador y la tabla, con un botón **Nuevo** que abre el formulario en un diálogo |
+| `"none"` | solo el contador y la tabla (sin botón) |
+
+```python
+ui.RecordPage(PersonaForm(), title="Personas", form_mode="modal")
+ui.RecordPage(PersonaForm(), title="Personas", form_mode="none")
+ui.RecordPage(PersonaForm(), title="Personas", table=False)   # solo el formulario
+```
+
+El botón se cambia con `new_label="Nueva persona"` y `new_icon=ui.icons.plus`. El
+diálogo se genera **solo** a partir del formulario: mismos campos, mismas
+etiquetas, mismos iconos.
 
 ### Acciones en cada fila: editar y eliminar
 

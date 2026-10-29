@@ -79,6 +79,28 @@ def _initial(field: Any) -> Any:
     return "" if value is None else value
 
 
+#: Icono que se pone solo, según el nombre del campo.
+_ICON_HINTS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("email", "correo", "mail"), "mail"),
+    (("telefono", "teléfono", "phone", "celular", "movil", "móvil"), "phone"),
+    (("nombre", "nombres", "name", "apellido"), "user"),
+    (("direccion", "dirección", "address", "domicilio"), "map-pin"),
+    (("cedula", "cédula", "documento", "dni", "ruc", "codigo", "código"), "hash"),
+    (("ciudad", "pais", "país", "empresa"), "building"),
+    (("precio", "valor", "monto", "total", "salario"), "tag"),
+    (("clave", "password", "contrasena", "contraseña"), "lock"),
+)
+
+
+def _icon_for(name: str) -> str | None:
+    """Icono sugerido por el nombre del campo (``email`` → correo)."""
+    lower = name.lower()
+    for hints, icon in _ICON_HINTS:
+        if any(hint in lower for hint in hints):
+            return icon
+    return None
+
+
 def _handler(signal: Any, errores: Any) -> Callable[[Any], None]:
     """Guarda el valor en la señal y retira los errores en cuanto se escribe."""
 
@@ -91,10 +113,21 @@ def _handler(signal: Any, errores: Any) -> Callable[[Any], None]:
 
 
 def _control(
-    name: str, field: Any, value: Any, *, label: str, required: bool, on_change: Any
+    name: str,
+    field: Any,
+    value: Any,
+    *,
+    label: str,
+    required: bool,
+    on_change: Any,
+    icon: str | None = None,
+    placeholder: str | None = None,
 ) -> Component:
     """El control que corresponde al tipo del campo."""
     kind = field.type
+    extra: dict[str, Any] = {}
+    if placeholder:
+        extra["placeholder"] = placeholder
     lower = name.lower()
 
     if isinstance(field, Choice):
@@ -107,19 +140,33 @@ def _control(
         )
     if kind == "bool":
         return Switch(label, checked=value, on_change=on_change)
-    if kind == "date":
-        return DateInput(value=value, label=label, required=required, on_input=on_change)
-    if kind == "datetime":
-        return DateTimeInput(value=value, label=label, required=required, on_input=on_change)
-    if kind in ("int", "real"):
-        return NumberInput(value=value, label=label, required=required, on_input=on_change)
     if kind in ("text", "json"):
         return Textarea(
-            value=value, label=label, required=required, on_input=on_change, rows=3
+            value=value, label=label, required=required, on_input=on_change, rows=3, **extra
         )
     if isinstance(field, Email) or any(hint in lower for hint in ("email", "correo", "mail")):
-        return EmailInput(value=value, label=label, required=required, on_input=on_change)
-    return Input(value=value, label=label, required=required, on_input=on_change)
+        return EmailInput(
+            value=value, label=label, required=required, on_input=on_change,
+            icon=icon, **extra,
+        )
+    if kind == "date":
+        return DateInput(
+            value=value, label=label, required=required, on_input=on_change,
+            icon=icon, **extra,
+        )
+    if kind == "datetime":
+        return DateTimeInput(
+            value=value, label=label, required=required, on_input=on_change,
+            icon=icon, **extra,
+        )
+    if kind in ("int", "real"):
+        return NumberInput(
+            value=value, label=label, required=required, on_input=on_change,
+            icon=icon, **extra,
+        )
+    return Input(
+        value=value, label=label, required=required, on_input=on_change, icon=icon, **extra
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -145,10 +192,16 @@ class ModelForm(Component):
     fields: Sequence[str] | None = None
     exclude: Sequence[str] = ()
     labels: dict[str, str] | None = None
+    #: Icono de cada campo: ``icons = {"email": ui.icons.mail}``.
+    icons: dict[str, str] | None = None
+    #: Texto de ayuda dentro del campo: ``placeholders = {"email": "tu@correo.com"}``.
+    placeholders: dict[str, str] | None = None
     #: Registro que se está editando (``None`` = alta nueva).
     instance: Model | None = None
     #: `False` oculta el título de la tarjeta (dentro de un diálogo, por ejemplo).
     show_title: bool = True
+    #: `False` dibuja los campos sin la tarjeta que los envuelve.
+    card: bool = True
     submit_label: str = "Guardar"
     title: Any = None
     prefix: str | None = None
@@ -161,6 +214,8 @@ class ModelForm(Component):
         fields: Sequence[str] | None = None,
         exclude: Sequence[str] | None = None,
         labels: dict[str, str] | None = None,
+        icons: dict[str, str] | None = None,
+        placeholders: dict[str, str] | None = None,
         instance: Model | None = None,
         submit_label: str | None = None,
         title: Any = None,
@@ -178,6 +233,12 @@ class ModelForm(Component):
         self.form_exclude = tuple(declared_exclude or ())
         declared_labels = labels if labels is not None else getattr(type(self), "labels", None)
         self.form_labels = dict(declared_labels or {})
+        declared_icons = icons if icons is not None else getattr(type(self), "icons", None)
+        self.form_icons = dict(declared_icons or {})
+        declared_hints = (
+            placeholders if placeholders is not None else getattr(type(self), "placeholders", None)
+        )
+        self.form_placeholders = dict(declared_hints or {})
         self.instance = instance
         self._pending: dict[str, Any] | None = None
         self.submit_label = submit_label or getattr(type(self), "submit_label", "Guardar")
@@ -218,6 +279,25 @@ class ModelForm(Component):
         self._pending = {name: getattr(record, name, None) for name in self.field_names()}
         return self
 
+    def icon(self, name: str) -> str | None:
+        """Icono del campo: lo que diga `icons` o el que sugiere su nombre."""
+        if name in self.form_icons:
+            return self.form_icons[name] or None
+        return _icon_for(name)
+
+    def fresh(self) -> "ModelForm":
+        """Otro formulario igual, con sus propios valores (para un modal)."""
+        return type(self)(
+            model=self.model,
+            fields=self.form_fields,
+            exclude=self.form_exclude,
+            labels=self.form_labels,
+            icons=self.form_icons,
+            placeholders=self.form_placeholders,
+            submit_label=self.submit_label,
+            title=self.form_title,
+        )
+
     def _duplicado(self, model: type[Model], name: str, value: Any) -> bool:
         """¿Otro registro ya usa ese valor? (el que se edita no cuenta)."""
         otros = [
@@ -253,6 +333,8 @@ class ModelForm(Component):
                     label=self.label(name),
                     required=_required(field),
                     on_change=_handler(signal, errores),
+                    icon=self.icon(name),
+                    placeholder=self.form_placeholders.get(name),
                 )
             )
 
@@ -304,6 +386,14 @@ class ModelForm(Component):
             if self.on_saved is not None:
                 self.on_saved(saved)
 
+        if not self.card:
+            return Stack(
+                *([ValidationSummary(errores.get())] if errores.get() else []),
+                *controles,
+                Button(self.submit_label, icon="check", on_click=guardar, margin=margin.t_6),
+                gap=gap.all_3,
+            ).render(ctx, f"{path}-form")
+
         card = Card(
             *([ValidationSummary(errores.get())] if errores.get() else []),
             Stack(*controles, gap=gap.all_3),
@@ -352,6 +442,7 @@ def form_dialog(
     if not node.prefix:
         node.prefix = "dialogo"
     node.show_title = False
+    node.card = False
 
     def cerrar() -> None:
         application.close_dialog()
@@ -370,6 +461,7 @@ def form_dialog(
     dialog = Dialog(
         node,
         title=title or node.form_title or "Formulario",
+        icon=False,
         width=width,
         scrollable=True,
         buttons=[(cancel_label, cerrar, "outline")],

@@ -8,6 +8,14 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **La página del registro se configura desde la vista**: `RecordPage(...,
+  form_mode="inline" | "modal" | "none")`. En `"modal"` la página se queda con el
+  contador y la tabla, y un botón **Nuevo** (`new_label`, `new_icon`) abre el
+  formulario en un diálogo generado a partir del propio formulario.
+- **Iconos y textos de ayuda por campo**: `ModelForm` acepta
+  `icons = {"email": "mail"}` y `placeholders = {"email": "tu@correo.com"}`; sin
+  `icons`, cada campo elige un icono según su nombre. Dentro de un diálogo el
+  formulario se dibuja sin la tarjeta que lo envuelve.
 - **Acciones en la tabla**: `ui.RecordTable(form, actions=[...])` y
   `ui.RecordPage(form, actions=[...])` con `ui.RowAction("Editar",
   icon=…, on_click=…)`: un botón de icono por fila cuyo handler recibe ese

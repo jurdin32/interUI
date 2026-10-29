@@ -108,7 +108,12 @@ class Dialog(Component):
         self.message = message
         self.kind = kind
         self.level = level or _default_level(kind)
-        self.icon = icon or LEVELS.get(self.level, LEVELS["neutral"])[0]
+        # `icon=False` (o `""`) deja la cabecera sin icono.
+        self.icon = (
+            ""
+            if icon is False or icon == ""
+            else icon or LEVELS.get(self.level, LEVELS["neutral"])[0]
+        )
         self.buttons = list(buttons) if buttons is not None else None
         self.fields = list(fields or [])
         self.values = dict(values or {})

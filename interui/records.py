@@ -201,12 +201,20 @@ class RecordTable(Component):
 
 
 class RecordPage(Component):
-    """La página completa de un registro: título, contador, formulario y tabla.
+    """La página de un registro, con lo que pidas.
 
-    Es lo que devuelve una vista normal::
+    ```python
+    ui.RecordPage(PersonaForm(), title="Personas")                  # todo
+    ui.RecordPage(PersonaForm(), form_mode="modal")                 # tabla + botón «Nuevo»
+    ui.RecordPage(PersonaForm(), form_mode="none")                  # solo la tabla
+    ui.RecordPage(PersonaForm(), table=False)                       # solo el formulario
+    ```
 
-        def inicio() -> ui.Component:
-            return ui.RecordPage(PersonaForm(), title="Personas")
+    | `form_mode` | Qué se ve |
+    |---|---|
+    | `"inline"` (por defecto) | el formulario dentro de la página |
+    | `"modal"` | un botón **Nuevo** que abre el formulario en un diálogo |
+    | `"none"` | ni formulario ni botón: solo el contador y la tabla |
 
     El armazón (barra de título y menú) no va aquí: eso es `app.layout`.
     """
@@ -222,15 +230,26 @@ class RecordPage(Component):
         table: bool = True,
         columns: Sequence[str] | None = None,
         actions: Sequence[RowAction] | None = None,
+        form_mode: str = "inline",
+        new_label: Any = "Nuevo",
+        new_icon: str | None = "plus",
         pad_: Any = None,
         **props: Any,
     ) -> None:
+        modo = str(form_mode or "inline").lower()
+        if modo not in ("inline", "modal", "none"):
+            raise ValueError(
+                f"form_mode desconocido: {form_mode!r}; usa 'inline', 'modal' o 'none'"
+            )
         self.form = form
         self.page_title = title
         self.show_counter = counter
         self.show_table = table
         self.columns = list(columns) if columns is not None else None
         self.actions = list(actions or ())
+        self.form_mode = modo
+        self.new_label = new_label
+        self.new_icon = new_icon
         self.page_pad = pad_ if pad_ is not None else pad.py_8
         super().__init__(**props)
 
@@ -240,10 +259,26 @@ class RecordPage(Component):
         if titulo is None:
             titulo = _plural(_model_of(form).__name__)
 
-        pieces: list[Any] = [Heading(titulo, level=1)]
+        header: Any = Heading(titulo, level=1)
+        if self.form_mode == "modal":
+            header = Stack(
+                header,
+                Button(
+                    self.new_label,
+                    icon=self.new_icon,
+                    on_click=self._abrir_alta,
+                ),
+                direction="row",
+                justify="between",
+                align="center",
+                gap=3,
+            )
+
+        pieces: list[Any] = [header]
         if self.show_counter:
             pieces.append(Muted(RecordCounter(form)))
-        pieces.append(form)
+        if self.form_mode == "inline":
+            pieces.append(form)
         if self.show_table:
             pieces.append(
                 RecordTable(
@@ -254,6 +289,15 @@ class RecordPage(Component):
                 )
             )
         return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")
+
+    def _abrir_alta(self) -> None:
+        """Botón **Nuevo**: abre el formulario de alta en un diálogo."""
+        from .forms import form_dialog
+
+        form_dialog(
+            self.form.fresh(),
+            title=self.form.form_title or f"Nuevo {_model_of(self.form).__name__.lower()}",
+        )
 
 
 class RecordCounter(Component):

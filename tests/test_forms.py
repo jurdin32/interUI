@@ -442,3 +442,85 @@ def test_form_dialog_abre_el_formulario_en_un_modal(app) -> None:
     html = app.render_page("/modal")[1]
     assert "Editar" in html
     assert 'value="Ana"' in html
+
+
+def test_recordpage_sin_formulario_en_la_pagina(app) -> None:
+    """`form_mode="none"` deja solo el contador y la tabla."""
+    app.page("/solo")(
+        lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), title="Personas", form_mode="none"))
+    )
+    _title, html, _bindings = app.render_page("/solo")
+    assert "Personas" in html
+    assert "Todavía no hay registros" in html
+    assert "Guardar" not in html, "no debe haber formulario dentro de la página"
+
+
+def test_recordpage_con_el_formulario_en_un_modal(app) -> None:
+    """`form_mode="modal"` pone un botón Nuevo y abre el formulario en un diálogo."""
+
+    class _WS:
+        id = "w1"
+
+        def send_json(self, payload) -> None:
+            pass
+
+    app.page("/modal2")(
+        lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), title="Personas", form_mode="modal"))
+    )
+    _title, html, bindings = app.render_page("/modal2")
+    assert "Nuevo" in html
+    assert "Guardar" not in html, "el formulario no va en la página"
+
+    app._client_pages["w1"] = "/modal2"
+    app._bindings["w1"] = bindings
+    uid = next(u for u, handlers in bindings.items() if "click" in handlers)
+    app._dispatch(_WS(), {"id": uid, "e": "click"})
+
+    assert len(app.dialogs) == 1
+    html = app.render_page("/modal2")[1]
+    assert "Guardar" in html, "el modal sí trae el formulario"
+
+
+def test_form_mode_invalido_falla(app) -> None:
+    with pytest.raises(ValueError, match="form_mode"):
+        ui.RecordPage(ui.ModelForm(Persona), form_mode="ventana")
+
+
+def test_iconos_y_placeholders_configurables(app) -> None:
+    """`icons` y `placeholders` del formulario llegan a los campos."""
+
+    class ConIconos(ui.ModelForm):
+        model = Persona
+        icons = {"nombre": "user", "email": "mail"}
+        placeholders = {"email": "tu@correo.com"}
+
+    form = ConIconos()
+    assert form.icon("nombre") == "user"
+    assert form.icon("activo") is None, "un booleano no lleva icono"
+    app.page("/iconos")(lambda: ui.Screen(form))
+
+    _title, html, _bindings = app.render_page("/iconos")
+    assert 'placeholder="tu@correo.com"' in html
+    assert html.count("<svg") >= 2, "los iconos se dibujan"
+
+
+def test_iconos_por_defecto_segun_el_nombre(app) -> None:
+    """Sin `icons`, el nombre del campo elige un icono razonable."""
+    form = ui.ModelForm(Persona)
+    assert form.icon("nombre") == "user"
+    assert form.icon("email") == "mail"
+
+
+def test_fresh_copia_la_configuracion_del_formulario(app) -> None:
+    """`fresh()` da otro formulario igual (lo usa el botón Nuevo del modal)."""
+
+    class ConEtiquetas(ui.ModelForm):
+        model = Persona
+        labels = {"nombre": "Nombre completo"}
+        placeholders = {"email": "tu@correo.com"}
+
+    copia = ConEtiquetas().fresh()
+    assert isinstance(copia, ConEtiquetas)
+    assert copia.form_labels == {"nombre": "Nombre completo"}
+    assert copia.form_placeholders == {"email": "tu@correo.com"}
+    assert copia is not None
