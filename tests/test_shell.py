@@ -390,3 +390,25 @@ def test_el_runtime_coloca_los_menus_fijos_bajo_su_disparador() -> None:
     assert "function placeMenu(" in runtime
     assert "placeMenu(panel, trigger)" in runtime
     assert "dataset.iuiAlign" in runtime
+
+
+def test_menubar_admite_icono_en_cada_pestana() -> None:
+    """El nombre del menú puede llevar icono, por mapa o como tercer elemento."""
+    bar = ui.MenuBar(
+        {"Registros": [ui.ContextItem("Personas", icon=ui.icons.user)]},
+        icons={"Registros": ui.icons.users},
+    )
+    html = ui.render(bar)
+    assert "<svg" in html.split("Registros")[0], "el icono va antes del nombre"
+
+    bar2 = ui.MenuBar([("Registros", [ui.ContextItem("Personas")], ui.icons.users)])
+    assert "<svg" in ui.render(bar2).split("Registros")[0]
+
+    # Sin `icons` no se dibuja ninguno.
+    assert "<svg" not in ui.render(ui.MenuBar({"Archivo": []}))
+
+
+def test_menubar_brand_con_logo() -> None:
+    html = ui.render(ui.MenuBar({"Archivo": []}, brand="Registros", logo=ui.icons.user))
+    assert "Registros" in html
+    assert "<svg" in html.split("Archivo")[0], "el logo va con el nombre de la app"

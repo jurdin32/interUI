@@ -1897,7 +1897,7 @@ Alias en minúsculas: `ui.menu_bar`
 Barra de menús de la ventana (`Archivo`, `Editar`…) con desplegables.
 
 ```text
-ui.MenuBar(menus=None, brand=None, logo="layers", actions=None, sticky=True)
+ui.MenuBar(menus=None, brand=None, logo="layers", icons=None, actions=None, sticky=True)
 ```
 
 ```python

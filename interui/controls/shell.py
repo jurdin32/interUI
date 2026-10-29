@@ -180,6 +180,7 @@ class MenuBar(Component):
         *,
         brand: Any = None,
         logo: str | None = "layers",
+        icons: dict[str, str] | None = None,
         actions: Any = None,
         sticky: bool = True,
         **props: Any,
@@ -187,6 +188,8 @@ class MenuBar(Component):
         self.menus = list(menus.items()) if isinstance(menus, dict) else list(menus or [])
         self.brand = brand
         self.logo = logo
+        #: Icono de cada pestaña: ``{"Archivo": ui.icons.folder}``.
+        self.icons = dict(icons or {})
         self.actions = actions
         props["role"] = "menubar"
         props["base_class"] = tw(
@@ -229,19 +232,28 @@ class MenuBar(Component):
             )
 
         for index, entry in enumerate(self.menus):
+            icon = None
             if isinstance(entry, (tuple, list)):
                 label, items = entry[0], entry[1]
+                icon = entry[2] if len(entry) > 2 else None
             else:  # pragma: no cover - dict key/value ya normalizado
                 label, items = str(entry), []
+            icon = icon or self.icons.get(str(label))
             panel_id = f"{uid}-m{index}"
             items_html = _render_items(items, ctx, f"{path}-m{index}")
+            mark = (
+                Icon(icon, size=3).render(ctx, f"{path}-m{index}-ic")
+                if icon
+                else ""
+            )
             parts.append(
                 f'<div class="relative">'
                 f'<button type="button" id="{escape(panel_id)}-trigger" data-iui-menu="{escape(panel_id)}" '
                 'role="menuitem" aria-haspopup="true" aria-expanded="false" '
-                'class="rounded-md px-2.5 py-1 text-sm text-slate-700 transition hover:bg-slate-100 '
-                'aria-expanded:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 '
-                f'dark:aria-expanded:bg-slate-800">{escape(label)}</button>'
+                'class="flex items-center gap-1.5 rounded-md px-2.5 py-1 text-sm text-slate-700 '
+                'transition hover:bg-slate-100 aria-expanded:bg-slate-100 dark:text-slate-200 '
+                'dark:hover:bg-slate-800 dark:aria-expanded:bg-slate-800">'
+                f'{mark}{escape(label)}</button>'
                 f'<div id="{escape(panel_id)}" data-iui-menu-panel role="menu" '
                 'class="fixed z-[70] hidden min-w-56 flex-col overflow-hidden '
                 'rounded-xl border border-slate-200 bg-white py-1 shadow-xl dark:border-slate-700 '

@@ -144,9 +144,31 @@ ui.MenuBar(
         "Ayuda": [ui.ContextItem("Acerca de", icon=ui.icons.info, on_click=acerca_de)],
     },
     brand="Mi app",              # nombre + logo a la izquierda
+    icons={"Archivo": ui.icons.folder},  # icono en el título del menú
     actions=ui.NotificationButton(3),   # zona derecha opcional
 )
 ```
+
+### Icono en el título de un menú
+
+Hay dos formas, y las dos se pueden combinar:
+
+```python
+# 1. Un mapa título → icono (lo más corto si hay varios menús)
+ui.MenuBar(
+    {"Registros": [ui.ContextItem("Personas", icon=ui.icons.user)]},
+    icons={"Registros": ui.icons.users},
+)
+
+# 2. Como tercer elemento de la entrada de la lista
+ui.MenuBar([
+    ("Registros", [ui.ContextItem("Personas", icon=ui.icons.user)], ui.icons.users),
+])
+```
+
+Para el **nombre de la aplicación** a la izquierda de la barra hay dos
+parámetros propios: `brand="Registros"` y `logo=ui.icons.users` (el logo va
+dentro de un cuadro índigo). Con `brand=None` esa zona no se dibuja.
 
 Qué hace el cliente por ti (sin escribir JavaScript):
 
@@ -154,6 +176,15 @@ Qué hace el cliente por ti (sin escribir JavaScript):
 - cambiar de menú al pasar el ratón cuando ya hay uno abierto,
 - cerrar con `Escape`, con clic fuera o al elegir una opción,
 - `aria-expanded` sincronizado para accesibilidad.
+
+| Parámetro | Para qué |
+|---|---|
+| `menus` | dict `{título: [ítems]}` o lista de tuplas `(título, ítems[, icono])`. |
+| `brand` | nombre de la app a la izquierda. |
+| `logo` | icono del cuadro que acompaña al `brand` (`"layers"` por defecto). |
+| `icons` | icono de cada pestaña: `{"Registros": ui.icons.users}`. |
+| `actions` | componente a la derecha (notificaciones, avatar…). |
+| `sticky` | la barra se queda arriba al hacer scroll (`True` por defecto). |
 
 Los ítems pueden escribirse de tres formas equivalentes:
 
