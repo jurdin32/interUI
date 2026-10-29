@@ -793,7 +793,7 @@ Alias en minúsculas: `ui.input`
 Campo de texto con etiqueta, ayuda, error e iconos.
 
 ```text
-ui.Input(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
+ui.Input(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None, width=None)
 ```
 
 ```python
@@ -961,7 +961,7 @@ Alias en minúsculas: `ui.select`
 Lista desplegable.
 
 ```text
-ui.Select(options=None, value="", name=None, placeholder=None, size=size.md, label=None, help_text=None, error=None, required=False, disabled=False, multiple=False)
+ui.Select(options=None, value="", name=None, placeholder=None, size=size.md, label=None, help_text=None, error=None, required=False, disabled=False, multiple=False, width=None)
 ```
 
 ```python
@@ -1031,7 +1031,7 @@ Alias en minúsculas: `ui.text_input`
 Alias de `Input` para texto.
 
 ```text
-ui.TextInput(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None)
+ui.TextInput(value="", name=None, placeholder=None, size=size.md, icon=None, trailing=None, label=None, help_text=None, error=None, required=False, disabled=False, readonly=False, invalid=None, live=False, debounce=220, horizontal=False, autofocus=False, autocomplete=None, width=None)
 ```
 
 ```python
@@ -1045,7 +1045,7 @@ Alias en minúsculas: `ui.textarea`
 Área de texto multilínea.
 
 ```text
-ui.Textarea(value="", rows=4, name=None, placeholder=None, label=None, help_text=None, error=None, required=False, disabled=False, resize="y", invalid=None, live=False)
+ui.Textarea(value="", rows=4, name=None, placeholder=None, label=None, help_text=None, error=None, required=False, disabled=False, resize="y", invalid=None, live=False, width=None)
 ```
 
 ```python

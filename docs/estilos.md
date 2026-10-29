@@ -290,6 +290,19 @@ escribas nada:
 | `Drawer` | anchos relativos (`min(90vw, 18rem)` y compañía) |
 | `MenuBar` | desplazamiento horizontal cuando no caben los menús |
 
+### Ancho de un campo
+
+`Input`, `TextInput`, `EmailInput`, `Textarea` y `Select` ocupan todo el ancho
+disponible (`w-full`). Cuando necesitas otra medida, se pasa en `width`:
+
+```python
+Select([("10", "10"), ("15", "15")], width="w-16")   # 4 rem, como el pie de la tabla
+Input("", width="w-40", label="Código")
+```
+
+El valor es una clase de ancho de Tailwind y **sustituye** el `w-full` del
+control (no se suma a él), así que no hay que pelearse con la clase por defecto.
+
 ---
 
 ## 5. Colores personalizados, degradados y medidas exactas

@@ -11,7 +11,7 @@ from ..icons import Icon
 from ..state import value_of
 from ..style import tw
 from ..theme import utility
-from ..ui import INPUT_BASE, INPUT_SIZES, field_shell
+from ..ui import INPUT_BASE, INPUT_SIZES, field_shell, field_width
 
 __all__ = [
     "Input", "TextInput", "EmailInput", "SearchInput", "PasswordInput", "NumberInput",
@@ -79,9 +79,11 @@ class Input(Component):
         horizontal: bool = False,
         autofocus: bool = False,
         autocomplete: str | None = None,
+        width: str | None = None,
         **props: Any,
     ) -> None:
         self.size = size
+        self.width = width
         self.icon = icon
         self.trailing = trailing
         self.label = label
@@ -117,6 +119,7 @@ class Input(Component):
     def classes(self, ctx: RenderContext, uid: str) -> str:
         return tw(
             INPUT_BASE,
+            field_width(self.width),
             INPUT_SIZES.get(self.size, INPUT_SIZES["md"]),
             INVALID if self.invalid else "",
             "pl-10" if self.icon else "",
@@ -213,6 +216,7 @@ class PasswordInput(Input):
     def classes(self, ctx: RenderContext, uid: str) -> str:
         return tw(
             INPUT_BASE,
+            field_width(self.width),
             INPUT_SIZES.get(self.size, INPUT_SIZES["md"]),
             INVALID if self.invalid else "",
             "pl-10" if self.icon else "",
@@ -260,6 +264,7 @@ class Textarea(Component):
         resize: str = "y",
         invalid: bool | None = None,
         live: bool = False,
+        width: str | None = None,
         **props: Any,
     ) -> None:
         self.label = label
@@ -280,7 +285,7 @@ class Textarea(Component):
         if live:
             props["data"] = {**(props.get("data") or {}), "iui-debounce": 220}
         props["base_class"] = tw(
-            INPUT_BASE, "min-h-[5rem] px-3 py-2 text-sm leading-relaxed",
+            INPUT_BASE, field_width(width), "min-h-[5rem] px-3 py-2 text-sm leading-relaxed",
             INVALID if self.invalid else "",
             {"none": "resize-none", "y": "resize-y", "x": "resize-x", "both": "resize"}.get(resize, "resize-y"),
             props.get("base_class"),
@@ -314,6 +319,7 @@ class Select(Component):
         required: bool = False,
         disabled: bool = False,
         multiple: bool = False,
+        width: str | None = None,
         **props: Any,
     ) -> None:
         self.options = _options(options)
@@ -336,6 +342,7 @@ class Select(Component):
         props["value"] = self.value
         props["base_class"] = tw(
             INPUT_BASE,
+            field_width(width),
             INPUT_SIZES.get(size, INPUT_SIZES["md"]),
             "iui-select" if not multiple else "iui-select px-2 py-2",
             INVALID if error else "",

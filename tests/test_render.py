@@ -63,6 +63,23 @@ def test_textarea_content_is_escaped():
     assert "&lt;script&gt;" in html
 
 
+def test_los_campos_ocupan_todo_el_ancho_salvo_que_se_pida_otro():
+    """`width` sustituye el `w-full` del control en vez de pelearse con él."""
+    assert "w-full" in ui.render(ui.Input(""))
+    assert "w-full" in ui.render(ui.Select([("10", "10")]))
+
+    casos = [
+        (ui.Input("", width="w-40"), "w-40"),
+        (ui.EmailInput("", width="w-64"), "w-64"),
+        (ui.Textarea("", width="w-40"), "w-40"),
+        (ui.Select([("10", "10")], width="w-16"), "w-16"),
+    ]
+    for control, clase in casos:
+        html = ui.render(control)
+        assert clase in html, f"{type(control).__name__} ignora width={clase}"
+        assert "w-full" not in html, f"{type(control).__name__} conserva w-full"
+
+
 def test_table_renders_headers_and_rows():
     html = ui.render(
         ui.Table(headers=["A", "B"], rows=[["1", "2"], ["3", "4"]], footer=["total", ""])

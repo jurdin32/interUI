@@ -558,6 +558,7 @@ def test_tabla_pagina_de_10_en_10(tmp_path) -> None:
     assert "Mostrando 1–10 de 25" in html
     assert "1 de 3" in html
     assert html.count("Persona ") == 10, "solo diez filas"
+    assert "w-16" in html, "el selector de filas no debe estirarse (w-full)"
 
     app._signals["tabla_form_personas_pagina"].set(2)
     _title, html, _bindings = app.render_page("/tabla")

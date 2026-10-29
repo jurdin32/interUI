@@ -19,6 +19,10 @@ etiqueta como `vX.Y.Z`.
   aunque la búsqueda deje menos filas que el tamaño de página
   (`Mostrando 1–2 de 2`), y si la ventana es muy estrecha el grupo de controles
   baja entero a la línea siguiente en vez de partirse.
+- **`width` en los campos**: `Input`, `TextInput`, `EmailInput`, `Textarea` y
+  `Select` aceptan `width="w-16"` y ese ancho **sustituye** el `w-full` que
+  traen por defecto, así que un control puede ser estrecho sin pelearse con la
+  clase base. Documentado en [`docs/estilos.md`](docs/estilos.md).
 - **La página del registro se configura desde la vista**: `RecordPage(...,
   form_mode="inline" | "modal" | "none")`. En `"modal"` la página se queda con el
   contador y la tabla, y un botón **Nuevo** (`new_label`, `new_icon`) abre el
@@ -105,6 +109,10 @@ etiqueta como `vX.Y.Z`.
 
 ### Corregido
 
+- **El pie de la tabla ya no se desborda**: el `<select>` de filas por página se
+  estiraba con el `w-full` de los campos y empujaba el paginador fuera de la
+  tarjeta. Ahora `width="w-16"` se aplica de verdad (antes se colaba como
+  atributo HTML `width`), así que el grupo de la derecha entra completo.
 - **Recargar una página ya no devuelve a la bienvenida**: el servidor solo
   pinta cuando el cliente saluda (`hello`) diciendo qué ruta quiere. Antes
   empujaba un render de `/` al conectar y, si llegaba tarde, la ventana se

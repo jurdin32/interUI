@@ -13,7 +13,7 @@ from .style import tw
 
 __all__ = [
     "BUTTON_VARIANTS", "BUTTON_SIZES", "BADGE_VARIANTS", "ALERT_VARIANTS",
-    "INPUT_SIZES", "RADIUS", "SURFACE", "TEXT_MUTED", "field_shell", "sizes",
+    "INPUT_SIZES", "RADIUS", "SURFACE", "TEXT_MUTED", "field_shell", "field_width", "sizes",
 ]
 
 RADIUS = "rounded-lg"
@@ -82,12 +82,17 @@ INPUT_SIZES = {
 }
 
 INPUT_BASE = (
-    "w-full rounded-lg border border-slate-300 bg-white text-slate-900 shadow-sm "
+    "rounded-lg border border-slate-300 bg-white text-slate-900 shadow-sm "
     "placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 "
     "focus:outline-none disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 "
     "dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 "
     "dark:placeholder:text-slate-500 dark:disabled:bg-slate-800"
 )
+
+
+def field_width(width: str | None) -> str:
+    """Ancho del control: ``w-full`` salvo que se pida otro (``"w-16"``)."""
+    return width or "w-full"
 
 
 def sizes(kind: str, size: str) -> str:
