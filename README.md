@@ -55,14 +55,19 @@ app.run()
 
 ## Actualizar interUI
 
-> **¿Ya tienes interUI instalado?** Comprueba la versión y actualiza con:
+> **¿Ya tienes interUI instalado?** Un solo comando: mira si hay algo nuevo,
+> descarga e instala lo que corresponda según cómo lo instalaste.
 >
 > ```bash
-> interui update      # te dice si hay una nueva y el comando exacto
+> iui update --run     # o: interui update --run
 > ```
 >
+> Solo ver el comando, sin ejecutarlo: `iui update`.
+>
+> Si prefieres hacerlo a mano desde GitHub:
+>
 > ```bash
-> pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+> pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 > ```
 >
 > 📖 **Guía de actualización:** [docs/actualizar.md](docs/actualizar.md) ·

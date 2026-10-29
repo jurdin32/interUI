@@ -40,24 +40,37 @@ from .db import Column, DatabaseError
 
 __all__ = [
     "Auto",
+    "AutoField",
+    "BinaryField",
     "Blob",
     "Bool",
+    "BooleanField",
     "Choice",
+    "ChoiceField",
     "Date",
+    "DateField",
     "DateTime",
+    "DateTimeField",
     "Email",
+    "EmailField",
     "Field",
     "Float",
+    "FloatField",
     "FK",
+    "ForeignKey",
     "Int",
+    "IntegerField",
     "Json",
+    "JsonField",
     "LongText",
     "Manager",
     "Model",
     "ModelMeta",
     "QuerySet",
     "Str",
+    "StringField",
     "Text",
+    "TextField",
     "declared_models",
 ]
 
@@ -710,6 +723,27 @@ class Model(metaclass=ModelMeta):
 # ---------------------------------------------------------------------------
 # carga de models.py
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# nombres alternativos
+# ---------------------------------------------------------------------------
+# Los campos tienen un nombre corto (`Str`, `Int`…) porque conviven con los
+# controles de la interfaz. Estos alias hacen que también funcionen las formas
+# largas, que son las que salen solas al escribir un modelo.
+StringField = Str
+TextField = LongText
+IntegerField = Int
+BooleanField = Bool
+FloatField = Float
+DateField = Date
+DateTimeField = DateTime
+EmailField = Email
+ChoiceField = Choice
+JsonField = Json
+BinaryField = Blob
+AutoField = Auto
+ForeignKey = FK
+
+
 def declared_models(path: str | Path, base: type[Model] = Model) -> list[type[Model]]:
     """Importa un ``models.py`` y devuelve sus modelos en orden de declaración."""
     target = Path(path)

@@ -48,8 +48,10 @@ from .ui import BUTTON_SIZES, BUTTON_VARIANTS
 from . import config, db, migrations, orm
 from .config import Config, ConfigError
 from .orm import (
-    Auto, Blob, Bool, Choice, Date, DateTime, Email, FK, Field, Float, Int, Json,
-    LongText, Manager, Model, QuerySet, Str,
+    Auto, AutoField, BinaryField, Blob, Bool, BooleanField, Choice, ChoiceField,
+    Date, DateField, DateTime, DateTimeField, Email, EmailField, FK, Field, Float,
+    FloatField, ForeignKey, Int, IntegerField, Json, JsonField, LongText, Manager,
+    Model, QuerySet, Str, StringField, TextField,
 )
 from .migrations import Migration
 from .controls import *  # noqa: F401,F403  (catálogo de controles)
@@ -71,6 +73,9 @@ __all__ = [
     "config", "db", "orm", "migrations", "Config", "ConfigError", "Migration",
     "Model", "QuerySet", "Manager", "Field", "Auto", "Int", "Str", "LongText", "Bool",
     "Float", "Date", "DateTime", "Json", "Blob", "FK", "Email", "Choice",
+    "StringField", "TextField", "IntegerField", "BooleanField", "FloatField",
+    "DateField", "DateTimeField", "EmailField", "ChoiceField", "JsonField",
+    "BinaryField", "AutoField", "ForeignKey",
     "Token", "Color", "CssColor", "Css", "Gradient", "Word",
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
@@ -97,3 +102,39 @@ __all__ = [*__all__, *_alias_all]
 def run(app: "App", **kwargs: object) -> None:
     """Atajo: ``interui.run(app)``."""
     app.run(**kwargs)  # type: ignore[arg-type]
+
+
+# ---------------------------------------------------------------------------
+# nombres que no existen: decir cuál sí
+# ---------------------------------------------------------------------------
+_EQUIVALENTES: dict[str, str] = {
+    "DecimalField": "ui.Float (o ui.Str si necesitas exactitud)",
+    "Decimal": "ui.Float",
+    "TimeField": "ui.Str",
+    "URLField": "ui.Str",
+    "SlugField": "ui.Str",
+    "UUIDField": "ui.Str",
+    "DurationField": "ui.Int",
+    "FileField": "ui.Str (guarda la ruta del archivo)",
+    "ImageField": "ui.Str (guarda la ruta de la imagen)",
+    "BigIntegerField": "ui.Int",
+    "SmallIntegerField": "ui.Int",
+}
+
+_CAMPOS = (
+    "Str (o StringField), Email, Choice, Int, Bool, Float, Date, DateTime, "
+    "LongText, Json, Blob, FK, Auto"
+)
+
+
+def __getattr__(name: str) -> object:
+    """Error que dice qué escribir en lugar del nombre que no existe."""
+    if name in _EQUIVALENTES:
+        raise AttributeError(
+            f"interui no tiene `{name}`: usa {_EQUIVALENTES[name]}."
+        )
+    if name.endswith("Field"):
+        raise AttributeError(
+            f"interui no tiene `{name}`. Los campos que existen son: {_CAMPOS}."
+        )
+    raise AttributeError(f"module 'interui' has no attribute {name!r}")

@@ -345,4 +345,42 @@ def test_cli_update_run_ejecuta_el_comando(monkeypatch: pytest.MonkeyPatch) -> N
     )
     monkeypatch.setattr(updates, "run_upgrade", lambda command: ejecutado.append(command) or 0)
     assert cli.main(["update", "--run"]) == 0
-    assert ejecutado == ["pip install -U interui"]
+    # El comando que se ejecuta es el que corresponde a cómo está instalado.
+    assert ejecutado == [updates.install_command()]
+
+    # `--install` y `--upgrade` son sinónimos.
+    assert cli.main(["update", "--install"]) == 0
+    assert len(ejecutado) == 2
+
+
+def test_run_upgrade_ejecuta_varios_pasos(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`git pull && pip install -e` se ejecuta como dos comandos, sin shell."""
+    import subprocess
+    import sys
+
+    llamadas: list[list[str]] = []
+
+    def falso(parts, *_a, **_k):
+        llamadas.append(list(parts))
+        return 0
+
+    monkeypatch.setattr(subprocess, "call", falso)
+    code = updates.run_upgrade('git -C "/tmp/mi copia" pull && pip install -U -e "/tmp/mi copia"')
+
+    assert code == 0
+    assert llamadas[0] == ["git", "-C", "/tmp/mi copia", "pull"]
+    assert llamadas[1] == [sys.executable, "-m", "pip", "install", "-U", "-e", "/tmp/mi copia"]
+
+
+def test_run_upgrade_se_para_en_el_primer_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    import subprocess
+
+    llamadas: list[list[str]] = []
+
+    def falso(parts, *_a, **_k):
+        llamadas.append(list(parts))
+        return 2
+
+    monkeypatch.setattr(subprocess, "call", falso)
+    assert updates.run_upgrade("git pull && pip install -U -e /tmp/x") == 2
+    assert len(llamadas) == 1, "no debe seguir después de un fallo"

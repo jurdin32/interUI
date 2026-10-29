@@ -518,8 +518,13 @@ def cmd_update(args: argparse.Namespace) -> int:
         print(f"Estás al día (última publicada: {info.latest}).")
         print(f"Para forzar la actualización:\n  {info.command}")
     if getattr(args, "run", False):
-        print("[interui] ejecutando la actualización…")
-        return updates.run_upgrade(info.command if info.available else command)
+        print(f"[interui] ejecutando:\n  {command}")
+        code = updates.run_upgrade(command)
+        if code == 0:
+            print("[interui] listo. Cierra y vuelve a abrir tu aplicación.")
+        else:
+            print("[interui] no se pudo actualizar; copia el comando de arriba.")
+        return code
     return 0
 
 
@@ -742,7 +747,14 @@ def build_parser() -> argparse.ArgumentParser:
     build.set_defaults(func=cmd_build)
 
     update = sub.add_parser("update", help="comprueba si hay versión nueva y muestra el comando")
-    update.add_argument("--run", action="store_true", help="ejecuta la actualización")
+    update.add_argument(
+        "--run",
+        "--install",
+        "--upgrade",
+        dest="run",
+        action="store_true",
+        help="descarga e instala la última versión (según cómo esté instalado)",
+    )
     update.add_argument("--timeout", type=float, default=5.0)
     update.set_defaults(func=cmd_update)
 

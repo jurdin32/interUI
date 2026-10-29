@@ -122,7 +122,9 @@ def install_info(with_gui: bool = True) -> tuple[str, str]:
         # reinstala el wheel nuevo cuando lo tengas.
         return "wheel", f"pip install -U {quoted}"
     if url:
-        return "git", f'pip install -U "{PACKAGE}{extra} @ git+{GIT_URL}"'
+        # `--force-reinstall` es necesario: la versión no cambia entre commits,
+        # así que sin él pip responde «already satisfied» y no actualiza nada.
+        return "git", f'pip install -U --force-reinstall "{PACKAGE}{extra} @ git+{GIT_URL}"'
     return "pypi", f"pip install -U {PACKAGE}{extra}"
 
 
@@ -322,10 +324,22 @@ def check_async(callback: Any, **kwargs: Any) -> None:
 
 
 def run_upgrade(command: str) -> int:
-    """Ejecuta el comando de actualización (lo usa ``interui update --run``)."""
+    """Ejecuta el comando (o comandos) de actualización.
+
+    Lo usa ``iui update --run``. Acepta varios pasos separados por ``&&``, que
+    es como se describe la instalación en modo enlace (``git pull`` y luego
+    ``pip install -e``). Devuelve el código de salida del primer paso que falle.
+    """
+    import shlex
     import subprocess
 
-    parts = command.split()
-    if parts and parts[0] == "pip":
-        parts = [sys.executable, "-m", "pip", *parts[1:]]
-    return subprocess.call(parts)  # noqa: S603 - comando propio, sin entrada del usuario
+    for step in command.split("&&"):
+        parts = shlex.split(step)
+        if not parts:
+            continue
+        if parts[0] in {"pip", "pip3"}:
+            parts = [sys.executable, "-m", "pip", *parts[1:]]
+        code = subprocess.call(parts)  # noqa: S603 - comando propio, no del usuario
+        if code != 0:
+            return code
+    return 0

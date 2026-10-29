@@ -10,17 +10,50 @@ que te toca.
 
 ---
 
-## 1. Comando de actualización
+## 1. La forma fácil: un solo comando
 
-Depende de cómo instalaste interUI. El framework lo detecta solo y te muestra el
-comando correcto en el aviso de la app y con `interui update`.
+```bash
+iui update --run
+```
+
+Eso es todo. El comando:
+
+1. pregunta a GitHub cuál es la última versión,
+2. mira **cómo está instalado** interUI en ese intérprete,
+3. ejecuta lo que toque (descargar de GitHub, actualizar el clon o `pip -U`),
+4. y avisa de que reinicies tu aplicación.
+
+Si solo quieres ver el comando sin ejecutarlo:
+
+```bash
+iui update
+```
+
+`iui`, `interui` y `python -m interui` hacen lo mismo; dentro de un proyecto
+también puedes usar `python iui.py update --run`.
+
+> **Ojo con el intérprete.** Actualiza el `pip` del entorno desde el que abres tu
+> app. Si tienes dos entornos (uno para el editor y otro para la terminal), el
+> aviso seguirá saliendo porque la app sigue importando la versión antigua.
+> Comprueba a cuál apunta con
+> `python -c "import interui; print(interui.__file__)"`.
+
+---
+
+## 2. Comando de actualización, caso por caso
+
+Esto es lo que ejecuta `iui update --run` en cada situación. El framework lo
+detecta solo y te muestra el comando correcto en el aviso de la app.
 
 **Instalado desde GitHub** (la forma disponible hoy, porque el paquete aún no
 está en PyPI):
 
 ```bash
-pip install -U "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
+pip install -U --force-reinstall "interui[desktop] @ git+https://github.com/jurdin32/interUI.git"
 ```
+
+`--force-reinstall` no es opcional: la versión no cambia entre commits, así que
+sin él `pip` contesta «already satisfied» y no descarga nada.
 
 Para moverte a una versión concreta en lugar de a la última de `main`:
 
@@ -37,9 +70,12 @@ pip install -U interui[desktop]
 **Clon de desarrollo instalado en modo editable**:
 
 ```bash
-git -C /ruta/a/interUI pull
-pip install -U -e /ruta/a/interUI
+git -C /ruta/a/interUI pull        # trae los cambios del repositorio
+pip install -U -e /ruta/a/interUI  # solo si cambió pyproject.toml
 ```
+
+En modo enlace (`-e`) los cambios del código se ven al instante: casi siempre
+basta con `git pull` y volver a abrir la app.
 
 > Usa el `pip` del entorno donde corre tu aplicación (por ejemplo
 > `.venv/bin/python -m pip install -U ...`). Si instalas con otro intérprete,
@@ -47,7 +83,7 @@ pip install -U -e /ruta/a/interUI
 
 ---
 
-## 2. Cómo saber qué versión tienes
+## 3. Cómo saber qué versión tienes
 
 ```bash
 python -c "import interui; print(interui.__version__)"
@@ -64,7 +100,7 @@ python -c "import interui, sys; print(sys.executable, interui.__version__, inter
 
 ---
 
-## 3. El aviso dentro de la aplicación
+## 4. El aviso dentro de la aplicación
 
 Al arrancar, interUI consulta en segundo plano (sin bloquear la ventana) cuál es
 la última versión publicada. Si es más nueva que la instalada:
@@ -127,7 +163,7 @@ abrir la app muchas veces no genera más peticiones.
 
 ---
 
-## 4. Actualizar una app ya empaquetada
+## 5. Actualizar una app ya empaquetada
 
 Si distribuiste tu aplicación como ejecutable (`interui build`), el binario lleva
 interUI dentro: actualizar el paquete de Python **no** cambia los ejecutables ya
@@ -143,7 +179,7 @@ controlas tú al publicar una nueva compilación.
 
 ---
 
-## 5. Problemas frecuentes
+## 6. Problemas frecuentes
 
 | Síntoma | Causa y solución |
 |---|---|

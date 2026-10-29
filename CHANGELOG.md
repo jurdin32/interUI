@@ -56,6 +56,12 @@ etiqueta como `vX.Y.Z`.
 
 ### Corregido
 
+- **`iui update --run` (`--install`, `--upgrade`) actualiza de verdad** en las
+  cuatro formas de instalación, sin copiar comandos: detecta el origen, ejecuta
+  los pasos (`git pull` + `pip -e` en modo enlace) y avisa al terminar. Para las
+  instalaciones desde GitHub usa `--force-reinstall`, porque la versión no cambia
+  entre commits y `pip` respondía «already satisfied».
+
 - **Los desplegables de `MenuBar`, `MenuButton` y `ContextMenu` ya no se quedan
   detrás del contenido.** Los paneles de menú se pintaban en `absolute` dentro
   de la barra, y su `overflow-x: auto` los recortaba: el menú se abría pero no se

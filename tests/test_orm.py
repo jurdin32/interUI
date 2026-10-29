@@ -239,3 +239,35 @@ def test_campos_email_y_choice():
 
     with pytest.raises(ValueError):
         ui.Choice(choices=[])
+
+
+def test_los_campos_aceptan_su_nombre_largo():
+    """`StringField`, `IntegerField`… son el mismo campo que `Str`, `Int`…"""
+    import interui as ui
+
+    assert ui.StringField is ui.Str
+    assert ui.TextField is ui.LongText
+    assert ui.IntegerField is ui.Int
+    assert ui.BooleanField is ui.Bool
+    assert ui.FloatField is ui.Float
+    assert ui.DateField is ui.Date
+    assert ui.DateTimeField is ui.DateTime
+    assert ui.EmailField is ui.Email
+    assert ui.ChoiceField is ui.Choice
+    assert ui.JsonField is ui.Json
+    assert ui.BinaryField is ui.Blob
+    assert ui.AutoField is ui.Auto
+    assert ui.ForeignKey is ui.FK
+
+
+def test_un_campo_que_no_existe_dice_cual_usar():
+    import interui as ui
+
+    with pytest.raises(AttributeError, match="usa ui.Float"):
+        ui.DecimalField()
+
+    with pytest.raises(AttributeError, match="Los campos que existen son"):
+        ui.PosicionField()
+
+    with pytest.raises(AttributeError, match="has no attribute 'inventado'"):
+        ui.inventado
