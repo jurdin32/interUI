@@ -1272,7 +1272,7 @@ Alias en minúsculas: `ui.table`
 Tabla estática.
 
 ```text
-ui.Table(headers=None, rows=None, caption=None, striped=False, zebra=None, hover=True, hover_bg=None, compact=False, bordered=False, footer=None, align=None, empty="Sin datos", header_bg=None, header_color=None, cell_colors=None, column_bg=None, selected=None, selected_bg=None, on_row_click=None, on_row_dblclick=None, on_row_context=None, context_menu=None, context_width="12rem", surface=True)
+ui.Table(headers=None, rows=None, caption=None, striped=False, zebra=None, hover=True, hover_bg=None, compact=False, cell_pad=None, header_pad=None, bordered=False, footer=None, align=None, empty="Sin datos", header_bg=None, header_color=None, cell_colors=None, column_bg=None, selected=None, selected_bg=None, on_row_click=None, on_row_dblclick=None, on_row_context=None, context_menu=None, context_width="12rem", surface=True)
 ```
 
 ```python

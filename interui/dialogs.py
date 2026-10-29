@@ -36,12 +36,37 @@ from .events import UIEvent, invoke
 from .html import escape
 from .icons import Icon
 from .style import tw
+from .theme import Color, Token, utility
 
 __all__ = [
     "Dialog", "DialogHost", "DialogAPI", "dialog",
     "show", "info", "success", "warning", "error", "critical", "alert",
     "confirm", "input", "form", "custom", "close",
 ]
+
+def _clase(prefix: str, value: Any) -> str:
+    """``_clase("bg", colors.slate_900)`` → ``bg-slate-900`` (o ``""``)."""
+    if value is None or value == "":
+        return ""
+    if isinstance(value, Token):
+        return str(value)
+    text = str(value)
+    if isinstance(value, Color) or not (text.startswith(prefix) or text.startswith(f"{prefix}-")):
+        text = f"{prefix}-{text}"
+    return text
+
+
+def _pad(value: Any) -> str:
+    """Acepta un token de `pad`/`margin` o una clase ya escrita (``p-6``)."""
+    if value is None or value == "":
+        return ""
+    if isinstance(value, Token):
+        return str(value)
+    text = str(value)
+    if text.startswith(("p-", "px-", "py-", "pt-", "pb-", "pl-", "pr-")):
+        return text
+    return f"p-{text}"
+
 
 # nivel -> (icono, color del icono, color del botón principal)
 LEVELS: dict[str, tuple[str, str, str]] = {
@@ -102,9 +127,40 @@ class Dialog(Component):
         width: str = "md",
         scrollable: bool = False,
         layer: str | None = None,
+        # superficie del panel
+        bg: Any = None,
+        border: Any = None,
+        rounded: Any = None,
+        shadow: Any = None,
+        backdrop: Any = None,
+        # cabecera y pie
+        header_bg: Any = None,
+        header_color: Any = None,
+        header_border: Any = None,
+        header_pad: Any = None,
+        title_font: Any = None,
+        footer_bg: Any = None,
+        footer_pad: Any = None,
+        # espaciado
+        body_pad: Any = None,
+        gap: int | str | None = None,
         **props: Any,
     ) -> None:
         self.dialog_title = title
+        self.panel_bg = bg
+        self.panel_border = border
+        self.panel_rounded = rounded
+        self.panel_shadow = shadow
+        self.backdrop = backdrop
+        self.header_bg = header_bg
+        self.header_color = header_color
+        self.header_border = header_border
+        self.header_pad = header_pad
+        self.title_font = title_font
+        self.footer_bg = footer_bg
+        self.footer_pad = footer_pad
+        self.body_pad = body_pad
+        self.gap = gap
         self.message = message
         self.kind = kind
         self.level = level or _default_level(kind)
@@ -186,15 +242,21 @@ class Dialog(Component):
         uid = ctx.uid(path, self.key, self.explicit_id)
         backdrop = Div(
             id=f"{uid}-backdrop",
-            base_class="absolute inset-0 bg-slate-950/50 backdrop-blur-sm",
+            base_class=tw(
+                "absolute inset-0 backdrop-blur-sm",
+                _clase("bg", self.backdrop) or "bg-slate-950/50",
+            ),
             aria={"hidden": "true"},
             **({"on_click": self._dismiss} if self.dismissible else {}),
         )
         panel = Div(
             base_class=tw(
                 "iui-dialog-panel relative z-10 flex max-h-[calc(100dvh-2rem)] w-full "
-                "flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 "
-                "ring-slate-900/5 dark:bg-slate-900 dark:ring-slate-700/40",
+                "flex-col overflow-hidden",
+                _clase("rounded", self.panel_rounded) or "rounded-2xl",
+                _clase("bg", self.panel_bg) or "bg-white dark:bg-slate-900",
+                _clase("border", self.panel_border) or "ring-1 ring-slate-900/5 dark:ring-slate-700/40",
+                _clase("shadow", self.panel_shadow) or "shadow-2xl",
                 WIDTHS.get(self.width, WIDTHS["md"]),
             ),
             **({"aria": {"labelledby": f"{uid}-title"}} if self.dialog_title else {}),
@@ -203,12 +265,20 @@ class Dialog(Component):
             panel(self._header(ctx, uid))
 
         body = Div(
-            base_class="flex min-h-0 flex-col gap-3 overflow-y-auto px-5 py-4"
+            base_class=tw(
+                "flex min-h-0 flex-col overflow-y-auto",
+                utility("gap", self.gap) if self.gap is not None else "gap-3",
+                _pad(self.body_pad) or "px-5 py-4",
+            )
         )
         body(*self._body(ctx, path))
         footer = Div(
-            base_class="flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 "
-            "px-5 py-3 dark:border-slate-800"
+            base_class=tw(
+                "flex flex-wrap items-center justify-end gap-2 border-t border-slate-100 "
+                "dark:border-slate-800",
+                _clase("bg", self.footer_bg),
+                _pad(self.footer_pad) or "px-5 py-3",
+            )
         )
 
         if self.fields:
@@ -240,19 +310,33 @@ class Dialog(Component):
 
     def _header(self, ctx: RenderContext, uid: str) -> Component:
         tone = LEVELS.get(self.level, LEVELS["neutral"])[1]
-        box = Div(base_class="flex items-start gap-3 border-b border-slate-100 px-5 py-4 "
-                              "dark:border-slate-800")
+        box = Div(
+            base_class=tw(
+                "flex items-start gap-3",
+                "border-b" if self.header_border or True else "",
+                _clase("border", self.header_border) or "border-slate-100 dark:border-slate-800",
+                _clase("bg", self.header_bg),
+                _pad(self.header_pad) or "px-5 py-4",
+            )
+        )
         if self.icon:
             badge = Div(
                 base_class=f"flex h-10 w-10 shrink-0 items-center justify-center rounded-full {tone}"
             )(Icon(self.icon, size=5))
             box(badge)
         if self.dialog_title:
+            # El título se compone aquí para que `title_font`/`header_color`
+            # manden de verdad (sin mezclar dos tamaños/colores de Tailwind).
             title = _Tag(
                 "h2",
                 self.dialog_title,
                 id=f"{uid}-title",
-                base_class="min-w-0 truncate text-base font-semibold text-slate-900 dark:text-white",
+                base_class=tw(
+                    "min-w-0 truncate",
+                    "text-base font-semibold" if not self.title_font else "",
+                    _clase("font", self.title_font),
+                    _clase("text", self.header_color) or "text-slate-900 dark:text-white",
+                ),
             )
             box(Div(base_class="flex min-w-0 flex-col gap-0.5")(title))
         if self.closable:

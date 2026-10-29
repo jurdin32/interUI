@@ -10,6 +10,7 @@ mi_app/
     ├── models.py     ← las tablas
     ├── forms.py      ← los formularios
     ├── tables.py     ← cómo se ve y se usa la tabla
+    ├── dialogs.py    ← cómo son los modales de alta y edición
     ├── views.py      ← las páginas (una línea cada una)
     └── urls.py       ← qué vista responde a cada ruta
 ```
@@ -361,7 +362,10 @@ class ClienteTable(ui.RecordTable):
 | `counter_color` | color del contador | `slate-500` |
 | `new_label` / `new_icon` | texto e icono del botón | `"Nuevo"` / `plus` |
 | `new_variant` / `new_size` | estilo del botón | `primary` / `md` |
-| `card_options` | opciones de la tarjeta de la tabla (`bg`, `border`, `pad`…) | tarjeta blanca |
+| `card_options` | opciones de la tarjeta de la tabla (`bg`, `border`, `pad`, `radius`) | tarjeta blanca |
+| `cell_pad` / `header_pad` | relleno de celdas y encabezados (`ui.pad.px_6`) | `px-4 py-3` |
+| `page_gap` | separación entre franja, contador, formulario y tabla (`4`, `10`) | `4` |
+| `new_modal` | modal del botón **Nuevo** (`ui.FormModal` de `dialogs.py`) | `form_dialog` estándar |
 
 Sin ninguna de estas opciones la página se ve como siempre: título grande,
 contador debajo y el botón a la derecha.

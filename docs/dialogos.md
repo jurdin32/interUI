@@ -201,6 +201,66 @@ manual.close()
 
 ---
 
+## 6 bis. Colores, esquinas y espaciados del modal
+
+Todo el aspecto del panel se cambia con los mismos tokens que el resto del
+framework, y **sin tocar la vista**: si el modal es de un formulario, se declara
+en el `dialogs.py` de la app.
+
+```python
+# ventas/dialogs.py
+class ClienteModal(ui.FormModal):
+    form = ClienteForm
+    width = "lg"
+    options = dict(
+        # superficie del panel
+        bg=ui.colors.white,            # o colors.slate_900
+        rounded="2xl",                 # "none" para esquinas rectas
+        shadow="shadow-2xl",
+        backdrop=ui.colors.slate_950,  # el velo oscuro de detrás
+        # cabecera
+        header_bg=ui.colors.slate_100,
+        header_color=ui.colors.slate_900,
+        header_border=ui.colors.slate_200,
+        header_pad=ui.pad.px_5,
+        title_font=ui.font.lg.bold,
+        # pie
+        footer_bg=ui.colors.slate_50,
+        footer_pad=ui.pad.py_3,
+        # espaciado
+        body_pad=ui.pad.p_5,           # relleno del cuerpo
+        gap=4,                         # separación entre los bloques del cuerpo
+    )
+
+
+ClienteModal.open()                    # alta
+ClienteModal.open(instance=cliente)    # edición
+```
+
+Y en la vista solo aparece una vez:
+
+```python
+def inicio() -> ui.Component:
+    return ui.RecordPage(ClienteTable)     # la tabla trae `new_modal = ClienteModal`
+```
+
+| Opción | Qué cambia | Por defecto |
+|---|---|---|
+| `bg` | fondo del panel | blanco (o `slate-900` en oscuro) |
+| `rounded` | esquinas: `"none"`, `"sm"`…`"3xl"` | `rounded-2xl` |
+| `shadow` | sombra del panel | `shadow-2xl` |
+| `backdrop` | velo de detrás | `bg-slate-950/50` |
+| `header_bg` / `header_color` / `header_border` | franja del título | claro, sin fondo |
+| `header_pad` / `body_pad` / `footer_pad` | rellenos (`ui.pad.p_5`, `"px-4 py-2"`) | `px-5 py-4` / `px-5 py-4` / `px-5 py-3` |
+| `title_font` | tamaño y peso del título (`ui.font.lg.bold`) | `text-base font-semibold` |
+| `footer_bg` | fondo del pie (zona de botones) | sin fondo |
+| `gap` | separación entre los bloques del cuerpo (`4`, `ui.gap.all_6`) | `gap-3` |
+
+Los diálogos hechos a mano (`ui.Dialog(...)`, `dialog.custom(...)`) aceptan
+exactamente las mismas opciones.
+
+---
+
 ## 7. Botones propios
 
 `buttons=[(etiqueta, handler, variante), …]`:

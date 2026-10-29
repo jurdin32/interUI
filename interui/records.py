@@ -189,6 +189,18 @@ class RowAction:
 _FALTA = object()
 
 
+def gap_value(value: Any, default: Any = None) -> Any:
+    """`gap`/`page_gap`: un número (``4``), un token de `gap` o ``gap-4``."""
+    if value is None:
+        return default if default is not None else gap.all_4
+    if isinstance(value, Token):
+        return value
+    text = str(value)
+    if text.startswith("gap-"):
+        return text
+    return f"gap-{text}"
+
+
 def _acciones(acciones: Any, menu: Any, clase: type) -> list[Any]:
     """Normaliza `actions`: lista, `False`/`None` (ninguna) o `True` (las del menú)."""
     if acciones is None or acciones is False:
@@ -312,17 +324,24 @@ class RecordTable(Component):
     title_full_width: bool | None = None
     #: `True` redondeada, `False` esquinas rectas (por defecto, si hay fondo).
     title_rounded: Any = None
+    #: Separación entre la franja, el contador, el formulario y la tabla.
+    page_gap: Any = None
     counter: bool | None = None
     counter_color: Any = None
     new_label: Any = None
     new_icon: Any = None
     new_variant: str | None = None
     new_size: str | None = None
+    #: Modal declarado (`ui.FormModal`) para el botón «Nuevo».
+    new_modal: Any = None
 
     # -- la tarjeta que envuelve la tabla --------------------------------
     #: Opciones de `ui.Card` (`bg`, `border`, `pad`, `class_`…). Los colores
     #: pasados a la propia tabla se añaden aquí solos.
     card_options: dict[str, Any] | None = None
+    #: Relleno de las celdas y de los encabezados (`ui.pad.px_2`, `"px-2 py-1"`).
+    cell_pad: Any = None
+    header_pad: Any = None
 
     def __init__(
         self,
@@ -350,6 +369,8 @@ class RecordTable(Component):
         search_placeholder: str = _FALTA,  # type: ignore[assignment]
         page_size: int | None = _FALTA,  # type: ignore[assignment]
         page_sizes: Sequence[int] = _FALTA,  # type: ignore[assignment]
+        cell_pad: Any = _FALTA,
+        header_pad: Any = _FALTA,
         sort: bool = _FALTA,  # type: ignore[assignment]
         sortable: Sequence[str] | None = _FALTA,  # type: ignore[assignment]
         order_by: str | None = _FALTA,  # type: ignore[assignment]
@@ -396,6 +417,8 @@ class RecordTable(Component):
         # `card_options` se pasa tal cual a la tarjeta; además, los colores que
         # se pongan en la propia tabla (`bg=`, `border=`…) van a la tarjeta, que
         # es la superficie que se ve (el envoltorio queda detrás).
+        self.cell_pad = self._opcion("cell_pad", cell_pad)
+        self.header_pad = self._opcion("header_pad", header_pad)
         self.card_options: dict[str, Any] = dict(self._opcion("card_options") or {})
         for nombre in ("bg", "border", "rounded", "shadow", "ring"):
             if nombre in props:
@@ -649,6 +672,8 @@ class RecordTable(Component):
             rows=rows,
             empty=self.empty if total == 0 else "Ningún resultado para la búsqueda",
             surface=not self.card,
+            cell_pad=self.cell_pad,
+            header_pad=self.header_pad,
             striped=self.striped,
             zebra=self.zebra,
             hover_bg=self.hover_bg,
@@ -715,6 +740,7 @@ class RecordPage(Component):
         new_icon: str | None = None,
         new_variant: str | None = None,
         new_size: str | None = None,
+        new_modal: Any = None,
         title_bg: Any = None,
         title_color: Any = None,
         title_font: Any = None,
@@ -723,6 +749,7 @@ class RecordPage(Component):
         title_align: str | None = None,
         title_full_width: bool | None = None,
         title_rounded: Any = None,
+        page_gap: Any = None,
         counter_color: Any = None,
         pad_: Any = None,
         table_options: dict[str, Any] | None = None,
@@ -747,7 +774,6 @@ class RecordPage(Component):
                 table = True
         if form is None and declarada is not None:
             tabla = declarada if isinstance(declarada, RecordTable) else declarada()
-            tabla.base_class = tw("mt-6", tabla.base_class)
             self.table_component = tabla
             form = tabla.form
         else:
@@ -789,6 +815,7 @@ class RecordPage(Component):
         self.new_icon = heredado("new_icon", new_icon) or "plus"
         self.new_variant = heredado("new_variant", new_variant) or "primary"
         self.new_size = heredado("new_size", new_size) or "md"
+        self.new_modal = heredado("new_modal", new_modal)
         self.title_bg = heredado("title_bg", title_bg)
         self.title_color = heredado("title_color", title_color)
         self.title_font = heredado("title_font", title_font)
@@ -798,6 +825,7 @@ class RecordPage(Component):
         self.title_full_width = bool(heredado("title_full_width", title_full_width))
         #: `None` = redondeada solo si hay fondo; `False`/`"none"` = esquinas rectas.
         self.title_rounded = heredado("title_rounded", title_rounded)
+        self.page_gap = heredado("page_gap", page_gap)
         self.counter_color = heredado("counter_color", counter_color)
         # `counter` es booleano y su valor por defecto es `True`: si la tabla lo
         # declara, manda ella.
@@ -904,20 +932,25 @@ class RecordPage(Component):
                         form,
                         columns=self.columns,
                         actions=self.actions,
-                        margin=margin.t_6,
                         **self.table_options,
                     )
                 )
-        if pieces and isinstance(pieces[0], Component) and self.title_full_width and self.title_bg:
+        # Separación uniforme entre franja, contador, formulario y tabla.
+        contenido = Stack(*pieces, gap=gap_value(self.page_gap))
+        if pieces and self.title_full_width and self.title_bg:
             return Stack(
                 pieces[0],
-                Container(*pieces[1:], pad=self.page_pad),
+                Container(Stack(*pieces[1:], gap=gap_value(self.page_gap)), pad=self.page_pad),
                 gap=0,
             ).render(ctx, f"{path}-page")
-        return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")
+        return Container(contenido, pad=self.page_pad).render(ctx, f"{path}-page")
 
     def _abrir_alta(self) -> None:
         """Botón **Nuevo**: abre el formulario de alta en un diálogo."""
+        if self.new_modal is not None:
+            # El modal declarado en `dialogs.py` manda (mismo estilo y medidas).
+            self.new_modal.open()
+            return
         from .forms import form_dialog
 
         form_dialog(

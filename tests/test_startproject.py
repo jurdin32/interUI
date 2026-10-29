@@ -204,6 +204,7 @@ def test_startapp_crea_la_app_y_la_registra(proyecto: pathlib.Path, monkeypatch)
         "__init__.py",
         "models.py",
         "forms.py",
+        "dialogs.py",
         "tables.py",
         "views.py",
         "urls.py",
@@ -526,5 +527,19 @@ def test_la_vista_generada_delega_en_tables(proyecto: pathlib.Path, monkeypatch)
         "header_bg",
         "on_row_dblclick = editar",
         "context_menu = [",
+        "new_modal = PersonaModal",
+        "from personas.dialogs import",
     ):
         assert esperado in tabla, f"falta «{esperado}» en tables.py"
+
+    modales = (proyecto / "personas" / "dialogs.py").read_text(encoding="utf-8")
+    for esperado in (
+        "class PersonaModal(ui.FormModal)",
+        "form = PersonaForm",
+        "options = dict(",
+        "body_pad",
+        "gap=",
+        "def abrir_nuevo()",
+        "def abrir_edicion(",
+    ):
+        assert esperado in modales, f"falta «{esperado}» en dialogs.py"

@@ -464,3 +464,76 @@ def test_fuera_de_un_handler_no_hay_app_activa() -> None:
     from interui.app import active_app
 
     assert active_app() is None
+
+
+# --- personalización del modal --------------------------------------------
+def test_el_modal_se_colorea_y_se_espacia() -> None:
+    html = ui.render(
+        Dialog(
+            ui.text("hola"),
+            title="Aviso",
+            bg=ui.colors.slate_900,
+            rounded="xl",
+            shadow="shadow-sm",
+            backdrop=ui.colors.slate_950,
+            header_bg=ui.colors.indigo_600,
+            header_color=ui.colors.white,
+            header_border=ui.colors.indigo_700,
+            header_pad=ui.pad.p_6,
+            title_font=ui.font.lg.bold,
+            body_pad=ui.pad.p_8,
+            gap=6,
+            footer_bg=ui.colors.slate_100,
+            footer_pad=ui.pad.py_2,
+        )
+    )
+    for clase in (
+        "bg-slate-900", "rounded-xl", "shadow-sm", "bg-slate-950", "bg-indigo-600",
+        "text-white", "border-indigo-700", "p-6", "text-lg", "font-bold", "p-8",
+        "gap-6", "bg-slate-100", "py-2",
+    ):
+        assert clase in html, f"falta {clase}"
+
+
+def test_form_modal_declarativo(tmp_path) -> None:
+    """El modal se declara en su archivo y se abre con `.open()`."""
+
+    class Persona(ui.Model):
+        nombre = ui.Str(max_length=40)
+
+        class Meta:
+            table = "modal_personas"
+
+    class Formulario(ui.ModelForm):
+        model = Persona
+
+    class PersonaModal(ui.FormModal):
+        form = Formulario
+        title = "Nueva persona"
+        options = dict(header_bg=ui.colors.slate_100, body_pad=ui.pad.p_6, gap=5)
+
+    application = ui.App("Modales", data_dir=tmp_path)
+    from interui.app import _ACTIVE_APP
+
+    token = _ACTIVE_APP.set(application)
+    try:
+        dialogo = PersonaModal.open()
+    finally:
+        _ACTIVE_APP.reset(token)
+
+    assert dialogo.dialog_title == "Nueva persona"
+    assert dialogo.header_bg == ui.colors.slate_100
+    assert dialogo.body_pad == ui.pad.p_6
+    assert dialogo.gap == 5
+    assert dialogo in application.dialogs
+
+    # Las opciones se pueden pisar al abrir (una variante puntual).
+    token = _ACTIVE_APP.set(application)
+    try:
+        otro = PersonaModal.open(title="Editar persona", gap=2)
+    finally:
+        _ACTIVE_APP.reset(token)
+    assert otro.dialog_title == "Editar persona"
+    assert otro.gap == 2
+    assert len(application.dialogs) == 1, "solo hay un formulario en modal"
+    application.close_all_dialogs()

@@ -27,6 +27,18 @@ def _cell(ctx: RenderContext, value: Any, path: str) -> str:
     return escape(value)
 
 
+def _pad(value: Any) -> str:
+    """Token de `pad` o clase ya escrita (``"px-2 py-1"``)."""
+    if value is None or value == "":
+        return ""
+    if isinstance(value, Token):
+        return str(value)
+    text = str(value)
+    if text.startswith(("p-", "px-", "py-", "pt-", "pb-", "pl-", "pr-")):
+        return text
+    return f"p-{text}"
+
+
 def _parametros(handler: Any) -> int:
     """Cuántos argumentos posicionales obligatorios pide un handler."""
     import inspect
@@ -91,6 +103,8 @@ class Table(Component):
         hover: bool = True,
         hover_bg: Any = None,
         compact: bool = False,
+        cell_pad: Any = None,
+        header_pad: Any = None,
         bordered: bool = False,
         footer: Sequence[Any] | None = None,
         align: Sequence[str] | None = None,
@@ -117,6 +131,8 @@ class Table(Component):
         self.hover = hover
         self.hover_bg = hover_bg
         self.compact = compact
+        self.cell_pad = cell_pad
+        self.header_pad = header_pad
         self.bordered = bordered
         self.footer = list(footer or [])
         self.align = list(align or [])
@@ -162,7 +178,8 @@ class Table(Component):
         return tw(text, extra)
 
     def content(self, ctx: RenderContext, path: str) -> str:
-        pad = "px-3 py-1.5" if self.compact else "px-4 py-3"
+        pad = _pad(self.cell_pad) or ("px-3 py-1.5" if self.compact else "px-4 py-3")
+        head_pad = _pad(self.header_pad) or pad
         head_bg = self._clase("bg", self.header_bg)
         head = ""
         if self.headers:
@@ -173,7 +190,7 @@ class Table(Component):
                 if self.header_color is None:
                     tone = tw(tone, "text-slate-500 dark:text-slate-400")
                 cells.append(
-                    f'<th scope="col" class="{pad} {align} {tone}">'
+                    f'<th scope="col" class="{head_pad} {align} {tone}">'
                     f"{_cell(ctx, header, f'{path}-h{index}')}</th>"
                 )
             head = (

@@ -50,9 +50,9 @@ from .grid import Stack
 from .orm import Choice, Email, Model
 from .simple import state as _state
 from .simple import toast as _toast
-from .theme import gap, margin
+from .theme import Token, gap, margin
 
-__all__ = ["ModelForm", "form_dialog"]
+__all__ = ["ModelForm", "FormModal", "form_dialog"]
 
 
 # ---------------------------------------------------------------------------
@@ -172,6 +172,18 @@ def _control(
 # ---------------------------------------------------------------------------
 # formulario
 # ---------------------------------------------------------------------------
+def gap_value(value: Any) -> Any:
+    """`field_gap`: un número (``3``), un token de `gap` o una clase ``gap-4``."""
+    if value is None:
+        return gap.all_3
+    if isinstance(value, Token):
+        return value
+    text = str(value)
+    if text.startswith("gap-"):
+        return text
+    return gap.all(value) if callable(gap.all) else f"gap-{text}"
+
+
 class ModelForm(Component):
     """Formulario de alta generado a partir de un modelo.
 
@@ -205,6 +217,8 @@ class ModelForm(Component):
     #: Opciones de `ui.Card` cuando hay tarjeta (`bg`, `border`, `pad`…).
     #: Los colores pasados al propio formulario se añaden aquí solos.
     card_options: dict[str, Any] | None = None
+    #: Separación entre campos (`gap.all_3` por defecto; `1`, `4`, `ui.gap.all_6`…).
+    field_gap: Any = None
     submit_label: str = "Guardar"
     title: Any = None
     prefix: str | None = None
@@ -219,6 +233,8 @@ class ModelForm(Component):
         labels: dict[str, str] | None = None,
         icons: dict[str, str] | None = None,
         placeholders: dict[str, str] | None = None,
+        field_gap: Any = None,
+        card_options: dict[str, Any] | None = None,
         instance: Model | None = None,
         submit_label: str | None = None,
         title: Any = None,
@@ -248,7 +264,12 @@ class ModelForm(Component):
         self.prefix = prefix or getattr(type(self), "prefix", None)
         self.on_saved = on_saved if on_saved is not None else getattr(type(self), "on_saved", None)
         # El color de fondo del formulario va a su tarjeta, que es lo que se ve.
-        self.card_options: dict[str, Any] = dict(getattr(type(self), "card_options", None) or {})
+        self.field_gap = (
+            field_gap if field_gap is not None else getattr(type(self), "field_gap", None)
+        )
+        self.card_options: dict[str, Any] = dict(
+            card_options or getattr(type(self), "card_options", None) or {}
+        )
         for nombre in ("bg", "border", "rounded", "shadow", "ring"):
             if nombre in props:
                 self.card_options.setdefault(nombre, props.pop(nombre))
@@ -404,7 +425,7 @@ class ModelForm(Component):
 
         card = Card(
             *([ValidationSummary(errores.get())] if errores.get() else []),
-            Stack(*controles, gap=gap.all_3),
+            Stack(*controles, gap=gap_value(self.field_gap)),
             Button(self.submit_label, icon="check", on_click=guardar, margin=margin.t_4),
             title=(self.form_title or f"Nuevo {model.__name__.lower()}")
             if self.show_title
@@ -484,3 +505,63 @@ def form_dialog(
             application.close_dialog(abierto)
     application.show_dialog(dialog)
     return dialog
+
+
+class FormModal:
+    """Un formulario en modal, **declarado como clase** (para su propio archivo).
+
+    ```python
+    class PersonaModal(ui.FormModal):
+        form = PersonaForm
+        title = "Nueva persona"
+        width = "lg"
+        options = dict(
+            header_bg=ui.colors.slate_100,
+            body_pad=ui.pad.p_5,
+            gap=4,
+        )
+
+    PersonaModal.open()                     # alta
+    PersonaModal.open(instance=persona)     # edición
+    ```
+
+    Todo lo que hay en `options` va al `Dialog`: `bg`, `rounded`, `shadow`,
+    `header_bg`, `header_color`, `header_border`, `header_pad`, `title_font`,
+    `footer_bg`, `footer_pad`, `body_pad`, `gap`, `backdrop`…
+    """
+
+    #: Formulario (clase o instancia).
+    form: Any = None
+    #: Título del modal; sin él se usa el del formulario.
+    title: Any = None
+    width: str = "lg"
+    cancel_label: str = "Cerrar"
+    #: Opciones del `Dialog` (colores, esquinas, espaciados…).
+    options: dict[str, Any] = {}
+
+    def __init__(self, **overrides: Any) -> None:
+        self.overrides = dict(overrides)
+
+    @classmethod
+    def open(
+        cls,
+        instance: Model | None = None,
+        *,
+        title: Any = None,
+        **options: Any,
+    ) -> Any:
+        """Abre el modal (alta si `instance` es ``None``)."""
+        form = cls.form
+        if form is None:
+            raise TypeError(
+                f"{cls.__name__} necesita un formulario: `form = MiForm` en la clase."
+            )
+        combinadas = {**dict(getattr(cls, "options", {}) or {}), **options}
+        return form_dialog(
+            form,
+            instance=instance,
+            title=title or getattr(cls, "title", None),
+            width=cls.width,
+            cancel_label=cls.cancel_label,
+            **combinadas,
+        )

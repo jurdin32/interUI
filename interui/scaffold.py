@@ -348,6 +348,56 @@ class {Model}Form(ui.ModelForm):
     title = "Nuevo registro"
 '''
 
+APP_DIALOGS_PY = '''"""Modales de {app}.
+
+El alta y la edición comparten formulario, pero el modal se viste **aquí**: así
+la tabla y la vista no repiten colores, esquinas ni espaciados.
+"""
+
+import interui as ui
+
+from {app}.forms import {Model}Form
+
+
+class {Model}Modal(ui.FormModal):
+    """El modal de {model_lower}: alta nueva y edición."""
+
+    form = {Model}Form
+    width = "lg"
+
+    # Todo lo de `options` va al diálogo. Descomenta lo que quieras cambiar.
+    options = dict(
+        # -- superficie ------------------------------------------------
+        # bg=ui.colors.white,
+        # rounded="2xl",                 # "none" para esquinas rectas
+        # shadow="shadow-2xl",
+        # backdrop=ui.colors.slate_950,  # el fondo oscuro de detrás
+        # -- cabecera ---------------------------------------------------
+        # header_bg=ui.colors.slate_100,
+        # header_color=ui.colors.slate_900,
+        # header_border=ui.colors.slate_200,
+        # header_pad=ui.pad.px_5,
+        # title_font=ui.font.lg.bold,
+        # -- pie --------------------------------------------------------
+        # footer_bg=ui.colors.slate_50,
+        # footer_pad=ui.pad.py_3,
+        # -- espaciado --------------------------------------------------
+        body_pad=ui.pad.p_5,         # relleno del cuerpo
+        gap=4,                       # separación entre los bloques del cuerpo
+    )
+
+
+def abrir_nuevo() -> None:
+    """Botón «Nuevo»: alta en blanco."""
+    {Model}Modal.open()
+
+
+def abrir_edicion(registro: {Model}) -> None:
+    """Doble clic o «Editar»: el mismo modal con los datos del registro."""
+    {Model}Modal.open(instance=registro, title="Editar {model_lower}")
+'''
+
+
 APP_TABLES_PY = '''"""Tabla de {app}: columnas, colores e interacción.
 
 La vista solo la coloca. Todo lo del listado se cambia **aquí**: qué columnas se
@@ -357,13 +407,14 @@ o clic derecho.
 
 import interui as ui
 
+from {app}.dialogs import {Model}Modal, abrir_edicion, abrir_nuevo
 from {app}.forms import {Model}Form
 from {app}.models import {Model}
 
 
 def editar(registro: {Model}) -> None:
-    """Abre el registro en un modal con el formulario ya relleno."""
-    ui.form_dialog({Model}Form, instance=registro, title="Editar {model_lower}")
+    """Abre el registro en el modal de `dialogs.py`."""
+    abrir_edicion(registro)
 
 
 def eliminar(registro: {Model}) -> None:
@@ -396,6 +447,9 @@ class {Model}Table(ui.RecordTable):
     # zebra = ui.colors.amber_50                           # color de la cebra
 
     # -- interacción ---------------------------------------------------
+    #: El modal del botón «Nuevo» (el mismo de `dialogs.py`).
+    new_modal = {Model}Modal
+
     actions = False              # sin botones: clic, doble clic y clic derecho
     # actions = [ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar)]
     selectable = True                        # el clic marca la fila
@@ -459,6 +513,7 @@ App del proyecto **{project}**, creada con `iui startapp` y **lista para usar**.
 |---|---|
 | `models.py` | modelo `{Model}` (tabla `{table}`); lo migra `python iui.py migrate`. |
 | `forms.py` | formulario `{Model}Form`, generado a partir del modelo. |
+| `dialogs.py` | los modales (alta y edición): colores, esquinas, cabecera y espaciados. |
 | `tables.py` | la tabla: columnas, colores, clic/doble clic y menú contextual. |
 | `views.py` | la página, en una línea: `ui.RecordPage({Model}Table)`. |
 | `urls.py` | la ruta `/{app}`. |
@@ -483,6 +538,8 @@ solas. Las migraciones son del proyecto (`migrations/`), para que un solo
   todos los del modelo).
 - Qué se ve y cómo se comporta la tabla: `tables.py` (columnas, colores, cebra,
   buscador, paginación, clic, doble clic y menú contextual).
+- Cómo son el alta y la edición en modal: `dialogs.py` (colores, esquinas,
+  cabecera, pie y espaciados del diálogo).
 - Formulario en modal o página sin formulario: `form_mode` en `views.py`.
 """
 
@@ -564,6 +621,7 @@ def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Pat
         folder / "__init__.py": _fill(APP_INIT_PY, **values),
         folder / "models.py": _fill(APP_MODELS_PY, **values),
         folder / "forms.py": _fill(APP_FORMS_PY, **values),
+        folder / "dialogs.py": _fill(APP_DIALOGS_PY, **values),
         folder / "tables.py": _fill(APP_TABLES_PY, **values),
         folder / "views.py": _fill(APP_VIEWS_PY, **values),
         folder / "urls.py": _fill(APP_URLS_PY, **values),

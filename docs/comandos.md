@@ -94,7 +94,7 @@ mi_app/
 ├── main.py          ← abre la ventana
 ├── iui.py           ← comandos
 ├── interui.json     ← configuración
-├── mi_app/          ← app.py, urls.py, views.py, models.py, tables.py
+├── mi_app/          ← app.py, urls.py, views.py, models.py, tables.py, dialogs.py
 ├── migrations/
 └── data/
 ```
@@ -106,7 +106,7 @@ Archivo por archivo: [proyecto.md](proyecto.md).
 ## `startapp`
 
 Crea una app dentro del proyecto y la registra sola: una carpeta con
-`models.py`, `forms.py`, `tables.py`, `views.py`, `urls.py` y `README.md`, todos
+`models.py`, `forms.py`, `dialogs.py`, `tables.py`, `views.py`, `urls.py` y `README.md`, todos
 **listos para usar**. La página `/ventas` ya funciona: formulario de alta,
 validación y tabla con lo guardado, buscador, orden, paginación y menú
 contextual.
@@ -126,7 +126,7 @@ iui startapp ventas --config ruta/interui.json
 
 Qué hace exactamente:
 
-1. escribe `ventas/__init__.py`, `models.py`, `forms.py`, `tables.py`, `views.py`, `urls.py` y `README.md`;
+1. escribe `ventas/__init__.py`, `models.py`, `forms.py`, `dialogs.py`, `tables.py`, `views.py`, `urls.py` y `README.md`;
 2. añade `"ventas"` a `apps` en `interui.json`;
 3. añade `ventas/models.py` a `migrations.models`.
 
@@ -142,6 +142,7 @@ python main.py
 |---|---|
 | `models.py` | `Venta` con `nombre`, `descripcion` y `activo`. |
 | `forms.py` | `VentaForm(ui.ModelForm)`: un control por campo, obligatorios y `unique`. |
+| `dialogs.py` | `VentaModal(ui.FormModal)`: el alta y la edición en modal, con sus colores y espaciados. |
 | `tables.py` | `VentaTable(ui.RecordTable)`: columnas, colores, cebra, clic, doble clic y menú contextual. |
 | `views.py` | `inicio()`: `ui.RecordPage(VentaTable)`, en una línea. |
 | `urls.py` | `urlpatterns = [ui.path("ventas", inicio, name="ventas")]`. |

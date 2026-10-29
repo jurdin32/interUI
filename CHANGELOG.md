@@ -8,6 +8,18 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Modales configurables y en su propio archivo**: `startapp` genera
+  `dialogs.py` con `<Modelo>Modal(ui.FormModal)` (`form`, `title`, `width` y
+  `options`), más `abrir_nuevo()` y `abrir_edicion(registro)`. La tabla lo usa
+  con `new_modal = MiModal` (botón **Nuevo**) y en el doble clic. `Dialog` y
+  `FormModal` aceptan `bg`, `rounded`, `shadow`, `backdrop`, `header_bg`,
+  `header_color`, `header_border`, `header_pad`, `title_font`, `footer_bg`,
+  `footer_pad`, `body_pad` y `gap`.
+- **Espaciados a gusto**: `RecordPage(page_gap=…)` separa franja, contador,
+  formulario y tabla (antes `mt-6` fijo), `RecordTable(cell_pad=…,
+  header_pad=…)` cambia el aire de las celdas y del encabezado,
+  `ModelForm(field_gap=…)` la separación entre campos y `Dialog(gap=…,
+  body_pad=…, header_pad=…, footer_pad=…)` los del modal.
 - **El fondo (`bg=`) se puede cambiar en los 219 controles**, también en las
   cabeceras: `Card(header_bg=…, header_color=…, header_border=…, header_pad=…,
   footer_bg=…)`, `Table(header_bg=…)`, `RecordPage(title_bg=…)` y `bg=` en

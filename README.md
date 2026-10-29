@@ -336,6 +336,7 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `<app>/urls.py` | qué vista responde a cada ruta |
 | `<app>/forms.py` | formularios: un control por campo del modelo |
 | `<app>/tables.py` | la tabla: columnas, colores, cebra, clic, doble clic y menú |
+| `<app>/dialogs.py` | los modales de alta y edición: colores, esquinas y espaciados |
 | `<app>/models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
 | `migrations/` | historial del esquema, en JSON legible y versionado |
 | `data/` | base de datos y archivos de la app (fuera de git) |
@@ -1077,8 +1078,8 @@ python iui.py shell             # consola con tus modelos cargados
 python iui.py check             # revisa interui.json y la base de datos
 ```
 
-`iui startapp` crea `models.py`, `forms.py`, `tables.py`, `views.py`, `urls.py`
-y `README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
+`iui startapp` crea `models.py`, `forms.py`, `dialogs.py`, `tables.py`,
+`views.py`, `urls.py` y `README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
 de migraciones: sus rutas se registran solas, un solo `migrate` pone al día
 todas las apps y el formulario de alta ya viene hecho.
 

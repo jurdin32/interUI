@@ -514,3 +514,62 @@ def test_la_franja_con_fondo_se_redondea_por_defecto(tmp_path) -> None:
     app = _app(tmp_path)
     html = _html(ui.RecordPage(PersonaTable), app)
     assert "rounded-xl bg-indigo-600" in html or "bg-indigo-600 rounded-xl" in html
+
+
+# --- espaciados -----------------------------------------------------------
+def test_separacion_entre_bloques_de_la_pagina(tmp_path) -> None:
+    app = _app(tmp_path)
+    por_defecto = _html(ui.RecordPage(ui.ModelForm(Persona), title="Personas"), app)
+    amplio = _html(ui.RecordPage(ui.ModelForm(Persona), title="Personas", page_gap=10), app)
+    assert "gap-4" in por_defecto
+    assert "gap-10" in amplio
+
+
+def test_relleno_de_celdas_configurable(tmp_path) -> None:
+    app = _app(tmp_path)
+    html = _html(
+        ui.RecordTable(ui.ModelForm(Persona), cell_pad=ui.pad.px_6, header_pad=ui.pad.py_4),
+        app,
+    )
+    assert "px-6" in html
+    assert "py-4" in html
+
+
+def test_separacion_entre_campos_del_formulario(tmp_path) -> None:
+    from interui.forms import gap_value
+
+    assert gap_value(None) == "gap-3"
+    assert gap_value(6) == "gap-6"
+    assert gap_value("gap-2") == "gap-2"
+
+    app = _app(tmp_path)
+    html = _html(ui.ModelForm(Persona, field_gap=6), app)
+    assert "gap-6" in html
+
+
+def test_el_boton_nuevo_usa_el_modal_declarado(tmp_path) -> None:
+    """`new_modal` (de `dialogs.py`) es el que abre el botón «Nuevo»."""
+    abiertos: list[str] = []
+
+    class Modal:
+        @staticmethod
+        def open(instance=None) -> None:
+            abiertos.append("editar" if instance is not None else "nuevo")
+
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        new_modal = Modal
+
+    app = _app(tmp_path)
+    pagina = ui.RecordPage(PersonaTable, form_mode="modal")
+    app.page("/m")(lambda: ui.Screen(pagina))
+    _t, _h, bindings = app.render_page("/m")
+
+    handler = next(
+        fn
+        for uid, eventos in bindings.items()
+        for evento, fn in eventos.items()
+        if evento == "click" and "Nueva" not in uid
+    )
+    handler()  # los handlers sin argumentos se llaman así
+    assert abiertos == ["nuevo"]
