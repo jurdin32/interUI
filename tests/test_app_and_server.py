@@ -319,3 +319,29 @@ def test_in_handler_es_por_hilo(tmp_path):
     finally:
         app._end_handler()
     assert app._in_handler is False
+
+
+def test_layout_envuelve_todas_las_paginas() -> None:
+    """`app.layout` pone el armazón una vez y las vistas solo dan contenido."""
+    app = ui.App("Con armazón")
+    app.page("/")(lambda: ui.Heading("Inicio"))
+    app.page("/otra")(lambda: ui.Heading("Otra"))
+
+    sin_layout = app.render_page("/")[1]
+    assert "iui-shell" not in sin_layout
+
+    app.layout = ui.AppShell(
+        title_bar=ui.TitleBar("Mi app", icon=ui.icons.users),
+        header=ui.MenuBar({"Archivo": [ui.ContextItem("Salir")]}),
+        status=ui.StatusBar(ui.text("Listo")),
+    )
+    for ruta, texto in (("/", "Inicio"), ("/otra", "Otra")):
+        html = app.render_page(ruta)[1]
+        assert "iui-shell" in html, f"{ruta}: falta el armazón"
+        assert texto in html
+        assert "Listo" in html and "Archivo" in html
+
+    # La vista puede devolver None: el armazón se pinta igual.
+    app.page("/vacia")(lambda: None)
+    html = app.render_page("/vacia")[1]
+    assert "iui-shell" in html

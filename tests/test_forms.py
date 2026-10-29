@@ -294,3 +294,17 @@ def test_recordtable_sin_base_de_datos_avisa(tmp_path) -> None:
     assert "Sin base de datos" in html
     assert "migrate" in html
     db.reset()
+
+
+def test_recordpage_pinta_la_pagina_completa(app) -> None:
+    """`RecordPage` es título + contador + formulario + tabla en una llamada."""
+    app.page("/pagina")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona), title="Personas")))
+    _title, html, _bindings = app.render_page("/pagina")
+    assert "Personas" in html
+    assert "0 registros guardados" in html
+    assert "Guardar" in html
+    assert "Todavía no hay registros" in html
+
+    # Sin `title`, el plural del modelo.
+    app.page("/auto")(lambda: ui.Screen(ui.RecordPage(ui.ModelForm(Persona))))
+    assert "Personas" in app.render_page("/auto")[1]

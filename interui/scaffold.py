@@ -402,7 +402,7 @@ class {Model}Form(ui.ModelForm):
     title = "Nuevo registro"
 '''
 
-APP_VIEWS_PY = '''"""Vistas de {app}: el formulario y lo que ya está guardado."""
+APP_VIEWS_PY = '''"""Vistas de {app}."""
 
 import interui as ui
 
@@ -410,16 +410,8 @@ from {app}.forms import {Model}Form
 
 
 def inicio() -> ui.Component:
-    """El formulario decide los campos y sus nombres; la tabla los usa tal cual."""
-    form = {Model}Form(margin=ui.margin.t_6)
-    return ui.Screen(
-        ui.Container(pad=ui.pad.py_10)(
-            ui.Heading("{App}", level=1),
-            ui.Muted(ui.RecordCounter(form)),
-            form,
-            ui.RecordTable(form, margin=ui.margin.t_6),
-        )
-    )
+    """Título, contador, formulario y tabla; el armazón lo pone `app.layout`."""
+    return ui.RecordPage({Model}Form(), title="{App}")
 '''
 
 APP_URLS_PY = '''"""Rutas de la app {app}.

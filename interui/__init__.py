@@ -61,7 +61,7 @@ from .simple import (  # API compacta (minúsculas, ventana implícita)
     view, window,
 )
 from .forms import ModelForm  # formularios a partir de un modelo
-from .records import RecordCounter, RecordTable  # lo guardado, desde el formulario
+from .records import RecordCounter, RecordPage, RecordTable  # lo guardado, desde el formulario
 
 __all__ = [
     "App", "Component", "Fragment", "RenderContext", "UIEvent", "Attachment",
@@ -81,7 +81,7 @@ __all__ = [
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names", "updates",
-    "ModelForm", "RecordCounter", "RecordTable",
+    "ModelForm", "RecordCounter", "RecordPage", "RecordTable",
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",
     "AspectRatio", "ScrollArea", "Grid", "Screen",
     *_controls_all,

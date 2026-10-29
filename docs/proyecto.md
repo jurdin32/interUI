@@ -175,6 +175,30 @@ las rutas de cada app** de la lista `apps`. Después, `urls.register(app)` añad
 las páginas del propio proyecto. El módulo deja además una instancia `app`
 lista para usar (`from mi_app.app import app`), que es lo que espera la CLI.
 
+**Si quieres un menú**, el armazón se pone aquí, una sola vez:
+
+```python
+def create_app() -> ui.App:
+    app = ui.App.from_config(CONFIG)
+    urls.register(app)
+    app.layout = ui.AppShell(
+        title_bar=ui.TitleBar("Mi app", icon=ui.icons.layers),
+        header=ui.MenuBar(
+            {
+                "Archivo": [ui.ContextItem("Salir", icon=ui.icons.power, on_click=salir)],
+                "Ventas": [ui.ContextItem("Clientes", icon=ui.icons.users, href="/clientes")],
+            },
+            icons={"Archivo": ui.icons.folder},
+        ),
+        status=ui.StatusBar(ui.text("Listo")),
+    )
+    return app
+```
+
+Con `app.layout`, **todas** las páginas se pintan dentro del armazón y cada
+vista devuelve solo su contenido. Los `href` de los menús navegan entre páginas
+sin recargar. Se explica en [menús](menus.md#el-armazón-de-toda-la-aplicación-applayout).
+
 ### `urls.py`
 
 ```python

@@ -103,6 +103,11 @@ class App:
         self.verbose = verbose
         self.max_upload_bytes = max_upload_mb * 1024 * 1024
 
+        #: Armazón que envuelve **todas** las páginas (normalmente un
+        #: ``AppShell``): la barra de título, el menú y la barra de estado se
+        #: escriben una vez y cada vista solo devuelve su contenido.
+        self.layout: Component | None = None
+
         self._routes: list[tuple[str, re.Pattern[str], Callable[..., Any], str | None, list[tuple[str, str]]]] = []
         self._state: dict[str, Any] = {}
         self._signals: dict[str, Signal] = {}
@@ -277,6 +282,7 @@ class App:
             page_title = title or self.title
             if isinstance(result, tuple) and len(result) == 2:
                 page_title, result = str(result[0]), result[1]
+            result = self._with_layout(result)
             if isinstance(result, Component):
                 html = result.render(ctx, "app")
             elif result is None:
@@ -290,6 +296,15 @@ class App:
         finally:
             _ACTIVE_APP.reset(token)
         return page_title, f'<div id="iui-root" data-iui-page="{escape(route)}">{html}</div>', ctx.bindings
+
+    def _with_layout(self, result: Any) -> Any:
+        """Mete la página dentro de `self.layout`, si hay uno."""
+        layout = self.layout
+        if layout is None:
+            return result
+        shell = layout.clone()
+        shell.children = [] if result is None else [result]
+        return shell
 
     def error_html(self, exc: BaseException) -> str:
         detail = traceback.format_exc()

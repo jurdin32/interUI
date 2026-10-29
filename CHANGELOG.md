@@ -8,6 +8,13 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **`app.layout`**: el armazón de la ventana (`AppShell` con barra de título,
+  menú y estado) se escribe una vez y envuelve **todas** las páginas; las vistas
+  devuelven solo su contenido y el menú no desaparece al navegar. Las entradas
+  de menú aceptan `href="/ruta"` y navegan sin recargar.
+- **`ui.RecordPage(form, title=…)`**: la página completa de un registro
+  (título, contador, formulario y tabla) en una llamada. La vista de una app
+  generada por `startapp` queda en una línea.
 - **`labels` en `ModelForm`**: el nombre visible de cada campo se declara en
   `forms.py` (`labels = {"fecha_nacimiento": "Fecha de nacimiento"}`) y lo usan
   el formulario, los mensajes de error y la tabla.

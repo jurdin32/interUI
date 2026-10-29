@@ -129,6 +129,53 @@ ui.Button("Cambiar lado", on_click=lambda: preferencia.set(...))
 
 ---
 
+### El armazón de toda la aplicación: `app.layout`
+
+El armazón (barra de título, menú, barra de estado) se escribe **una vez** y
+envuelve todas las páginas. Las vistas solo devuelven su contenido:
+
+```python
+# mi_app/app.py
+def salir() -> None:
+    ui.current_app().quit()
+
+
+def create_app() -> ui.App:
+    app = ui.App.from_config(CONFIG)
+    urls.register(app)
+    app.layout = ui.AppShell(
+        title_bar=ui.TitleBar("Registro", icon=ui.icons.users),
+        header=ui.MenuBar(
+            {
+                "Registros": [
+                    ui.ContextItem("Personas", icon=ui.icons.user, href="/persona"),
+                    ui.ContextItem("Vehículos", icon=ui.icons.car, href="/vehiculo"),
+                    ui.ContextItem("Salir", icon=ui.icons.power, on_click=salir),
+                ]
+            },
+            icons={"Registros": ui.icons.users},
+        ),
+        status=ui.StatusBar(ui.text("Listo")),
+    )
+    return app
+```
+
+```python
+# persona/views.py: solo el contenido de la página
+def inicio() -> ui.Component:
+    return ui.RecordPage(PersonaForm(), title="Personas")
+```
+
+| Ventaja | Por qué |
+|---|---|
+| El menú no desaparece al cambiar de página | lo pone el armazón, no cada vista |
+| Una vista = su contenido | sin `AppShell` repetido en cada archivo |
+| `href="/persona"` navega sin recargar | el runtime lo intercepta y pide la página |
+
+`app.layout` acepta cualquier componente, pero está pensado para `AppShell`.
+
+---
+
 ## 2. `MenuBar`: menús arriba de la ventana
 
 ```python
@@ -176,6 +223,9 @@ Qué hace el cliente por ti (sin escribir JavaScript):
 - cambiar de menú al pasar el ratón cuando ya hay uno abierto,
 - cerrar con `Escape`, con clic fuera o al elegir una opción,
 - `aria-expanded` sincronizado para accesibilidad.
+
+Las entradas pueden **navegar** en vez de ejecutar una función: `href="/persona"`
+pinta la página registrada en esa ruta y deja puesta la barra del `app.layout`.
 
 | Parámetro | Para qué |
 |---|---|

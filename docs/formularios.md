@@ -138,6 +138,14 @@ from ventas.forms import ClienteForm
 
 
 def lista() -> ui.Component:
+    return ui.RecordPage(ClienteForm(), title="Clientes")
+```
+
+Eso pinta el título, el contador, el formulario y la tabla. Y si prefieres
+colocarlo por partes (para añadir un resumen, una búsqueda, otra tarjeta…):
+
+```python
+def lista() -> ui.Component:
     form = ClienteForm(margin=ui.margin.t_6)
     return ui.Screen(
         ui.Container(pad=ui.pad.py_10)(
@@ -151,9 +159,14 @@ def lista() -> ui.Component:
 
 | Pieza | Qué pinta |
 |---|---|
+| `ui.RecordPage(form, title=…)` | la página entera: título + contador + formulario + tabla |
 | `ClienteForm(...)` | la tarjeta con los campos y el botón |
 | `ui.RecordTable(form)` | la tabla con lo guardado, con las columnas y nombres del formulario |
 | `ui.RecordCounter(form)` | el contador (`0 registros guardados`, `1 registro guardado`…) |
+
+Sin `title`, el título es el plural del modelo (`Persona` → «Personas»). Las
+columnas de la tabla se pueden acortar sin tocar el formulario:
+`ui.RecordTable(form, columns=["nombre", "email"])`.
 
 `RecordTable` y `RecordCounter` reciben **el formulario**, no el modelo: así no
 hay que repetir la lista de campos y, si añades una columna en `forms.py`,
