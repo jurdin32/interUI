@@ -279,3 +279,48 @@ def test_solo_hay_un_formulario_en_modal_abierto(tmp_path) -> None:
 
     assert len(app.dialogs) == 1, "el segundo modal sustituye al primero"
     app.close_all_dialogs()
+
+
+# --- tabla declarada como clase (tables.py) -------------------------------
+def test_tabla_declarada_en_una_clase(tmp_path) -> None:
+    """Todo se declara como atributos de clase; la vista no repite nada."""
+    vistas: list[Persona] = []
+
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        columns = ["nombre", "email"]
+        striped = True
+        header_bg = ui.colors.slate_100
+        actions = False
+        selectable = True
+        on_row_dblclick = vistas.append
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+
+    assert "Persona 1" in html
+    assert "bg-slate-100" in html, "el encabezado usa el color declarado"
+    assert "dark:bg-slate-800/30" in html, "cebra"
+    assert html.count("p1@x.com") == 1, "solo las columnas declaradas"
+    assert "Editar" not in html, "actions=False esconde los botones"
+
+
+def test_la_pagina_toma_el_formulario_de_la_tabla(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        page_size = 1
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable), app)
+    assert "Mostrando 1–1 de 3" in html
+    assert "registros guardados" in html, "el contador sale del formulario de la tabla"
+
+
+def test_los_atributos_de_la_clase_se_pueden_pisar(tmp_path) -> None:
+    class PersonaTable(ui.RecordTable):
+        form = ui.ModelForm(Persona)
+        page_size = 10
+
+    app = _app(tmp_path)
+    html = _html(ui.RecordPage(PersonaTable(page_size=1)), app)
+    assert "Mostrando 1–1 de 3" in html

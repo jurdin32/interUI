@@ -8,6 +8,14 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **`tables.py`: la tabla de cada app en su archivo**. `iui startapp` genera
+  ahora un `tables.py` con la tabla declarada como clase
+  (`class PersonaTable(ui.RecordTable)` con `form`, `columns`, colores, cebra,
+  `actions`, `selectable`, `on_row_dblclick`, `context_menu`…) y las acciones de
+  fila (`editar`, `eliminar`). `RecordTable` lee los atributos de clase, así que
+  `views.py` queda en una línea: `ui.RecordPage(PersonaTable)`, que toma de ahí
+  el formulario y todas las opciones. Cualquier atributo se puede pisar al vuelo
+  (`PersonaTable(page_size=50)`).
 - **Tablas configurables de arriba abajo**: `header_bg`, `header_color`,
   `striped` (+ `zebra`), `hover_bg`, `cell_colors` y `column_bg` para colorear
   por columna, `selected_bg` para la fila elegida. Todo con tokens

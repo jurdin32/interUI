@@ -200,7 +200,15 @@ def test_startapp_crea_la_app_y_la_registra(proyecto: pathlib.Path, monkeypatch)
     monkeypatch.chdir(proyecto)
     assert cli.main(["startapp", "Tareas"]) == 0
 
-    for esperado in ("__init__.py", "models.py", "forms.py", "views.py", "urls.py", "README.md"):
+    for esperado in (
+        "__init__.py",
+        "models.py",
+        "forms.py",
+        "tables.py",
+        "views.py",
+        "urls.py",
+        "README.md",
+    ):
         assert (proyecto / "tareas" / esperado).is_file(), f"falta tareas/{esperado}"
 
     data = json.loads((proyecto / "interui.json").read_text(encoding="utf-8"))
@@ -500,3 +508,23 @@ def test_el_proyecto_sin_apps_muestra_la_bienvenida(proyecto: pathlib.Path, monk
 
     html = crear().render_page("/")[1]
     assert "/clientes" in html
+
+
+def test_la_vista_generada_delega_en_tables(proyecto: pathlib.Path, monkeypatch) -> None:
+    """Las opciones de la tabla viven en `tables.py`; la vista queda en una línea."""
+    monkeypatch.chdir(proyecto)
+    assert cli.main(["startapp", "personas"]) == 0
+
+    vista = (proyecto / "personas" / "views.py").read_text(encoding="utf-8")
+    assert "return ui.RecordPage(PersonaTable)" in vista
+    assert "header_bg" not in vista and "on_row_dblclick" not in vista
+
+    tabla = (proyecto / "personas" / "tables.py").read_text(encoding="utf-8")
+    for esperado in (
+        "class PersonaTable(ui.RecordTable)",
+        "form = PersonaForm",
+        "header_bg",
+        "on_row_dblclick = editar",
+        "context_menu = [",
+    ):
+        assert esperado in tabla, f"falta «{esperado}» en tables.py"

@@ -348,16 +348,84 @@ class {Model}Form(ui.ModelForm):
     title = "Nuevo registro"
 '''
 
-APP_VIEWS_PY = '''"""Vistas de {app}."""
+APP_TABLES_PY = '''"""Tabla de {app}: columnas, colores e interacción.
+
+La vista solo la coloca. Todo lo del listado se cambia **aquí**: qué columnas se
+ven, cómo se busca y se ordena, los colores y qué pasa al hacer clic, doble clic
+o clic derecho.
+"""
 
 import interui as ui
 
 from {app}.forms import {Model}Form
+from {app}.models import {Model}
+
+
+def editar(registro: {Model}) -> None:
+    """Abre el registro en un modal con el formulario ya relleno."""
+    ui.form_dialog({Model}Form, instance=registro, title="Editar {model_lower}")
+
+
+def eliminar(registro: {Model}) -> None:
+    """Borra el registro (el menú ya pide confirmación)."""
+    registro.delete()
+    ui.toast("Registro eliminado", "success")
+
+
+class {Model}Table(ui.RecordTable):
+    """El listado de {App}, declarado como clase: la vista no repite nada."""
+
+    form = {Model}Form
+
+    # -- columnas ------------------------------------------------------
+    # Si no se pone nada, salen todas las del formulario.
+    # columns = ["nombre", "descripcion", "activo"]
+
+    # -- buscar, ordenar y paginar -------------------------------------
+    search = True
+    page_size = 10            # None las muestra todas
+    sort = True
+    order_by = "nombre"
+
+    # -- aspecto -------------------------------------------------------
+    striped = True                              # filas alternas
+    header_bg = ui.colors.slate_100             # fondo del encabezado
+    header_color = ui.colors.slate_700          # color del encabezado
+    selected_bg = ui.colors.indigo_50           # fila elegida
+    # cell_colors = {"descripcion": ui.colors.slate_500}   # color por columna
+    # zebra = ui.colors.amber_50                           # color de la cebra
+
+    # -- interacción ---------------------------------------------------
+    actions = False              # sin botones: clic, doble clic y clic derecho
+    # actions = [ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar)]
+    selectable = True                        # el clic marca la fila
+    on_row_dblclick = editar                 # doble clic abre el modal
+    context_menu = [                         # clic derecho, en el cursor
+        ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar),
+        ui.RowAction(
+            "Eliminar",
+            icon=ui.icons.trash,
+            danger=True,
+            confirm="¿Eliminar este registro?",
+            on_click=eliminar,
+        ),
+    ]
+'''
+
+APP_VIEWS_PY = '''"""Vistas de {app}.
+
+La tabla (columnas, colores, acciones) vive en `tables.py` y el formulario en
+`forms.py`: aquí solo se coloca la página.
+"""
+
+import interui as ui
+
+from {app}.tables import {Model}Table
 
 
 def inicio() -> ui.Component:
-    """Título, contador, formulario y tabla; el armazón lo pone `app.layout`."""
-    return ui.RecordPage({Model}Form(), title="{App}")
+    """La página de {App}; el armazón lo pone `app.layout`."""
+    return ui.RecordPage({Model}Table)
 '''
 
 APP_URLS_PY = '''"""Rutas de la app {app}.
@@ -391,7 +459,8 @@ App del proyecto **{project}**, creada con `iui startapp` y **lista para usar**.
 |---|---|
 | `models.py` | modelo `{Model}` (tabla `{table}`); lo migra `python iui.py migrate`. |
 | `forms.py` | formulario `{Model}Form`, generado a partir del modelo. |
-| `views.py` | la página: el formulario y la tabla de lo guardado. |
+| `tables.py` | la tabla: columnas, colores, clic/doble clic y menú contextual. |
+| `views.py` | la página, en una línea: `ui.RecordPage({Model}Table)`. |
 | `urls.py` | la ruta `/{app}`. |
 
 ## Probarlo
@@ -412,7 +481,9 @@ solas. Las migraciones son del proyecto (`migrations/`), para que un solo
   adaptan solos.
 - Campos del formulario: `fields` o `exclude` en `forms.py` (sin nada, salen
   todos los del modelo).
-- Qué se ve: `views.py`.
+- Qué se ve y cómo se comporta la tabla: `tables.py` (columnas, colores, cebra,
+  buscador, paginación, clic, doble clic y menú contextual).
+- Formulario en modal o página sin formulario: `form_mode` en `views.py`.
 """
 
 
@@ -493,6 +564,7 @@ def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Pat
         folder / "__init__.py": _fill(APP_INIT_PY, **values),
         folder / "models.py": _fill(APP_MODELS_PY, **values),
         folder / "forms.py": _fill(APP_FORMS_PY, **values),
+        folder / "tables.py": _fill(APP_TABLES_PY, **values),
         folder / "views.py": _fill(APP_VIEWS_PY, **values),
         folder / "urls.py": _fill(APP_URLS_PY, **values),
         folder / "README.md": _fill(APP_README, **values),

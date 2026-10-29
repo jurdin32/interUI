@@ -9,11 +9,12 @@ mi_app/
 └── ventas/
     ├── models.py     ← las tablas
     ├── forms.py      ← los formularios
-    ├── views.py      ← las páginas (usan los formularios)
+    ├── tables.py     ← cómo se ve y se usa la tabla
+    ├── views.py      ← las páginas (una línea cada una)
     └── urls.py       ← qué vista responde a cada ruta
 ```
 
-`startapp` ya crea los tres archivos conectados y funcionando: si ejecutas
+`startapp` ya crea los archivos conectados y funcionando: si ejecutas
 `makemigrations`, `migrate` y abres `/ventas`, tienes un alta de registros con
 su tabla. Esta página explica cómo cambiar esos campos y qué más se puede hacer.
 
@@ -256,10 +257,71 @@ de la derecha baja a una segunda línea entero (no se parte por dentro).
 Todo se resuelve en Python sobre los registros ya cargados: funciona igual con
 SQLite, PostgreSQL o MySQL, sin tocar el motor.
 
-### Personalizar la tabla: colores, cebra y encabezado
+### La tabla en su archivo: `tables.py`
 
-Todo el aspecto se configura desde la vista, con los mismos tokens de estilo del
-resto del framework (`ui.colors.*`):
+Las opciones de la tabla **no van en la vista**. `startapp` crea un `tables.py`
+con todo declarado como atributos de una clase, y la vista solo la coloca:
+
+```python
+# ventas/tables.py
+import interui as ui
+
+from ventas.forms import ClienteForm
+from ventas.models import Cliente
+
+
+def editar(registro: Cliente) -> None:
+    ui.form_dialog(ClienteForm, instance=registro, title="Editar cliente")
+
+
+def eliminar(registro: Cliente) -> None:
+    registro.delete()
+    ui.toast("Registro eliminado", "success")
+
+
+class ClienteTable(ui.RecordTable):
+    form = ClienteForm
+    columns = ["nombre", "email", "activo"]
+
+    search = True
+    page_size = 10
+    order_by = "nombre"
+
+    striped = True
+    header_bg = ui.colors.slate_100
+    header_color = ui.colors.slate_700
+    selected_bg = ui.colors.indigo_50
+    cell_colors = {"email": ui.colors.slate_500}
+
+    actions = False
+    selectable = True
+    on_row_dblclick = editar
+    context_menu = [
+        ui.RowAction("Editar", icon=ui.icons.edit, on_click=editar),
+        ui.RowAction("Eliminar", icon=ui.icons.trash, danger=True,
+                     confirm="¿Eliminar este cliente?", on_click=eliminar),
+    ]
+```
+
+```python
+# ventas/views.py
+import interui as ui
+
+from ventas.tables import ClienteTable
+
+
+def inicio() -> ui.Component:
+    return ui.RecordPage(ClienteTable)
+```
+
+La página toma de la tabla **el formulario y todas las opciones**, así que
+`views.py` queda en una línea. Cualquier atributo se puede pisar al vuelo cuando
+hace falta una variante: `ClienteTable(page_size=50)`.
+
+### Colores, cebra y encabezado
+
+Todo el aspecto se configura con los mismos tokens de estilo del resto del
+framework (`ui.colors.*`), en `tables.py` o al crear la tabla:
 
 ```python
 ui.RecordPage(

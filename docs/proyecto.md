@@ -20,7 +20,8 @@ mi_app/
 ├── ventas/                 ← una app del proyecto (`iui.py startapp ventas`)
 │   ├── models.py           ← sus tablas
 │   ├── forms.py            ← sus formularios
-│   ├── views.py            ← sus páginas (formulario + tabla)
+│   ├── tables.py           ← su tabla (columnas, colores, clic, menú)
+│   ├── views.py            ← sus páginas (una línea cada una)
 │   ├── urls.py
 │   └── README.md
 ├── migrations/             ← migraciones (se versionan en git)
@@ -202,6 +203,7 @@ sin recargar. Se explica en [menús](menus.md#el-armazón-de-toda-la-aplicación
 |---|---|
 | una tabla | `<app>/models.py` |
 | un formulario | `<app>/forms.py` |
+| cómo se ve la tabla (columnas, colores, clic, menú) | `<app>/tables.py` |
 | una página | `<app>/views.py` |
 | una ruta nueva | `<app>/urls.py` |
 | el menú y la barra de título | `mi_app/app.py` (`app.layout`) |
@@ -240,8 +242,9 @@ desaparece al navegar y ninguna vista lo repite. Está explicado en
 ## 5. Las apps: módulos que se enchufan solas
 
 Una app es una carpeta con `models.py` (tablas), `forms.py` (formularios),
-`views.py` (páginas) y `urls.py` (rutas). Se crea con un comando y **no hay que
-registrarla a mano**:
+`tables.py` (cómo se ve y se usa la tabla), `views.py` (páginas) y `urls.py`
+(rutas). Cada cosa vive en su archivo y la vista solo une las piezas. Se crea con
+un comando y **no hay que registrarla a mano**:
 
 ```bash
 python iui.py startapp ventas
@@ -249,7 +252,7 @@ python iui.py startapp ventas
 
 Ese comando:
 
-1. crea `ventas/` con los cuatro archivos y un `README.md`, todos listos para
+1. crea `ventas/` con los cinco archivos y un `README.md`, todos listos para
    usar: la página `/ventas` ya trae formulario de alta y tabla de lo guardado;
 2. añade `"ventas"` a la lista `apps` de `interui.json`;
 3. añade `ventas/models.py` a `migrations.models`.

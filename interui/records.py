@@ -22,7 +22,7 @@ tabla; la vista no se toca.
 
 from __future__ import annotations
 
-from typing import Any, Sequence
+from typing import Any, Literal, Sequence
 
 from . import db as _db
 from .base import Component
@@ -185,8 +185,43 @@ class RowAction:
         return ContextItem(self.label, icon=self.icon, danger=self.danger, on_click=handler)
 
 
+#: Marca de «no se pasó este argumento» (así ``page_size=None`` es válido).
+_FALTA = object()
+
+
+def _es_tabla(valor: Any) -> bool:
+    """¿Es una tabla declarada (la clase de ``tables.py`` o una instancia)?"""
+    if isinstance(valor, RecordTable):
+        return True
+    return isinstance(valor, type) and issubclass(valor, RecordTable)
+
+
+def _form_of(form: Any) -> Any:
+    """El formulario, ya instanciado (acepta la clase o la instancia)."""
+    if form is None:
+        return None
+    return form() if isinstance(form, type) else form
+
+
 class RecordTable(Component):
     """Tabla con lo guardado, usando las columnas del formulario.
+
+    Todo se puede declarar en una **subclase** (`tables.py` de la app), que es
+    lo que hace que la vista quede en una línea:
+
+    ```python
+    class PersonaTable(ui.RecordTable):
+        form = PersonaForm
+        columns = ["cedula", "nombres", "email"]
+        striped = True
+        header_bg = ui.colors.slate_100
+        actions = False
+        on_row_dblclick = editar
+        context_menu = [ui.RowAction("Eliminar", on_click=borrar, danger=True)]
+    ```
+
+    Cualquier atributo de clase se puede pisar al crear la instancia:
+    ``PersonaTable(page_size=20)``.
 
     Si la base de datos aún no tiene la tabla (falta `migrate`), en su lugar
     sale un aviso que dice cómo crearla, en vez de romper la página.
@@ -194,67 +229,115 @@ class RecordTable(Component):
 
     tag = "div"
 
+    #: Formulario del que salen las columnas (clase o instancia).
+    form: Any = None
+
+    # -- opciones declarables -------------------------------------------
+    columns: Sequence[str] | None = None
+    empty: Any = "Todavía no hay registros"
+    card: bool = True
+    #: `False` esconde la columna de botones.
+    actions: Any = None
+    actions_header: Any = ""
+    selectable: bool = False
+    selected_bg: Any = None
+    on_row_click: Any = None
+    on_row_dblclick: Any = None
+    context_menu: Any = None
+    striped: bool = False
+    header_bg: Any = None
+    header_color: Any = None
+    cell_colors: dict[Any, Any] | None = None
+    column_bg: dict[Any, Any] | None = None
+    hover_bg: Any = None
+    zebra: Any = None
+    search: bool = False
+    search_columns: Sequence[str] | None = None
+    search_placeholder: str = "Buscar…"
+    page_size: int | None = 10
+    page_sizes: Sequence[int] = (10, 15, 20)
+    sort: bool = True
+    sortable: Sequence[str] | None = None
+    order_by: str | None = None
+    prefix: str | None = None
+
     def __init__(
         self,
-        form: ModelForm,
+        form: Any = None,
         *,
-        columns: Sequence[str] | None = None,
-        empty: Any = "Todavía no hay registros",
-        card: bool = True,
-        actions: Sequence[RowAction] | None = None,
-        actions_header: Any = "",
-        selectable: bool = False,
-        selected_bg: Any = None,
-        on_row_click: Any = None,
-        on_row_dblclick: Any = None,
-        context_menu: Any = None,
-        striped: bool = False,
-        header_bg: Any = None,
-        header_color: Any = None,
-        cell_colors: dict[Any, Any] | None = None,
-        column_bg: dict[Any, Any] | None = None,
-        hover_bg: Any = None,
-        zebra: Any = None,
-        search: bool = False,
-        search_columns: Sequence[str] | None = None,
-        search_placeholder: str = "Buscar…",
-        page_size: int | None = 10,
-        page_sizes: Sequence[int] = (10, 15, 20),
-        sort: bool = True,
-        sortable: Sequence[str] | None = None,
-        order_by: str | None = None,
-        prefix: str | None = None,
+        columns: Sequence[str] | None = _FALTA,  # type: ignore[assignment]
+        empty: Any = _FALTA,
+        card: bool = _FALTA,  # type: ignore[assignment]
+        actions: Any = _FALTA,
+        actions_header: Any = _FALTA,
+        selectable: bool = _FALTA,  # type: ignore[assignment]
+        selected_bg: Any = _FALTA,
+        on_row_click: Any = _FALTA,
+        on_row_dblclick: Any = _FALTA,
+        context_menu: Any = _FALTA,
+        striped: bool = _FALTA,  # type: ignore[assignment]
+        header_bg: Any = _FALTA,
+        header_color: Any = _FALTA,
+        cell_colors: dict[Any, Any] | None = _FALTA,  # type: ignore[assignment]
+        column_bg: dict[Any, Any] | None = _FALTA,  # type: ignore[assignment]
+        hover_bg: Any = _FALTA,
+        zebra: Any = _FALTA,
+        search: bool = _FALTA,  # type: ignore[assignment]
+        search_columns: Sequence[str] | None = _FALTA,  # type: ignore[assignment]
+        search_placeholder: str = _FALTA,  # type: ignore[assignment]
+        page_size: int | None = _FALTA,  # type: ignore[assignment]
+        page_sizes: Sequence[int] = _FALTA,  # type: ignore[assignment]
+        sort: bool = _FALTA,  # type: ignore[assignment]
+        sortable: Sequence[str] | None = _FALTA,  # type: ignore[assignment]
+        order_by: str | None = _FALTA,  # type: ignore[assignment]
+        prefix: str | None = _FALTA,  # type: ignore[assignment]
         **props: Any,
     ) -> None:
-        self.form = form
-        self.columns = list(columns) if columns is not None else form.field_names()
-        self.empty = empty
-        self.card = card
+        # Lo que no se pasa usa el atributo de clase (declarado en `tables.py`).
+        self.form = _form_of(form if form is not None else type(self).form)
+        if self.form is None:
+            raise TypeError(
+                f"{type(self).__name__} necesita un formulario: "
+                "`form = MiForm` en la clase o `MiTabla(MiForm())`."
+            )
+        columnas = self._opcion("columns", columns)
+        self.columns = list(columnas) if columnas is not None else self.form.field_names()
+        self.empty = self._opcion("empty", empty)
+        self.card = bool(self._opcion("card", card))
+        acciones = self._opcion("actions", actions)
         #: `actions=False` esconde la columna de botones.
-        self.actions = [] if actions is False else list(actions or ())
-        self.actions_header = actions_header
-        self.selectable = bool(selectable)
-        self.selected_bg = selected_bg
-        self.on_row_click = on_row_click
-        self.on_row_dblclick = on_row_dblclick
-        self.context_menu = context_menu
-        self.striped = bool(striped)
-        self.header_bg = header_bg
-        self.header_color = header_color
-        self.cell_colors = dict(cell_colors or {})
-        self.column_bg = dict(column_bg or {})
-        self.hover_bg = hover_bg
-        self.zebra = zebra
-        self.search = bool(search)
-        self.search_columns = list(search_columns) if search_columns else None
-        self.search_placeholder = search_placeholder
-        self.page_size = page_size
-        self.page_sizes = tuple(page_sizes)
-        self.sort = bool(sort)
-        self.sortable = list(sortable) if sortable else list(self.columns)
-        self.order_by = order_by or ""
-        self.prefix = prefix
+        self.actions = [] if acciones is False else list(acciones or ())
+        self.actions_header = self._opcion("actions_header", actions_header)
+        self.selectable = bool(self._opcion("selectable", selectable))
+        self.selected_bg = self._opcion("selected_bg", selected_bg)
+        self.on_row_click = self._opcion("on_row_click", on_row_click)
+        self.on_row_dblclick = self._opcion("on_row_dblclick", on_row_dblclick)
+        self.context_menu = self._opcion("context_menu", context_menu)
+        self.striped = bool(self._opcion("striped", striped))
+        self.header_bg = self._opcion("header_bg", header_bg)
+        self.header_color = self._opcion("header_color", header_color)
+        self.cell_colors = dict(self._opcion("cell_colors", cell_colors) or {})
+        self.column_bg = dict(self._opcion("column_bg", column_bg) or {})
+        self.hover_bg = self._opcion("hover_bg", hover_bg)
+        self.zebra = self._opcion("zebra", zebra)
+        self.search = bool(self._opcion("search", search))
+        buscables = self._opcion("search_columns", search_columns)
+        self.search_columns = list(buscables) if buscables else None
+        self.search_placeholder = self._opcion("search_placeholder", search_placeholder)
+        self.page_size = self._opcion("page_size", page_size)
+        self.page_sizes = tuple(self._opcion("page_sizes", page_sizes))
+        self.sort = bool(self._opcion("sort", sort))
+        ordenables = self._opcion("sortable", sortable)
+        self.sortable = list(ordenables) if ordenables else list(self.columns)
+        self.order_by = self._opcion("order_by", order_by) or ""
+        self.prefix = self._opcion("prefix", prefix)
         super().__init__(**props)
+
+    def _opcion(self, nombre: str, valor: Any = _FALTA) -> Any:
+        """Valor del argumento o, si no se pasó, el atributo de la clase."""
+        if valor is not _FALTA:
+            return valor
+        return getattr(type(self), nombre, None)
 
     # -- estado de la tabla ---------------------------------------------
     def _key(self, suffix: str) -> str:
@@ -520,10 +603,14 @@ class RecordPage(Component):
 
     ```python
     ui.RecordPage(PersonaForm(), title="Personas")                  # todo
+    ui.RecordPage(PersonaTable)                                     # la tabla de `tables.py`
     ui.RecordPage(PersonaForm(), form_mode="modal")                 # tabla + botón «Nuevo»
     ui.RecordPage(PersonaForm(), form_mode="none")                  # solo la tabla
     ui.RecordPage(PersonaForm(), table=False)                       # solo el formulario
     ```
+
+    Con una tabla declarada en `tables.py` basta pasarla: la página toma de ahí
+    el formulario y todas las opciones (columnas, colores, clic, menú…).
 
     | `form_mode` | Qué se ve |
     |---|---|
@@ -538,13 +625,13 @@ class RecordPage(Component):
 
     def __init__(
         self,
-        form: ModelForm,
+        form: Any = None,
         *,
         title: Any = None,
         counter: bool = True,
-        table: bool = True,
+        table: Any = True,
         columns: Sequence[str] | None = None,
-        actions: Sequence[RowAction] | None = None,
+        actions: Literal[False] | Sequence[RowAction] | None = None,
         search: bool = False,
         search_columns: Sequence[str] | None = None,
         page_size: int | None = 10,
@@ -563,6 +650,30 @@ class RecordPage(Component):
         if modo not in ("inline", "modal", "none"):
             raise ValueError(
                 f"form_mode desconocido: {form_mode!r}; usa 'inline', 'modal' o 'none'"
+            )
+        # La primera pieza puede ser el formulario o la tabla declarada; también
+        # se admite `table=MiTabla` (en vez del `True` de «hay tabla»).
+        declarada = None
+        for candidato in (form, table):
+            if _es_tabla(candidato):
+                declarada = candidato
+                break
+        if declarada is not None:
+            if form is declarada:
+                form = None
+            if table is declarada:
+                table = True
+        if form is None and declarada is not None:
+            tabla = declarada if isinstance(declarada, RecordTable) else declarada()
+            tabla.base_class = tw("mt-6", tabla.base_class)
+            self.table_component = tabla
+            form = tabla.form
+        else:
+            self.table_component = None
+        if form is None:
+            raise TypeError(
+                "RecordPage necesita un formulario o una tabla: "
+                "`ui.RecordPage(PersonaForm())` o `ui.RecordPage(PersonaTable)`."
             )
         self.form = form
         self.page_title = title
@@ -614,15 +725,19 @@ class RecordPage(Component):
         if self.form_mode == "inline":
             pieces.append(form)
         if self.show_table:
-            pieces.append(
-                RecordTable(
-                    form,
-                    columns=self.columns,
-                    actions=self.actions,
-                    margin=margin.t_6,
-                    **self.table_options,
+            if self.table_component is not None:
+                # Tabla declarada en `tables.py`: manda ella, la página no la pisa.
+                pieces.append(self.table_component)
+            else:
+                pieces.append(
+                    RecordTable(
+                        form,
+                        columns=self.columns,
+                        actions=self.actions,
+                        margin=margin.t_6,
+                        **self.table_options,
+                    )
                 )
-            )
         return Container(*pieces, pad=self.page_pad).render(ctx, f"{path}-page")
 
     def _abrir_alta(self) -> None:

@@ -332,9 +332,10 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `main.py` | abre la app: aplica migraciones, construye la `App` y muestra la ventana |
 | `iui.py` | comandos que nunca abren ventana: `startapp`, `makemigrations`, `migrate`, `status`, `shell`, `check` |
 | `interui.json` | configuración: identidad, ventana, base de datos, apps y migraciones |
-| `<app>/views.py` | qué se pinta en cada página |
+| `<app>/views.py` | qué se pinta en cada página (una línea: `ui.RecordPage(MiTabla)`) |
 | `<app>/urls.py` | qué vista responde a cada ruta |
 | `<app>/forms.py` | formularios: un control por campo del modelo |
+| `<app>/tables.py` | la tabla: columnas, colores, cebra, clic, doble clic y menú |
 | `<app>/models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
 | `migrations/` | historial del esquema, en JSON legible y versionado |
 | `data/` | base de datos y archivos de la app (fuera de git) |
@@ -1076,8 +1077,8 @@ python iui.py shell             # consola con tus modelos cargados
 python iui.py check             # revisa interui.json y la base de datos
 ```
 
-`iui startapp` crea `models.py`, `forms.py`, `views.py`, `urls.py` y
-`README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
+`iui startapp` crea `models.py`, `forms.py`, `tables.py`, `views.py`, `urls.py`
+y `README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
 de migraciones: sus rutas se registran solas, un solo `migrate` pone al día
 todas las apps y el formulario de alta ya viene hecho.
 
