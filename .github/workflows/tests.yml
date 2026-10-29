@@ -32,6 +32,10 @@ jobs:
   desktop:
     name: ventana nativa · ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
