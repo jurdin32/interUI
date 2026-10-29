@@ -48,8 +48,8 @@ from .ui import BUTTON_SIZES, BUTTON_VARIANTS
 from . import config, db, migrations, orm
 from .config import Config, ConfigError
 from .orm import (
-    Auto, Blob, Bool, Date, DateTime, FK, Field, Float, Int, Json, LongText, Manager,
-    Model, QuerySet, Str,
+    Auto, Blob, Bool, Choice, Date, DateTime, Email, FK, Field, Float, Int, Json,
+    LongText, Manager, Model, QuerySet, Str,
 )
 from .migrations import Migration
 from .controls import *  # noqa: F401,F403  (catálogo de controles)
@@ -70,7 +70,7 @@ __all__ = [
     "width", "height", "opacity", "flex", "variant", "tone", "size", "side", "layer",
     "config", "db", "orm", "migrations", "Config", "ConfigError", "Migration",
     "Model", "QuerySet", "Manager", "Field", "Auto", "Int", "Str", "LongText", "Bool",
-    "Float", "Date", "DateTime", "Json", "Blob", "FK",
+    "Float", "Date", "DateTime", "Json", "Blob", "FK", "Email", "Choice",
     "Token", "Color", "CssColor", "Css", "Gradient", "Word",
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",

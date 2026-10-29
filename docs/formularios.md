@@ -41,6 +41,8 @@ class Cliente(ui.Model):
 | Campo | Se convierte en |
 |---|---|
 | `Str` | campo de texto (o de correo, si el nombre lleva `email`, `correo` o `mail`) |
+| `Email` | campo de correo |
+| `Choice` | desplegable con las opciones de `choices` |
 | `LongText` | área de texto |
 | `Int`, `Float` | campo numérico |
 | `Date`, `DateTime` | selector de fecha / fecha y hora |
@@ -249,8 +251,9 @@ la reinicia.
 
 | Síntoma | Causa |
 |---|---|
-| `AttributeError: module 'interui' has no attribute 'Email'` | no hay campo `Email`: usa `ui.Str(max_length=120, unique=True)` (el control de correo lo elige el nombre del campo) |
+| `AttributeError: module 'interui' has no attribute 'Xxx'` | el campo no existe: los disponibles son `Int`, `Str`, `Email`, `Choice`, `LongText`, `Bool`, `Float`, `Date`, `DateTime`, `Json`, `Blob` y `FK` |
 | `TypeError: ModelForm necesita un modelo` | falta `model = ...` en la clase |
+| Un campo del modelo no sale en el formulario | está en `exclude`, o lo genera la base de datos (`Auto`, `auto_now_add`, `auto_now`) |
 | La tabla dice «Todavía no hay registros» tras guardar | falta `python iui.py migrate`: la tabla no existe |
 | Dos formularios se pisan el texto | comparten `prefix`; dale uno distinto a cada uno |
 | `ui.state("x", "")` falla | la firma es `ui.state(valor, name="x")` |

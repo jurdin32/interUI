@@ -426,6 +426,8 @@ class Cliente(ui.Model):
 | `ui.Auto()` | `INTEGER` autoincremental | clave primaria; se añade como `id` si no declaras una |
 | `ui.Int()` | entero | |
 | `ui.Str(max_length=…)` | `VARCHAR(n)` | 255 por defecto |
+| `ui.Email()` | `VARCHAR(254)` | como `Str`, pero el formulario usa un campo de correo |
+| `ui.Choice(choices=[…])` | `VARCHAR(n)` | como `Str`, pero el formulario usa un desplegable |
 | `ui.LongText()` | `TEXT` | se llama así porque `Text` es el control de interfaz |
 | `ui.Bool()` | booleano | |
 | `ui.Float()` | real | |
@@ -434,6 +436,19 @@ class Cliente(ui.Model):
 | `ui.Json()` | JSON | se serializa y deserializa solo |
 | `ui.Blob()` | binario | `bytes` |
 | `ui.FK("clientes")` | entero | referencia simple, **sin** FK del motor |
+
+`ui.Choice` acepta una lista de valores o de pares `(valor, etiqueta)`; en la
+base de datos es un texto normal, así que no cambia la tabla:
+
+```python
+class Persona(ui.Model):
+    email = ui.Email(max_length=120, unique=True)
+    estado_civil = ui.Choice(
+        choices=["soltero", "casado", "divorciado", "viudo"],
+        default="soltero",
+    )
+    pais = ui.Choice(choices=[("es", "España"), ("mx", "México")], null=True)
+```
 
 ### 3.3 Opciones de cualquier campo
 

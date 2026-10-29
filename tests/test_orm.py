@@ -210,3 +210,32 @@ def test_sqlite_en_memoria_no_toca_el_disco(tmp_path, monkeypatch):
 
     assert Cliente.objects.count() == 1
     assert list(tmp_path.iterdir()) == []
+
+
+def test_campos_email_y_choice():
+    """`Email` es texto con control de correo; `Choice` es texto con opciones."""
+    import interui as ui
+
+    class Contacto(ui.Model):
+        correo = ui.Email(max_length=120, unique=True)
+        estado = ui.Choice(choices=["nuevo", "vip"], default="nuevo")
+        pais = ui.Choice(choices=[("es", "España")])
+
+        class Meta:
+            table = "orm_contactos"
+
+    correo = Contacto._fields["correo"]
+    assert correo.type == "varchar"
+    assert correo.max_length == 120 and correo.unique
+
+    estado = Contacto._fields["estado"]
+    assert estado.type == "varchar", "la columna es texto, como Str"
+    assert estado.get_default() == "nuevo"
+    assert estado.choices == [("nuevo", "nuevo"), ("vip", "vip")]
+    assert estado.option_values == ["nuevo", "vip"]
+
+    assert Contacto._fields["pais"].choices == [("es", "España")]
+    assert "choices" not in estado.describe(), "las opciones no cambian la tabla"
+
+    with pytest.raises(ValueError):
+        ui.Choice(choices=[])

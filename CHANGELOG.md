@@ -26,6 +26,11 @@ etiqueta como `vX.Y.Z`.
   `VentaForm(ui.ModelForm)` con `model`, `fields`, `title`, `submit_label`,
   `exclude`, `prefix` y `on_saved`. El atajo `ui.ModelForm(Modelo)` crea uno sin
   declarar clase. Documentado en [`docs/formularios.md`](docs/formularios.md).
+- **Campos `ui.Email()` y `ui.Choice()`**: dos atajos de `Str` que no cambian
+  la columna pero sí el formulario. `Email` usa el control de correo y `Choice`
+  un desplegable con sus `choices` (lista de valores o de pares
+  `(valor, etiqueta)`), con `default` y validación de que el valor esté entre
+  las opciones.
 - **`ui.state()` funciona dentro de las vistas** de un proyecto: la señal se
   crea en la app activa, no en la app implícita de la API compacta, así que
   conserva lo que escribe el usuario entre repintados. Sin `name`, la señal se
@@ -36,7 +41,8 @@ etiqueta como `vX.Y.Z`.
   dentro del proyecto con `models.py`, `forms.py`, `views.py`, `urls.py` y
   `README.md` **listos para usar** (formulario de alta, aviso si falta la base de
   datos y tabla con lo guardado), la apunta en `apps` de `interui.json` y añade
-  su `models.py` a las migraciones.
+  su `models.py` a las migraciones. El formulario y la tabla se generan a partir
+  del modelo: si cambias los campos, ambos se adaptan solos.
   Sus rutas se registran solas (`App.from_config()` importa `<app>/urls.py`), sin
   registrar nada a mano; un solo `migrate` pone al día todas las apps.
   `Config.model_paths()`, `Config.installed_apps()` y `migrations.models` aceptan

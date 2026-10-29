@@ -42,8 +42,10 @@ __all__ = [
     "Auto",
     "Blob",
     "Bool",
+    "Choice",
     "Date",
     "DateTime",
+    "Email",
     "Field",
     "Float",
     "FK",
@@ -161,6 +163,54 @@ class Str(Field):
 
     def __init__(self, *, max_length: int = 255, **kwargs: Any) -> None:
         super().__init__(max_length=max_length, **kwargs)
+
+    def to_python(self, value: Any) -> Any:
+        return None if value is None else str(value)
+
+
+class Email(Str):
+    """Correo electrónico: ``VARCHAR`` como :class:`Str`, control de correo.
+
+    La base de datos la ve como un texto normal; el formulario de la app usa un
+    campo de correo (con su teclado y su validación del navegador).
+    """
+
+    def __init__(self, *, max_length: int = 254, **kwargs: Any) -> None:
+        super().__init__(max_length=max_length, **kwargs)
+
+
+class Choice(Str):
+    """Texto elegido de una lista: en el formulario es un desplegable.
+
+    ```python
+    estado = ui.Choice(choices=["soltero", "casado"], default="soltero")
+    ```
+
+    La columna es ``VARCHAR``; la lista solo vive en el modelo y la usa el
+    formulario para pintar las opciones y rechazar lo que no esté en ella.
+    """
+
+    def __init__(
+        self,
+        *,
+        choices: Sequence[Any],
+        max_length: int = 255,
+        **kwargs: Any,
+    ) -> None:
+        options = []
+        for item in choices:
+            if isinstance(item, (tuple, list)) and len(item) >= 2:
+                options.append((str(item[0]), str(item[1])))
+            else:
+                options.append((str(item), str(item)))
+        if not options:
+            raise ValueError("Choice necesita al menos una opción en `choices`")
+        self.choices = options
+        super().__init__(max_length=max_length, **kwargs)
+
+    @property
+    def option_values(self) -> list[str]:
+        return [value for value, _label in self.choices]
 
     def to_python(self, value: Any) -> Any:
         return None if value is None else str(value)

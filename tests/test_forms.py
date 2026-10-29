@@ -188,3 +188,57 @@ def test_escribir_retira_los_errores(app) -> None:
     assert _señal(app, "nombre").get() == "Ana"
     _title, html, _bindings = app.render_page("/")
     assert "Revisa los siguientes campos" not in html
+
+
+class Cliente(ui.Model):
+    nombre = ui.Str(max_length=80)
+    correo = ui.Email(max_length=120, unique=True)
+    estado = ui.Choice(choices=["nuevo", "vip"], default="nuevo")
+    pais = ui.Choice(choices=[("es", "España"), ("mx", "México")], null=True)
+
+    class Meta:
+        table = "form_clientes"
+
+
+def test_email_y_choice_se_pintan_con_su_control(tmp_path) -> None:
+    db.reset()
+    db.configure(
+        Config({"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "c.db")}}})
+    )
+    db.backend().create_table("form_clientes", Cliente.columns())
+    application = ui.App("Clientes", data_dir=tmp_path)
+    application.page("/")(lambda: ui.Screen(ui.ModelForm(Cliente)))
+
+    _title, html, _bindings = application.render_page("/")
+    assert 'type="email"' in html, "Email usa el campo de correo"
+    assert "<select" in html, "Choice usa un desplegable"
+    assert "España" in html and "México" in html, "las etiquetas de las opciones"
+    assert 'value="vip"' in html
+
+
+def test_choice_rechaza_valores_fuera_de_la_lista(tmp_path) -> None:
+    db.reset()
+    db.configure(
+        Config({"databases": {"default": {"engine": "sqlite", "name": str(tmp_path / "c.db")}}})
+    )
+    db.backend().create_table("form_clientes", Cliente.columns())
+    application = ui.App("Clientes", data_dir=tmp_path)
+    application.page("/")(lambda: ui.Screen(ui.ModelForm(Cliente)))
+
+    _title, _html, bindings = application.render_page("/")
+    application._signals["form_form_clientes_nombre"].set("ACME")
+    application._signals["form_form_clientes_correo"].set("a@b.c")
+    application._signals["form_form_clientes_estado"].set("inventado")
+    invoke(_boton(bindings), UIEvent(id="x", event="click"))
+
+    assert "Estado: elige una de las opciones." in application._signals[
+        "form_form_clientes_errores"
+    ].get()
+    assert Cliente.objects.count() == 0
+
+    application._signals["form_form_clientes_estado"].set("vip")
+    _title, _html, bindings = application.render_page("/")
+    invoke(_boton(bindings), UIEvent(id="x", event="click"))
+    assert Cliente.objects.count() == 1
+    assert Cliente.objects.first().estado == "vip"
+    db.reset()

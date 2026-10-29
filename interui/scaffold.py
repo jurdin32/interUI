@@ -392,7 +392,8 @@ class {Model}Form(ui.ModelForm):
     """Alta de {Model}: cada campo del modelo se convierte en su control."""
 
     model = {Model}
-    fields = ["nombre", "descripcion", "activo"]
+    # fields = ["nombre", "descripcion"]   # solo estos, en este orden
+    # exclude = ["activo"]                 # todos menos estos
     title = "Nuevo registro"
 '''
 
@@ -402,6 +403,27 @@ import interui as ui
 
 from {app}.forms import {Model}Form
 from {app}.models import {Model}
+
+
+# Columnas de la tabla: los campos del modelo, sin clave ni automáticos.
+CAMPOS = [
+    name
+    for name, field in {Model}._fields.items()
+    if not field.auto and not field.primary_key
+]
+
+
+def _titulo(name: str) -> str:
+    """``fecha_nacimiento`` -> ``Fecha nacimiento``."""
+    texto = name.replace("_", " ")
+    return texto[:1].upper() + texto[1:]
+
+
+def _celda(valor: object) -> object:
+    """Un booleano se ve como etiqueta y un hueco como raya."""
+    if isinstance(valor, bool):
+        return ui.Badge("sí" if valor else "no")
+    return "—" if valor is None or valor == "" else valor
 
 
 def _registros() -> list:
@@ -433,14 +455,6 @@ def _contador(total: int) -> str:
 
 def inicio() -> ui.Component:
     registros = _registros()
-    filas = [
-        [
-            registro.nombre,
-            registro.descripcion or "—",
-            ui.Badge("activo" if registro.activo else "inactivo"),
-        ]
-        for registro in registros
-    ]
     return ui.Screen(
         ui.Container(pad=ui.pad.py_10)(
             ui.Heading("{App}", level=1),
@@ -449,8 +463,11 @@ def inicio() -> ui.Component:
             {Model}Form(margin=ui.margin.t_6),
             ui.Card(pad=ui.pad.all_2, margin=ui.margin.t_6)(
                 ui.Table(
-                    headers=["Nombre", "Descripción", "Estado"],
-                    rows=filas,
+                    headers=[_titulo(name) for name in CAMPOS],
+                    rows=[
+                        [_celda(getattr(registro, name)) for name in CAMPOS]
+                        for registro in registros
+                    ],
                     empty="Todavía no hay registros",
                 )
             ),
@@ -506,8 +523,10 @@ solas. Las migraciones son del proyecto (`migrations/`), para que un solo
 
 ## Cambiarla
 
-- Campos del modelo: `models.py` y vuelve a migrar.
-- Campos del formulario: `fields` en `forms.py`.
+- Campos del modelo: `models.py` y vuelve a migrar; el formulario y la tabla se
+  adaptan solos.
+- Campos del formulario: `fields` o `exclude` en `forms.py` (sin nada, salen
+  todos los del modelo).
 - Qué se ve: `views.py`.
 """
 

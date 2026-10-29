@@ -40,13 +40,14 @@ from .controls.inputs import (
     EmailInput,
     Input,
     NumberInput,
+    Select,
     Switch,
     Textarea,
     ValidationSummary,
 )
 from .controls.layout import Card
 from .grid import Stack
-from .orm import Model
+from .orm import Choice, Email, Model
 from .simple import state as _state
 from .simple import toast as _toast
 from .theme import gap, margin
@@ -97,6 +98,14 @@ def _control(
     kind = field.type
     lower = name.lower()
 
+    if isinstance(field, Choice):
+        return Select(
+            field.choices,
+            value=value,
+            label=label,
+            required=required,
+            on_change=on_change,
+        )
     if kind == "bool":
         return Switch(label, checked=value, on_change=on_change)
     if kind == "date":
@@ -109,7 +118,7 @@ def _control(
         return Textarea(
             value=value, label=label, required=required, on_input=on_change, rows=3
         )
-    if any(hint in lower for hint in ("email", "correo", "mail")):
+    if isinstance(field, Email) or any(hint in lower for hint in ("email", "correo", "mail")):
         return EmailInput(value=value, label=label, required=required, on_input=on_change)
     return Input(value=value, label=label, required=required, on_input=on_change)
 
@@ -219,6 +228,9 @@ class ModelForm(Component):
                 if value is None:
                     if _required(field):
                         problemas.append(f"{_label(name)} es obligatorio.")
+                    continue
+                if isinstance(field, Choice) and str(value) not in field.option_values:
+                    problemas.append(f"{_label(name)}: elige una de las opciones.")
                     continue
                 if field.unique and model.objects.filter(**{name: value}).exists():
                     problemas.append(f"Ya existe un registro con ese {_label(name).lower()}.")
