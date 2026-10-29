@@ -334,6 +334,8 @@ APP_FORMS_PY = '''"""Formularios de la app {app}.
 Aquí se declaran; la vista solo los usa (`from {app}.forms import {Model}Form`).
 """
 
+from __future__ import annotations
+
 import interui as ui
 
 from {app}.models import {Model}
@@ -359,9 +361,12 @@ El alta y la edición comparten formulario, pero el modal se viste **aquí**: as
 la tabla y la vista no repiten colores, esquinas ni espaciados.
 """
 
+from __future__ import annotations
+
 import interui as ui
 
 from {app}.forms import {Model}Form
+from {app}.models import {Model}
 
 
 class {Model}Modal(ui.FormModal):
@@ -409,6 +414,8 @@ La vista solo la coloca. Todo lo del listado se cambia **aquí**: qué columnas 
 ven, cómo se busca y se ordena, los colores y qué pasa al hacer clic, doble clic
 o clic derecho.
 """
+
+from __future__ import annotations
 
 import interui as ui
 
@@ -476,6 +483,8 @@ APP_VIEWS_PY = '''"""Vistas de {app}.
 La tabla (columnas, colores, acciones) vive en `tables.py` y el formulario en
 `forms.py`: aquí solo se coloca la página.
 """
+
+from __future__ import annotations
 
 import interui as ui
 

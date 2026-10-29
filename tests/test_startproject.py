@@ -544,3 +544,20 @@ def test_la_vista_generada_delega_en_tables(proyecto: pathlib.Path, monkeypatch)
         "def abrir_edicion(",
     ):
         assert esperado in modales, f"falta «{esperado}» en dialogs.py"
+
+
+def test_los_modulos_generados_anotan_sin_evaluar(proyecto: pathlib.Path, monkeypatch) -> None:
+    """Hasta Python 3.13 las anotaciones se evalúan al definir: con
+    `from __future__ import annotations` dejan de depender del nombre."""
+    monkeypatch.chdir(proyecto)
+    assert cli.main(["startapp", "clientes"]) == 0
+
+    modulos = ("forms.py", "tables.py", "dialogs.py", "views.py")
+    for nombre in modulos:
+        codigo = (proyecto / "clientes" / nombre).read_text(encoding="utf-8")
+        assert "from __future__ import annotations" in codigo, f"falta en {nombre}"
+
+    # Y el modelo se importa donde se usa en una anotación.
+    dialogs = (proyecto / "clientes" / "dialogs.py").read_text(encoding="utf-8")
+    assert "def abrir_edicion(registro: Cliente)" in dialogs
+    assert "from clientes.models import Cliente" in dialogs
