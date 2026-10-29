@@ -213,7 +213,7 @@ def create_app() -> ui.App:
 """
 
 REQUIREMENTS = """# interUI, con ventana nativa (pywebview). Está publicado en PyPI.
-interui[desktop]>=0.5.0
+interui[desktop]>=0.5.1
 """
 
 

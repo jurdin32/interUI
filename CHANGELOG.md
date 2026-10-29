@@ -10,7 +10,7 @@ etiqueta como `vX.Y.Z`.
 
 - **El `requirements.txt` que crea `startproject` apunta a PyPI**: antes decía
   «interUI todavía no está en PyPI» e instalaba desde GitHub
-  (`interui[desktop] @ git+https://…`); ahora es `interui[desktop]>=0.5.0`.
+  (`interui[desktop] @ git+https://…`); ahora es `interui[desktop]>=0.5.1`.
 - La documentación deja de presentar la instalación desde GitHub como la vía
   normal (`README`, `docs/publicar.md`, `docs/actualizar.md`, `docs/guia.md`).
 
