@@ -10,6 +10,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..tema import estilos_de
 from ..theme import Color, Token
 
 __all__ = [
@@ -71,6 +72,13 @@ def _con_fila(handler: Any, row_index: int, row: list[Any]) -> Any:
     return lambda *args: handler()
 
 
+def _del_tema(nombre: str, valor: Any, tema: dict[str, Any]) -> Any:
+    """El valor explícito; si no se pasó, el que fije `estilos.py`."""
+    if valor is None or valor is False:
+        return tema.get(nombre, valor)
+    return valor
+
+
 class Table(Component):
     """Tabla estática con estilos de cabecera, cebra y hover.
 
@@ -123,26 +131,27 @@ class Table(Component):
         surface: bool = True,
         **props: Any,
     ) -> None:
+        del_tema = estilos_de(type(self))
         self.headers = list(headers or [])
         self.rows = [list(row) for row in (rows or [])]
         self.caption = caption
-        self.striped = striped
-        self.zebra = zebra
-        self.hover = hover
-        self.hover_bg = hover_bg
+        self.striped = _del_tema("striped", striped, del_tema) is True
+        self.zebra = zebra if zebra is not None else del_tema.get("zebra")
+        self.hover = _del_tema("hover", hover, del_tema) is not False
+        self.hover_bg = hover_bg if hover_bg is not None else del_tema.get("hover_bg")
         self.compact = compact
-        self.cell_pad = cell_pad
-        self.header_pad = header_pad
+        self.cell_pad = cell_pad if cell_pad is not None else del_tema.get("cell_pad")
+        self.header_pad = header_pad if header_pad is not None else del_tema.get("header_pad")
         self.bordered = bordered
         self.footer = list(footer or [])
         self.align = list(align or [])
         self.empty = empty
-        self.header_bg = header_bg
-        self.header_color = header_color
-        self.cell_colors = dict(cell_colors or {})
-        self.column_bg = dict(column_bg or {})
+        self.header_bg = header_bg if header_bg is not None else del_tema.get("header_bg")
+        self.header_color = header_color if header_color is not None else del_tema.get("header_color")
+        self.cell_colors = dict(cell_colors or del_tema.get("cell_colors") or {})
+        self.column_bg = dict(column_bg or del_tema.get("column_bg") or {})
         self.selected = selected
-        self.selected_bg = selected_bg or "indigo-50"
+        self.selected_bg = selected_bg or del_tema.get("selected_bg") or "indigo-50"
         self.on_row_click = on_row_click
         self.on_row_dblclick = on_row_dblclick
         self.on_row_context = on_row_context

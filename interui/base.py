@@ -84,6 +84,10 @@ class Component:
 
     def __init__(self, *children: Any, **props: Any) -> None:
         self.children: list[Any] = flatten(children)
+        # Valores por defecto del tema global (`estilos.py` del proyecto).
+        from .tema import _con_tema
+
+        props = _con_tema(type(self), dict(props))
         # `Component(tag="h1", …)` sirve para cualquier etiqueta suelta.
         etiqueta = props.pop("tag", None)
         if etiqueta:

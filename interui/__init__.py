@@ -60,6 +60,9 @@ from .simple import (  # API compacta (minúsculas, ventana implícita)
     alias_names, column, current_app, row, snake_case, state, subtitle, title, toast,
     view, window,
 )
+from .tema import (  # tema global (`estilos.py`)
+    aplicar_tema, estilos_de, por_defecto, reiniciar_tema, tema_actual,
+)
 from .forms import FormModal, ModelForm, form_dialog  # formularios y modales
 from .records import (  # lo guardado, desde el formulario
     RecordCounter, RecordPage, RecordTable, RowAction,
@@ -83,6 +86,7 @@ __all__ = [
     "render", "render_children", "bind_many", "BUTTON_SIZES", "BUTTON_VARIANTS",
     "window", "view", "state", "row", "column", "title", "subtitle", "toast",
     "current_app", "snake_case", "alias_names", "updates",
+    "aplicar_tema", "reiniciar_tema", "tema_actual", "por_defecto", "estilos_de",
     "ModelForm", "FormModal", "form_dialog",
     "RecordCounter", "RecordPage", "RecordTable", "RowAction",
     "Container", "Row", "Col", "Stack", "Spacer", "Divider", "Center",

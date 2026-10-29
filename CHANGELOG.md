@@ -8,6 +8,16 @@ etiqueta como `vX.Y.Z`.
 
 ### Añadido
 
+- **Tema global en `estilos.py`**: `iui startproject` y `iui startapp` generan
+  un `estilos.py` con un diccionario `TEMA` (`"*"` para todos los controles, o
+  el nombre de un control) y el catálogo completo comentado, un renglón por
+  control con todas sus opciones. Lo que se declara ahí es el valor por defecto
+  de **todas** las ventanas: colores, fondos, esquinas, tipografías, tamaños y
+  espaciados. Prioridad: argumento explícito > valor declarado en la clase de la
+  app > tema > fábrica. La clave de una clase base vale para sus subclases
+  (`"RecordTable"` también estiliza `PersonaTable`). API:
+  `ui.aplicar_tema`, `ui.reiniciar_tema`, `ui.tema_actual`, `ui.estilos_de`,
+  `ui.por_defecto`.
 - **Modales configurables y en su propio archivo**: `startapp` genera
   `dialogs.py` con `<Modelo>Modal(ui.FormModal)` (`form`, `title`, `width` y
   `options`), más `abrir_nuevo()` y `abrir_edicion(registro)`. La tabla lo usa

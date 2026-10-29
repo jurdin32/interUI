@@ -424,3 +424,97 @@ interui assets        # o: cd frontend && npm run build
 `tests/test_theme.py` comprueba que las clases que generan los tokens existen de
 verdad en `interui/static/app.css`, así que un token sin safelist rompe la CI en
 lugar de fallar en silencio.
+
+---
+
+## 9. El tema de toda la aplicación: `estilos.py`
+
+Repetir los mismos colores en cada vista se vuelve un problema. Para eso cada
+proyecto —y cada app— trae un archivo **`estilos.py`** con un solo diccionario:
+
+```python
+# mi_app/estilos.py
+import interui as ui
+
+TEMA: dict[str, dict] = {
+    "*": dict(rounded="2xl"),                              # todos los controles
+    "Button": dict(pad=ui.pad.px_6, font=ui.font.sm),       # solo los botones
+    "Card": dict(bg=ui.colors.white, border=ui.colors.slate_200),
+    "RecordTable": dict(header_bg=ui.colors.slate_100, striped=True),
+    "Dialog": dict(rounded="2xl", body_pad=ui.pad.p_6),
+}
+```
+
+Lo aplica el propio proyecto, una sola vez, al arrancar (`app.py` importa el
+archivo). A partir de ahí **todas las ventanas** lo usan, sin tocar ninguna
+vista.
+
+### Qué se puede poner
+
+| Clave | A quién afecta |
+|---|---|
+| `"*"` | a todos los controles |
+| `"Button"`, `"Card"`, `"Table"`… | a ese control y a sus subclases |
+| `"PersonaTable"` | a la tabla declarada en `tables.py` |
+| `"PersonaModal"` | al modal declarado en `dialogs.py` |
+
+Los valores son los mismos de siempre: `ui.colors.*`, `ui.pad.*`, `ui.font.*`,
+`ui.radius.*`… y las variantes (`hover_bg`, `dark_bg`, `md_font`). Además de las
+utilidades generales (`bg`, `color`, `border`, `rounded`, `shadow`, `pad`,
+`font`, `class_`…), los controles grandes aceptan sus opciones propias:
+
+```python
+TEMA = {
+    "Card": dict(radius="2xl", header_bg=ui.colors.slate_100, header_font=ui.font.base.bold),
+    "Table": dict(header_bg=ui.colors.slate_100, zebra=ui.colors.slate_50, cell_pad=ui.pad.px_2),
+    "RecordTable": dict(header_bg=ui.colors.slate_100, striped=True, selected_bg=ui.colors.indigo_50),
+    "RecordPage": dict(title_bg=ui.colors.indigo_600, title_color=ui.colors.white, page_gap=4),
+    "ModelForm": dict(header_bg=ui.colors.slate_100, field_gap=3),
+    "Dialog": dict(bg=ui.colors.white, rounded="2xl", header_bg=ui.colors.slate_100, gap=4),
+}
+```
+
+### Quién gana
+
+De más fuerte a más débil:
+
+1. lo que se pasa al crear el control (`ui.Card("x", pad=8)`);
+2. lo declarado en la clase de la app (`tables.py`, `forms.py`, `dialogs.py`);
+3. el **tema** (`estilos.py`);
+4. el valor de fábrica de interUI.
+
+Un valor declarado en la clase de la app solo gana si **cambia** algo respecto
+al de fábrica. Es decir: mientras no lo toques, el tema manda.
+
+### El catálogo: todo lo que se puede cambiar
+
+El proyecto trae el catálogo completo comentado: **un renglón por control con
+todas sus opciones**. Se descomenta lo que haga falta y se guarda:
+
+```python
+    # ── datos y tablas ──────────────────────────────────────────────
+    # "Table": dict(bg=…, color=…, border=…, rounded=…, shadow=…, pad=…, font=…, class_=…, header_bg=…),
+    # "RecordTable": dict(…, header_bg=…, header_color=…, cell_pad=…, striped=…, zebra=…),
+```
+
+### Tema por app
+
+`iui.py startapp` genera también `<app>/estilos.py`. Se suma al del proyecto y
+solo afecta a esa app:
+
+```python
+# ventas/estilos.py
+TEMA: dict[str, dict] = {
+    "VentaTable": dict(header_bg=ui.colors.emerald_100),
+}
+```
+
+### Desde código
+
+```python
+ui.aplicar_tema({"Button": dict(pad=ui.pad.px_6)})   # suma (lo último gana)
+ui.aplicar_tema({...}, reiniciar=True)               # borra lo anterior
+ui.reiniciar_tema()                                  # vuelve a fábrica
+ui.tema_actual()                                     # copia del tema vigente
+ui.estilos_de(ui.Card)                               # lo que le toca a un control
+```

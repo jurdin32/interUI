@@ -337,6 +337,8 @@ Cada pieza tiene una responsabilidad y no se solapan:
 | `<app>/forms.py` | formularios: un control por campo del modelo |
 | `<app>/tables.py` | la tabla: columnas, colores, cebra, clic, doble clic y menú |
 | `<app>/dialogs.py` | los modales de alta y edición: colores, esquinas y espaciados |
+| `<app>/estilos.py` | el tema de esa app: colores, tamaños y espaciados |
+| `<proyecto>/estilos.py` | el tema de **todas** las ventanas, con el catálogo completo comentado |
 | `<app>/models.py` | modelos del ORM; `makemigrations` los convierte en tablas |
 | `migrations/` | historial del esquema, en JSON legible y versionado |
 | `data/` | base de datos y archivos de la app (fuera de git) |
@@ -610,6 +612,28 @@ text-slate-700`: exactamente lo que escribirías en Tailwind, pero sin escribirl
 - **Nada desaparece**: `class_` y `style` siguen disponibles y siempre ganan.
 - **También con puntos**: los iconos (`icons.car`, `icons.edit`) y los
   enumerados de los controles (`variant.danger`, `tone.muted`, `size.lg`).
+
+### Un tema para todas las ventanas
+
+En vez de repetir colores en cada vista, el proyecto trae `estilos.py`:
+
+```python
+# mi_app/estilos.py
+import interui as ui
+
+TEMA: dict[str, dict] = {
+    "*": dict(rounded="2xl"),
+    "Button": dict(pad=ui.pad.px_6),
+    "RecordTable": dict(header_bg=ui.colors.slate_100, striped=True),
+    "Dialog": dict(rounded="2xl", body_pad=ui.pad.p_6),
+}
+```
+
+Se aplica una sola vez al arrancar y vale para **todas** las ventanas. Lo que se
+pase explícitamente a un control (o se declare en `tables.py`, `forms.py`,
+`dialogs.py`) sigue ganando. El archivo se genera con el catálogo completo
+comentado —un renglón por control con todas sus opciones— y cada app creada con
+`iui startapp` trae el suyo.
 
 👉 Referencia completa, tabla de argumentos y catálogo de tokens:
 [`docs/estilos.md`](docs/estilos.md).
@@ -1079,7 +1103,7 @@ python iui.py check             # revisa interui.json y la base de datos
 ```
 
 `iui startapp` crea `models.py`, `forms.py`, `dialogs.py`, `tables.py`,
-`views.py`, `urls.py` y `README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
+`estilos.py`, `views.py`, `urls.py` y `README.md`, añade la app a `apps` de `interui.json` y su `models.py` a la lista
 de migraciones: sus rutas se registran solas, un solo `migrate` pone al día
 todas las apps y el formulario de alta ya viene hecho.
 

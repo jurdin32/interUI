@@ -81,6 +81,8 @@ from pathlib import Path
 
 import interui as ui
 
+from . import estilos  # noqa: F401  (aplica el tema de `estilos.py`)
+
 #: `interui.json` vive un nivel por encima del paquete.
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONFIG = BASE_DIR / "interui.json"
@@ -284,6 +286,9 @@ def create_project(
         target / ".gitignore": "__pycache__/\n*.py[cod]\ndata/\nbuild/\ndist/\n*.spec\n.env\n",
         target / pkg / "__init__.py": _render(INIT_PY, display, pkg),
         target / pkg / "app.py": _render(APP_PY, display, pkg),
+        target / pkg / "estilos.py": _estilos(
+            f"toda la aplicación «{display}»", "Es el tema del proyecto: lo usan todas las ventanas."
+        ),
         target / "migrations" / ".gitkeep": "",
         target / "data" / ".gitkeep": "",
     }
@@ -490,6 +495,7 @@ No hay que registrarlas a mano: «{app}» está en `apps` de interui.json y
 
 from typing import Any, Callable
 
+from {app} import estilos  # noqa: F401  (aplica el tema de la app)
 from {app} import views
 
 URLPattern = tuple[str, Callable[..., Any], str]
@@ -621,6 +627,15 @@ def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Pat
         folder / "__init__.py": _fill(APP_INIT_PY, **values),
         folder / "models.py": _fill(APP_MODELS_PY, **values),
         folder / "forms.py": _fill(APP_FORMS_PY, **values),
+        folder / "estilos.py": _estilos(
+            f"la app «{package}»",
+            "Se suma al tema del proyecto: sirve para afinar solo lo de esta app.",
+            ejemplos=[
+                f'    # "{model}Form": dict(header_bg=ui.colors.slate_100),',
+                f'    # "{model}Table": dict(header_bg=ui.colors.slate_100, striped=True),',
+                f'    # "{model}Modal": dict(body_pad=ui.pad.p_5, gap=4),',
+            ],
+        ),
         folder / "dialogs.py": _fill(APP_DIALOGS_PY, **values),
         folder / "tables.py": _fill(APP_TABLES_PY, **values),
         folder / "views.py": _fill(APP_VIEWS_PY, **values),
@@ -630,6 +645,216 @@ def create_app_module(root: Path, name: str, *, force: bool = False) -> list[Pat
     written = _write_files(files, force)
     register_app(config_path, package)
     return written
+
+
+#: Módulos con controles que entran en el catálogo de `estilos.py`.
+_GRUPOS_CONTROLES = [
+    ("ventana y estructura", "interui.grid"),
+    ("tipografía", "interui.controls.typography"),
+    ("botones y acciones", "interui.controls.buttons"),
+    ("formularios", "interui.controls.inputs"),
+    ("datos y tablas", "interui.controls.data"),
+    ("retroalimentación", "interui.controls.feedback"),
+    ("contenedores y superposiciones", "interui.controls.layout"),
+    ("shell, menús y barras", "interui.controls.shell"),
+    ("navegación", "interui.controls.navigation"),
+    ("gráficos", "interui.controls.charts"),
+    ("medios", "interui.controls.media"),
+    ("avanzados", "interui.controls.advanced"),
+    ("etiquetas HTML", "interui.controls.tags"),
+    ("iconos", "interui.icons"),
+    ("formularios de modelo", "interui.forms"),
+    ("tablas de registro", "interui.records"),
+    ("diálogos", "interui.dialogs"),
+]
+
+#: Utilidades que se pueden fijar para cualquier control.
+_PROPS_GENERALES = ["bg", "color", "border", "rounded", "shadow", "pad", "font", "class_"]
+
+#: Opciones propias (además de las generales) de los controles grandes.
+_PROPS_PROPIAS = {
+    "Card": ["radius", "header_bg", "header_color", "header_border", "header_pad", "header_font", "footer_bg"],
+    "Table": [
+        "header_bg",
+        "header_color",
+        "cell_pad",
+        "header_pad",
+        "striped",
+        "zebra",
+        "hover",
+        "hover_bg",
+        "selected_bg",
+        "cell_colors",
+        "column_bg",
+    ],
+    "RecordTable": [
+        "header_bg",
+        "header_color",
+        "cell_pad",
+        "header_pad",
+        "striped",
+        "zebra",
+        "hover_bg",
+        "selected_bg",
+        "cell_colors",
+        "column_bg",
+        "card_options",
+    ],
+    "RecordPage": [
+        "title_font",
+        "title_color",
+        "title_bg",
+        "title_border",
+        "title_pad",
+        "title_align",
+        "title_full_width",
+        "title_rounded",
+        "counter_color",
+        "page_gap",
+    ],
+    "ModelForm": ["card_options", "field_gap", "header_bg", "header_color", "header_pad"],
+    "FormModal": ["width", "options"],
+    "Dialog": [
+        "bg",
+        "border",
+        "rounded",
+        "shadow",
+        "backdrop",
+        "header_bg",
+        "header_color",
+        "header_border",
+        "header_pad",
+        "title_font",
+        "footer_bg",
+        "footer_pad",
+        "body_pad",
+        "gap",
+    ],
+}
+
+#: Clases que no son controles pero también se estilan desde `estilos.py`.
+_EXTRA_CONTROLES = {"interui.forms": ["FormModal"]}
+
+
+def _controles_de(modulo: str) -> list[str]:
+    """Nombres de los controles (clases de `Component`) de un módulo."""
+    import importlib
+    import inspect
+
+    from .base import Component
+
+    paquete = importlib.import_module(modulo)
+    nombres = []
+    for nombre in getattr(paquete, "__all__", []):
+        objeto = getattr(paquete, nombre, None)
+        if inspect.isclass(objeto) and issubclass(objeto, Component):
+            nombres.append(nombre)
+    return sorted(set(nombres))
+
+
+def _props_de(nombre: str) -> str:
+    """Las opciones de un control, en un renglón: `bg=…, pad=…, header_bg=…`."""
+    props = list(_PROPS_GENERALES)
+    for extra in _PROPS_PROPIAS.get(nombre, []):
+        if extra not in props:
+            props.append(extra)
+    return ", ".join(f"{nombre_prop}=…" for nombre_prop in props)
+
+
+def catalogo_estilos() -> str:
+    """Catálogo comentado: todos los controles con las opciones que admiten."""
+    lineas: list[str] = []
+    for titulo, modulo in _GRUPOS_CONTROLES:
+        nombres = sorted(set(_controles_de(modulo)) | set(_EXTRA_CONTROLES.get(modulo, [])))
+        if not nombres:
+            continue
+        lineas.append(f"    # ── {titulo} " + "─" * max(4, 60 - len(titulo)))
+        for nombre in nombres:
+            lineas.append(f'    # "{nombre}": dict({_props_de(nombre)}),')
+        lineas.append("")
+    return "\n".join(lineas).rstrip()
+
+
+ESTILOS_PY = '''"""Colores, tamaños y estilos de {destino}.
+
+Este archivo se aplica **una sola vez** y vale para todas las ventanas: lo que
+declares aquí es el valor por defecto de cada control. Una vista puede seguir
+cambiándolo pasándolo explícitamente (lo explícito siempre gana).
+
+Cómo se escribe
+---------------
+- `"*"` afecta a **todos** los controles.
+- El nombre de un control (`"Card"`, `"Button"`, `"RecordTable"`…) afecta solo a
+  ese control.
+- Los valores son los mismos tokens de siempre: `ui.colors.red_500`,
+  `ui.pad.p_4`, `ui.font.lg.bold`, `ui.radius.xl`, `ui.shadow.md`…
+- Se admiten las variantes: `hover_bg`, `dark_bg`, `md_font`…
+
+Las utilidades que entiende cualquier control:
+
+    bg        color      border     ring      shadow    rounded
+    pad       margin     gap        font      opacity   w / h
+    class_    style
+
+Opciones propias de los controles grandes (también aquí):
+
+    Card        header_bg, header_color, header_border, header_pad,
+                header_font, footer_bg, radius
+    Table       header_bg, header_color, cell_pad, header_pad
+    RecordTable header_bg, header_color, cell_pad, header_pad, striped, zebra,
+                hover_bg, selected_bg, cell_colors, column_bg, card_options
+    RecordPage  title, title_font, title_color, title_bg, title_border,
+                title_pad, title_align, title_full_width, title_rounded,
+                counter, counter_color, page_gap
+    ModelForm   card_options, field_gap, header_bg, header_color, header_pad
+    Dialog      bg, rounded, shadow, backdrop, header_bg, header_color,
+                header_pad, title_font, footer_bg, body_pad, gap
+
+Ejemplo
+-------
+    TEMA = {
+        "*": dict(rounded="xl"),
+        "Button": dict(pad=ui.pad.px_4, font=ui.font.sm),
+        "Card": dict(bg=ui.colors.white, border=ui.colors.slate_200),
+        "RecordTable": dict(header_bg=ui.colors.slate_100),
+        "RecordPage": dict(title_bg=ui.colors.indigo_600,
+                           title_color=ui.colors.white),
+    }
+"""
+
+import interui as ui
+
+#: Valores por defecto por control. {nota}
+TEMA: dict[str, dict] = {
+{ejemplos}
+}
+
+# ── Catálogo completo ───────────────────────────────────────────────────────
+# Un renglón por control con las opciones que admite: descomenta, cambia el
+# valor y listo. `…` es el valor que le pongas (un token o una clase).
+#
+{catalogo}
+
+# Se aplica al importar este módulo (lo hace `app.py` o `urls.py`).
+ui.aplicar_tema(TEMA)
+'''
+
+
+def _estilos(destino: str, nota: str, ejemplos: list[str] | None = None) -> str:
+    """Contenido de `estilos.py`, con el catálogo completo ya rellenado."""
+    bloque = "\n".join(
+        ejemplos
+        or [
+            '    # "Card": dict(bg=ui.colors.white),',
+            '    # "RecordPage": dict(title_bg=ui.colors.indigo_600),',
+        ]
+    )
+    return (
+        ESTILOS_PY.replace("{destino}", destino)
+        .replace("{nota}", nota)
+        .replace("{ejemplos}", bloque)
+        .replace("{catalogo}", catalogo_estilos())
+    )
 
 
 def _fill(template: str, **values: str) -> str:

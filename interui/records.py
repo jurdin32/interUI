@@ -39,6 +39,7 @@ from .html import escape
 from .orm import Model
 from .simple import state as _state
 from .style import tw
+from .tema import por_defecto
 from .theme import Color, Token, gap, margin, pad, tone
 
 __all__ = ["RecordCounter", "RecordPage", "RecordTable", "RowAction"]
@@ -253,6 +254,20 @@ def _form_of(form: Any) -> Any:
     return form() if isinstance(form, type) else form
 
 
+def _preferir_tema(nombre: str, valor: Any, clase: type) -> Any:
+    """`valor` si la app lo declaró de verdad; si no, lo que diga el tema.
+
+    Los atributos de `RecordTable` son valores de fábrica: si la clase de la app
+    no los cambia, `estilos.py` puede fijarlos sin que la vista repita nada.
+    """
+    del_tema = por_defecto(clase, nombre)
+    if del_tema is None:
+        return valor
+    if valor is None or valor == getattr(RecordTable, nombre, None):
+        return del_tema
+    return valor
+
+
 class RecordTable(Component):
     """Tabla con lo guardado, usando las columnas del formulario.
 
@@ -426,10 +441,10 @@ class RecordTable(Component):
         super().__init__(**props)
 
     def _opcion(self, nombre: str, valor: Any = _FALTA) -> Any:
-        """Valor del argumento o, si no se pasó, el atributo de la clase."""
+        """Argumento, atributo de la clase o valor del tema global."""
         if valor is not _FALTA:
             return valor
-        return getattr(type(self), nombre, None)
+        return _preferir_tema(nombre, getattr(type(self), nombre, None), type(self))
 
     # -- estado de la tabla ---------------------------------------------
     def _key(self, suffix: str) -> str:
@@ -810,7 +825,14 @@ class RecordPage(Component):
         def heredado(nombre: str, valor: Any) -> Any:
             if valor is not None:
                 return valor
-            return getattr(declarada_tabla, nombre, None) if declarada_tabla else None
+            if declarada_tabla is not None:
+                declarado = getattr(declarada_tabla, nombre, None)
+                if declarado is not None and declarado != getattr(RecordTable, nombre, None):
+                    return declarado
+            del_tema = por_defecto(type(self), nombre)
+            if del_tema is None and declarada_tabla is not None:
+                del_tema = por_defecto(declarada_tabla, nombre)
+            return del_tema
 
         self.new_label = heredado("new_label", new_label) or "Nuevo"
         self.new_icon = heredado("new_icon", new_icon) or "plus"

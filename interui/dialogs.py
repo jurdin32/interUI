@@ -146,6 +146,22 @@ class Dialog(Component):
         gap: int | str | None = None,
         **props: Any,
     ) -> None:
+        from .tema import por_defecto
+
+        bg = por_defecto(type(self), "bg", bg)
+        border = por_defecto(type(self), "border", border)
+        rounded = por_defecto(type(self), "rounded", rounded)
+        shadow = por_defecto(type(self), "shadow", shadow)
+        backdrop = por_defecto(type(self), "backdrop", backdrop)
+        header_bg = por_defecto(type(self), "header_bg", header_bg)
+        header_color = por_defecto(type(self), "header_color", header_color)
+        header_border = por_defecto(type(self), "header_border", header_border)
+        header_pad = por_defecto(type(self), "header_pad", header_pad)
+        title_font = por_defecto(type(self), "title_font", title_font)
+        footer_bg = por_defecto(type(self), "footer_bg", footer_bg)
+        footer_pad = por_defecto(type(self), "footer_pad", footer_pad)
+        body_pad = por_defecto(type(self), "body_pad", body_pad)
+        gap = por_defecto(type(self), "gap", gap)
         self.dialog_title = title
         self.panel_bg = bg
         self.panel_border = border

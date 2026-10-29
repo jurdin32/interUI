@@ -1544,7 +1544,7 @@ Alias en minúsculas: `ui.card`
 Tarjeta con cabecera, cuerpo y pie.
 
 ```text
-ui.Card(*children, title=None, description=None, footer=None, icon=None, actions=None, padding=True, hover=False, radius="md", elevated=True, header_bg=None, header_color=None, header_border=None, header_pad=None, header_font=None, footer_bg=None)
+ui.Card(*children, title=None, description=None, footer=None, icon=None, actions=None, padding=True, hover=False, radius=None, elevated=True, header_bg=None, header_color=None, header_border=None, header_pad=None, header_font=None, footer_bg=None)
 ```
 
 ```python

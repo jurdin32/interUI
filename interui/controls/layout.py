@@ -9,6 +9,7 @@ from ..context import RenderContext
 from ..html import escape
 from ..icons import Icon
 from ..style import tw
+from ..tema import estilos_de, por_defecto
 from ..theme import Color, Token, utility
 from .buttons import Button
 
@@ -19,6 +20,13 @@ __all__ = [
 ]
 
 RADII = {"none": "rounded-none", "sm": "rounded-lg", "md": "rounded-xl", "lg": "rounded-2xl", "xl": "rounded-3xl"}
+
+
+def _radio(radius: Any) -> str:
+    """`radius`: alias de siempre (`"md"`), token (`ui.radius.xl`) o utilidad."""
+    if isinstance(radius, str) and radius in RADII:
+        return RADII[radius]
+    return _clase("rounded", radius) or RADII["md"]
 
 
 def _clase(prefix: str, value: Any) -> str:
@@ -48,7 +56,7 @@ class Card(Component):
         actions: Any = None,
         padding: bool = True,
         hover: bool = False,
-        radius: str = "md",
+        radius: str | None = None,
         elevated: bool = True,
         header_bg: Any = None,
         header_color: Any = None,
@@ -59,6 +67,15 @@ class Card(Component):
         **props: Any,
     ) -> None:
         self.card_title = title
+        radius = por_defecto(type(self), "radius", radius) or "md"
+        if not hover:
+            hover = bool(estilos_de(type(self)).get("hover", False))
+        header_bg = por_defecto(type(self), "header_bg", header_bg)
+        header_color = por_defecto(type(self), "header_color", header_color)
+        header_border = por_defecto(type(self), "header_border", header_border)
+        header_pad = por_defecto(type(self), "header_pad", header_pad)
+        header_font = por_defecto(type(self), "header_font", header_font)
+        footer_bg = por_defecto(type(self), "footer_bg", footer_bg)
         self.header_bg = header_bg
         self.header_color = header_color
         self.header_border = header_border
@@ -72,7 +89,7 @@ class Card(Component):
         self.padding = padding
         props["base_class"] = tw(
             "flex flex-col overflow-hidden border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900",
-            RADII.get(radius, RADII["md"]),
+            _radio(radius),
             "shadow-sm" if elevated else "",
             "transition hover:-translate-y-0.5 hover:shadow-md" if hover else "",
             props.get("base_class"),

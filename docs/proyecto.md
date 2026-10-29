@@ -16,12 +16,14 @@ mi_app/
 ├── .gitignore
 ├── mi_app/                 ← el paquete del proyecto (solo configuración)
 │   ├── __init__.py
-│   └── app.py              ← construye la App y el armazón de la ventana
+│   ├── app.py              ← construye la App y el armazón de la ventana
+│   └── estilos.py          ← el tema de todas las ventanas (colores, tamaños…)
 ├── ventas/                 ← una app del proyecto (`iui.py startapp ventas`)
 │   ├── models.py           ← sus tablas
 │   ├── forms.py            ← sus formularios
 │   ├── dialogs.py          ← sus modales (alta y edición)
 │   ├── tables.py           ← su tabla (columnas, colores, clic, menú)
+│   ├── estilos.py          ← el tema de esta app
 │   ├── views.py            ← sus páginas (una línea cada una)
 │   ├── urls.py
 │   └── README.md
@@ -208,6 +210,7 @@ sin recargar. Se explica en [menús](menus.md#el-armazón-de-toda-la-aplicación
 | cómo son los modales (colores, esquinas, espaciados) | `<app>/dialogs.py` |
 | una página | `<app>/views.py` |
 | una ruta nueva | `<app>/urls.py` |
+| los colores, tamaños y espaciados de todo | `mi_app/estilos.py` (y `<app>/estilos.py`) |
 | el menú y la barra de título | `mi_app/app.py` (`app.layout`) |
 | la base de datos y la ventana | `interui.json` |
 
@@ -245,6 +248,7 @@ desaparece al navegar y ninguna vista lo repite. Está explicado en
 
 Una app es una carpeta con `models.py` (tablas), `forms.py` (formularios),
 `tables.py` (cómo se ve y se usa la tabla), `dialogs.py` (los modales),
+`estilos.py` (sus colores y medidas),
 `views.py` (páginas) y `urls.py` (rutas). Cada cosa vive en su archivo y la vista solo une las piezas. Se crea con
 un comando y **no hay que registrarla a mano**:
 
